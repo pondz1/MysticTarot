@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { TarotCard } from '../data/tarotCards';
 import { TAROT_CARDS } from '../data/tarotCards';
@@ -25,6 +25,9 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const [useAi, setUseAi] = useState<boolean>(true);
   const [isShuffling, setIsShuffling] = useState(false);
   const [deck, setDeck] = useState<TarotCard[]>(() => shuffleArray([...TAROT_CARDS]));
+
+  const deckContainerRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // Reset selection when spreadMode changes
   useEffect(() => {
@@ -74,6 +77,17 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
 
       setSelectedCards(picked);
       setIsShuffling(false);
+
+      // Smoothly scroll container to center the first auto-picked card
+      if (indices.length > 0) {
+        const targetIdx = indices[0];
+        setTimeout(() => {
+          const targetEl = cardRefs.current[targetIdx];
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          }
+        }, 100);
+      }
 
       try {
         confetti({
@@ -203,7 +217,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       </div>
 
       {/* Fan Deck Display */}
-      <div className="relative w-full min-h-[220px] sm:min-h-[290px] md:min-h-[340px] overflow-x-auto pt-10 pb-2 sm:pt-14 sm:pb-4 md:pt-16 md:pb-6 scrollbar-none touch-pan-x">
+      <div ref={deckContainerRef} className="relative w-full min-h-[220px] sm:min-h-[290px] md:min-h-[340px] overflow-x-auto pt-10 pb-2 sm:pt-14 sm:pb-4 md:pt-16 md:pb-6 scrollbar-none touch-pan-x">
         <div className="flex justify-start items-center min-w-max px-8 sm:px-16 md:px-24 -space-x-12 sm:-space-x-10 md:-space-x-8 lg:-space-x-7 mx-auto">
           {deck.map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
@@ -212,6 +226,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             return (
               <motion.div
                 key={card.id}
+                ref={(el) => { cardRefs.current[idx] = el; }}
                 initial={{ y: 0, rotate: rotation }}
                 animate={
                   isShuffling
