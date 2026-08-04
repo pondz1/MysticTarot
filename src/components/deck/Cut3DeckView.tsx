@@ -40,6 +40,14 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
 
   const isSelectionComplete = selectedCards.length === targetCount;
 
+  // Reset selected pile state when selected cards are cleared externally (e.g. changing deck filter or resetting)
+  React.useEffect(() => {
+    if (selectedCards.length === 0) {
+      setSelectedPile(null);
+      setIsCutting(false);
+    }
+  }, [selectedCards.length]);
+
   // Get subset of deck for chosen pile
   const getPileCards = (pileIdx: number): TarotCard[] => {
     const sectionSize = Math.floor(deck.length / 3);

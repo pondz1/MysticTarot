@@ -38,6 +38,16 @@ export const MindfulHoldView: React.FC<MindfulHoldViewProps> = ({
     };
   }, []);
 
+  // Reset hold state when selected cards are cleared externally (e.g. changing deck filter or resetting)
+  useEffect(() => {
+    if (selectedCards.length === 0) {
+      setHoldFinished(false);
+      setProgress(0);
+      setIsHolding(false);
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, [selectedCards.length]);
+
   // Trigger completion when progress hits 100%
   useEffect(() => {
     if (progress >= 100 && !holdFinished && !isSelectionComplete) {
