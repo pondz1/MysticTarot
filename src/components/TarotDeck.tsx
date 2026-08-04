@@ -4,7 +4,7 @@ import type { TarotCard } from '../data/tarotCards';
 import { TAROT_CARDS } from '../data/tarotCards';
 import type { DrawnCard, SpreadMode } from '../types/tarot';
 import { getSpreadConfig } from '../data/tarotSpreads';
-import { Sparkles, RefreshCw, Eye, CheckCircle2, BookOpen } from 'lucide-react';
+import { Sparkles, RefreshCw, Eye, CheckCircle2, BookOpen, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface TarotDeckProps {
@@ -49,6 +49,37 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       setDeck(shuffleArray([...TAROT_CARDS]));
       setIsShuffling(false);
     }, 1200);
+  };
+
+  // Auto-pick mode ("ให้จักรวาลเลือกให้")
+  const handleAutoPick = () => {
+    if (isShuffling || isAnalyzing) return;
+
+    setIsShuffling(true);
+    setTimeout(() => {
+      const shuffled = shuffleArray([...TAROT_CARDS]);
+      setDeck(shuffled);
+
+      const picked: DrawnCard[] = shuffled.slice(0, targetCount).map((card, idx) => ({
+        card,
+        isReversed: Math.random() < 0.25,
+        position: getPositionName(idx)
+      }));
+
+      setSelectedCards(picked);
+      setIsShuffling(false);
+
+      try {
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: ['#EAB308', '#A855F7', '#38BDF8']
+        });
+      } catch (e) {
+        // ignore
+      }
+    }, 700);
   };
 
   // Helper to get position name from spread config
@@ -132,12 +163,22 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-3 mt-0.5">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-0.5">
+          <button
+            type="button"
+            disabled={isShuffling || isAnalyzing}
+            onClick={handleAutoPick}
+            className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 via-amber-500 to-purple-600 hover:from-amber-300 hover:to-purple-500 text-slate-950 font-bold border border-amber-200 shadow-[0_0_15px_rgba(234,179,8,0.4)] disabled:opacity-40 transition-all cursor-pointer hover:scale-105 active:scale-95"
+          >
+            <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950 animate-pulse" />
+            <span>ให้จักรวาลเลือกให้</span>
+          </button>
+
           <button
             type="button"
             disabled={isShuffling || selectedCards.length > 0 || isAnalyzing}
             onClick={handleShuffle}
-            className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-100 disabled:opacity-40 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3 py-1.5 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-100 disabled:opacity-40 transition-all cursor-pointer"
           >
             <RefreshCw className={`w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-300 ${isShuffling ? 'animate-spin' : ''}`} />
             <span>{isShuffling ? 'กำลังสับไพ่...' : 'สับไพ่ในสำรับ'}</span>
@@ -147,7 +188,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             <button
               type="button"
               onClick={handleResetSelection}
-              className="flex items-center gap-1.5 text-[11px] sm:text-xs px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 text-[11px] sm:text-xs px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 transition-all cursor-pointer"
             >
               <span>ล้างเลือกใหม่</span>
             </button>
