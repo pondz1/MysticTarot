@@ -38,6 +38,13 @@ export const MindfulHoldView: React.FC<MindfulHoldViewProps> = ({
     };
   }, []);
 
+  // Trigger completion when progress hits 100%
+  useEffect(() => {
+    if (progress >= 100 && !holdFinished && !isSelectionComplete) {
+      completeHold();
+    }
+  }, [progress, holdFinished, isSelectionComplete]);
+
   const handleStartHold = () => {
     if (isAnalyzing || isSelectionComplete || holdFinished) return;
 
@@ -48,9 +55,8 @@ export const MindfulHoldView: React.FC<MindfulHoldViewProps> = ({
 
     timerRef.current = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 100) {
+        if (prev + 4 >= 100) {
           if (timerRef.current) clearInterval(timerRef.current);
-          completeHold();
           return 100;
         }
         return prev + 4; // Fills 100% in ~1.25s
