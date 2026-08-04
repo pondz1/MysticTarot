@@ -525,6 +525,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "คว้าโอกาสและลงมือทำทันทีขณะที่ไฟยังมีอยู่!",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_ace.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -546,6 +547,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ก้าวออกจากพื้นที่ปลอดภัยและวางแผนอนาคตให้กว้างไกล",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_2.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -567,6 +569,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "มองไปข้างหน้าและพร้อมเปิดรับโอกาสใหม่ๆ ที่กำลังเดินทางมาถึง",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_3.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -588,6 +591,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ร่วมยินดีและเฉลิมฉลองกับความสำเร็จร่วมกับคนรอบข้าง",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_4.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -609,6 +613,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ใช้เหตุผลและเปิดใจรับฟังความคิดเห็นที่แตกต่างเพื่อก้าวผ่านความวุ่นวาย",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_5.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -630,6 +635,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ภาคภูมิใจในความสำเร็จอย่างอ่อนน้อมถ่อมตน",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_6.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -651,6 +657,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ยืนหยัดอย่างมั่นคง คุณอยู่ในตำแหน่งที่ได้เปรียบ!",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_7.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -672,6 +679,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เตรียมตัวให้พร้อมและดำเนินการอย่างรวดเร็วตามจังหวะโอกาส",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_8.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -693,6 +701,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "อดทนอีกนิดเดียว คุณใกล้ก้าวผ่านจุดที่ยากที่สุดแล้ว",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_9.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -714,6 +723,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เรียนรู้ที่จะปฏิเสธและกระจายงานให้ผู้อื่นช่วยแบ่งเบา",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_10.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -735,6 +745,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เปิดใจเรียนรู้สิ่งใหม่ด้วยความสดใสและกระตือรือร้น",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_page.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -756,6 +767,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ลุยเต็มที่แต่อย่าลืมควบคุมอารมณ์และความใจร้อน",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_knight.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -777,6 +789,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ใช้ความมั่นใจและเสน่ห์ความนอบน้อมสร้างความสำเร็จ",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_queen.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -798,6 +811,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ใช้พลังความเป็นผู้นำนำพาองค์กรและชีวิตไปสู่ความยิ่งใหญ่",
     iconSymbol: "wand",
     colorTheme: "from-amber-600 via-orange-600 to-red-700",
+    imageUrl: "/cards/wands_king.jpg",
     arcana: "minor",
     suit: "wands"
   },
@@ -821,6 +835,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เปิดหัวใจโอบรับความรักและความรู้สึกดีๆ ที่หลั่งไหลเข้ามา",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_ace.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -842,6 +857,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เปิดใจสื่อสารและสร้างพันธมิตรด้วยความซื่อสัตย์จริงใจ",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_2.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -863,6 +879,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "แบ่งปันความสุขและใช้เวลาร่วมกับคนที่คุณรัก",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_3.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -884,6 +901,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เงยหน้าขึ้นมองโอกาสใหม่ๆ ที่อยู่ตรงหน้าคุณอย่ามองข้ามมัน",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_4.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -905,6 +923,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "หันกลับมามองสิ่งที่ยังเหลืออยู่และก้าวเดินต่อไปข้างหน้า",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_5.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -926,6 +945,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "โอบรับความทรงจำดีๆ แต่อย่าลืมสร้างอัจฉริยภาพในปัจจุบัน",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_6.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -947,6 +967,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ดึงตัวเองกลับสู่ความจริงและเลือกสิ่งที่เป็นไปได้มากที่สุด",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_7.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -968,6 +989,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "กล้าที่จะเดินออกจากสิ่งที่ไม่ใช่อีกต่อไปเพื่อค้นพบตัวตนใหม่",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_8.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -989,6 +1011,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ดื่มด่ำกับความสุขและความสำเร็จในปัจจุบันของคุณ",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_9.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -1010,6 +1033,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "รักษาและแบ่งปันความอบอุ่นในครอบครัวและคนที่คุณรัก",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_10.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -1031,6 +1055,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "รับฟังความรู้สึกภายในและเปิดใจโอบรับความอ่อนโยน",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_page.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -1052,6 +1077,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "แสดงความรู้สึกและความจริงใจออกมาอย่างงดงาม",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_knight.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -1073,6 +1099,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เชื่อในสัญชาตญาณและความเมตตาในใจคุณ",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_queen.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -1094,6 +1121,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "รักษาสติและความสงบในใจท่ามกลางความวุ่นวายรอบข้าง",
     iconSymbol: "angel-cups",
     colorTheme: "from-blue-500 via-indigo-600 to-cyan-700",
+    imageUrl: "/cards/cups_king.jpg",
     arcana: "minor",
     suit: "cups"
   },
@@ -1117,6 +1145,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ใช้ความจริงและความเด็ดขาดในการแก้ปัญหา",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_ace.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1138,6 +1167,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ถอดผ้าปิดตาออกเพื่อมองความจริงและกล้าตัดสินใจ",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_2.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1159,6 +1189,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ยอมรับความเจ็บปวดและปล่อยให้เวลาช่วยรักษาแผลใจ",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_3.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1180,6 +1211,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ให้เวลาร่างกายและจิตใจได้พักผ่อนอย่างเต็มที่",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_4.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1201,6 +1233,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เลิกเอาชนะในเรื่องที่ไม่คุ้มค่ากับความสัมพันธ์",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_5.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1222,6 +1255,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ปล่อยให้เวลาช่วยพัดพาปัญหาออกไป สถานการณ์กำลังดีขึ้น",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_6.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1243,6 +1277,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "รอบคอบและอย่าใช้วิธีที่ไม่ซื่อสัตย์ในการแก้ปัญหา",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_7.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1264,6 +1299,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เปิดตาและปลดล็อกความคิดตนเอง ทางออกอยู่ไม่ไกล",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_8.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1285,6 +1321,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ตั้งสติ ปัญหาส่วนใหญ่เกิดจากความวิตกในหัวของคุณเอง",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_9.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1306,6 +1343,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ยอมรับการสิ้นสุด แล้วเตรียมตัวต้อนรับวันใหม่ที่ดีกว่าเดิม",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_10.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1327,6 +1365,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ใช้ความฉลาดสังเกตการณ์ แต่อย่าจับผิดผู้อื่นเกินไป",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_page.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1348,6 +1387,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ลุยด้วยความฉลาด แต่อย่าลืมถนอมน้ำใจผู้อื่น",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_knight.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1369,6 +1409,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ใช้เหตุผลและปัญญา แต่เพิ่มความอ่อนโยนลงไปในใจ",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_queen.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1390,6 +1431,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ยึดมั่นในความถูกต้องและตรรกะเหตุผลในการตัดสินใจ",
     iconSymbol: "scale-sword",
     colorTheme: "from-slate-600 via-cyan-800 to-sky-900",
+    imageUrl: "/cards/swords_king.jpg",
     arcana: "minor",
     suit: "swords"
   },
@@ -1413,6 +1455,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "คว้าโอกาสทางการเงินและวางรากฐานให้มั่นคง",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_ace.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1434,6 +1477,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "รักษาสมดุลและปรับตัวอย่างยืดหยุ่นตามสถานการณ์",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_2.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1455,6 +1499,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ร่วมมือกับผู้เชี่ยวชาญและตั้งใจสร้างผลงานคุณภาพ",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_3.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1476,6 +1521,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "รู้จักมัธยัสถ์ แต่อย่าให้ความตระหนี่ปิดกั้นโอกาสก้าวหน้า",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_4.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1497,6 +1543,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "อดทนและมองหาความช่วยเหลือที่อยู่ใกล้ตัวคุณ",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_5.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1518,6 +1565,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "รู้จักเป็นทั้งผู้ให้และผู้รับที่ดีด้วยความซื่อสัตย์",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_6.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1539,6 +1587,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "อดทนรอคอยและประเมินผลงานด้วยความใจเย็น",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_7.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1560,6 +1609,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ตั้งใจพัฒนาทักษะตนเอง ความขยันจะนำไปสู่ความมั่งคั่ง",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_8.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1581,6 +1631,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ภาคภูมิใจในความสำเร็จและเพลิดเพลินกับชีวิตที่คุณสร้างมา",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_9.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1602,6 +1653,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "สร้างรากฐานความมั่นคงและดูแลครอบครัวให้ยั่งยืน",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_10.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1623,6 +1675,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ตั้งใจเรียนรู้และวางรากฐานการเงินทีละก้าวอย่างตั้งใจ",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_page.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1644,6 +1697,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ทำงานด้วยความรอบคอบสม่ำเสมอ ช้าแต่ชัวร์จะนำไปสู่ความสำเร็จ",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_knight.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1665,6 +1719,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ดูแลตนเองและคนที่รักด้วยความอบอุ่นและความมั่นคง",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_queen.jpg",
     arcana: "minor",
     suit: "pentacles"
   },
@@ -1686,6 +1741,7 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ใช้อำนาจและความมั่งคั่งสร้างประโยชน์ยั่งยืนให้แก่สังคม",
     iconSymbol: "shield-crown",
     colorTheme: "from-emerald-600 via-teal-700 to-amber-700",
+    imageUrl: "/cards/pentacles_king.jpg",
     arcana: "minor",
     suit: "pentacles"
   }
