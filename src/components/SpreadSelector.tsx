@@ -1,70 +1,91 @@
 import React from 'react';
-import { Layers, Sparkle } from 'lucide-react';
+import type { SpreadMode } from '../types/tarot';
+import { TAROT_SPREADS } from '../data/tarotSpreads';
+import { Sparkles, Compass, Layers, Heart, Crown } from 'lucide-react';
 
 interface SpreadSelectorProps {
-  mode: 'single' | 'three';
-  onSelectMode: (mode: 'single' | 'three') => void;
+  mode: SpreadMode;
+  onSelectMode: (mode: SpreadMode) => void;
   disabled?: boolean;
 }
 
-export const SpreadSelector: React.FC<SpreadSelectorProps> = ({ mode, onSelectMode, disabled }) => {
+export const SpreadSelector: React.FC<SpreadSelectorProps> = ({
+  mode,
+  onSelectMode,
+  disabled = false
+}) => {
+  const renderIcon = (iconName: string, isSelected: boolean) => {
+    const iconClass = `w-5 h-5 ${isSelected ? 'text-amber-300' : 'text-purple-400'}`;
+    switch (iconName) {
+      case 'sparkles': return <Sparkles className={iconClass} />;
+      case 'compass': return <Compass className={iconClass} />;
+      case 'layers': return <Layers className={iconClass} />;
+      case 'heart': return <Heart className={iconClass} />;
+      case 'crown': return <Crown className={iconClass} />;
+      default: return <Sparkles className={iconClass} />;
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center gap-3 w-full max-w-xl mx-auto my-4">
-      <label className="text-xs uppercase tracking-widest font-semibold text-purple-300 flex items-center gap-1.5">
-        <Sparkle className="w-3.5 h-3.5 text-amber-400" />
-        เลือกรูปแบบการเปิดไพ่ยิปซี
-      </label>
-      
-      <div className="grid grid-cols-2 gap-3 w-full p-1.5 rounded-xl glass-panel border border-amber-500/30">
-        
-        {/* Single Card Mode */}
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => onSelectMode('single')}
-          className={`relative flex flex-col items-center justify-center p-3 md:p-4 rounded-lg transition-all text-center ${
-            mode === 'single'
-              ? 'bg-gradient-to-br from-amber-600/90 to-purple-900/90 text-amber-100 border border-amber-300 shadow-[0_0_20px_rgba(234,179,8,0.25)] font-bold'
-              : 'bg-black/30 text-purple-200/70 hover:bg-purple-900/40 hover:text-purple-100 border border-transparent'
-          }`}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl">🃏</span>
-            <span className="font-serif-mystic text-sm md:text-base">เลือกไพ่ 1 ใบ</span>
-          </div>
-          <p className="text-[11px] font-normal opacity-85">
-            สรุปภาพรวม / ดวงรายวัน / คำตอบฉับไว
-          </p>
-          {mode === 'single' && (
-            <span className="absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full bg-amber-400 border border-amber-200 shadow-sm" />
-          )}
-        </button>
+    <div className="w-full max-w-5xl mx-auto my-4 px-2">
+      <div className="text-center mb-3">
+        <span className="text-xs font-semibold text-amber-300 tracking-wider uppercase">
+          เลือกรูปแบบการทำนาย (Tarot Spreads)
+        </span>
+      </div>
 
-        {/* 3 Cards Mode */}
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => onSelectMode('three')}
-          className={`relative flex flex-col items-center justify-center p-3 md:p-4 rounded-lg transition-all text-center ${
-            mode === 'three'
-              ? 'bg-gradient-to-br from-amber-600/90 to-purple-900/90 text-amber-100 border border-amber-300 shadow-[0_0_20px_rgba(234,179,8,0.25)] font-bold'
-              : 'bg-black/30 text-purple-200/70 hover:bg-purple-900/40 hover:text-purple-100 border border-transparent'
-          }`}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <div className="flex -space-x-1">
-              <Layers className="w-5 h-5 text-amber-300" />
-            </div>
-            <span className="font-serif-mystic text-sm md:text-base">เลือกไพ่ 3 ใบ</span>
-          </div>
-          <p className="text-[11px] font-normal opacity-85">
-            อดีต - ปัจจุบัน - อนาคต / วิเคราะห์เชิงลึก
-          </p>
-          {mode === 'three' && (
-            <span className="absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full bg-amber-400 border border-amber-200 shadow-sm" />
-          )}
-        </button>
+      {/* Grid of 5 Spreads */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        {TAROT_SPREADS.map((spread) => {
+          const isSelected = mode === spread.id;
 
+          return (
+            <button
+              key={spread.id}
+              type="button"
+              disabled={disabled}
+              onClick={() => onSelectMode(spread.id)}
+              className={`relative flex flex-col justify-between p-3.5 rounded-2xl text-left transition-all duration-200 cursor-pointer disabled:opacity-50 ${
+                isSelected
+                  ? 'bg-gradient-to-b from-purple-900/90 via-purple-950/90 to-slate-900 border-2 border-amber-400 shadow-[0_0_20px_rgba(234,179,8,0.3)] scale-[1.02]'
+                  : 'glass-panel hover:border-amber-400/40 hover:bg-purple-950/40'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="p-1.5 rounded-xl bg-purple-950/80 border border-amber-400/30">
+                    {renderIcon(spread.iconName, isSelected)}
+                  </div>
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                    isSelected
+                      ? 'bg-amber-400 text-slate-950 border-amber-300'
+                      : 'bg-purple-950/60 text-amber-300/90 border-purple-500/30'
+                  }`}>
+                    {spread.cardCount} ใบ
+                  </span>
+                </div>
+
+                <h3 className={`text-sm font-bold font-serif-mystic mb-0.5 ${
+                  isSelected ? 'text-amber-200' : 'text-slate-200'
+                }`}>
+                  {spread.titleTh}
+                </h3>
+                <p className="text-[10px] text-purple-300/60 mb-2">{spread.titleEn}</p>
+
+                <p className="text-[11px] text-slate-300/80 leading-snug line-clamp-2">
+                  {spread.description}
+                </p>
+              </div>
+
+              {isSelected && (
+                <div className="mt-3 pt-2 border-t border-amber-400/30 text-[10px] text-amber-300 font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                  <span>กำลังใช้งานสเปรดนี้</span>
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

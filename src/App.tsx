@@ -9,15 +9,15 @@ import { ApiSettingsModal } from './components/ApiSettingsModal';
 import { CardListModal } from './components/CardListModal';
 import { CardDetailModal } from './components/CardDetailModal';
 import { HistoryModal } from './components/HistoryModal';
-import type { SavedReading } from './components/HistoryModal';
-import type { ApiSettings, DrawnCard } from './services/aiService';
-import { DEFAULT_API_SETTINGS, analyzeTarotReading, generateFallbackReading } from './services/aiService';
+import type { ApiSettings, DrawnCard, SavedReading, SpreadMode } from './types/tarot';
+import { analyzeTarotReading, generateFallbackReading } from './services/aiService';
+import { storageService } from './services/storageService';
 import type { TarotCard } from './data/tarotCards';
 import { Sparkles, Wand2 } from 'lucide-react';
 
 export function App() {
-  // Mode selection ('single' | 'three')
-  const [spreadMode, setSpreadMode] = useState<'single' | 'three'>('single');
+  // Mode selection ('single' | 'three' | 'four' | 'five' | 'celtic')
+  const [spreadMode, setSpreadMode] = useState<SpreadMode>('single');
   
   // User Question Input
   const [question, setQuestion] = useState<string>('');
@@ -37,60 +37,40 @@ export function App() {
   const [selectedInspectCard, setSelectedInspectCard] = useState<{ card: TarotCard; isReversed?: boolean } | null>(null);
   const [openedFromList, setOpenedFromList] = useState<boolean>(false);
 
-  // Persistent API Settings in localStorage
-  const [apiSettings, setApiSettings] = useState<ApiSettings>(() => {
-    try {
-      const saved = localStorage.getItem('tarot_api_settings');
-      return saved ? JSON.parse(saved) : DEFAULT_API_SETTINGS;
-    } catch {
-      return DEFAULT_API_SETTINGS;
-    }
-  });
+  // Persistent API Settings in localStorage via storageService
+  const [apiSettings, setApiSettings] = useState<ApiSettings>(() => storageService.getApiSettings());
 
-  // Persistent Saved Readings in localStorage
-  const [savedReadings, setSavedReadings] = useState<SavedReading[]>(() => {
-    try {
-      const saved = localStorage.getItem('tarot_saved_readings');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Persistent Saved Readings in localStorage via storageService
+  const [savedReadings, setSavedReadings] = useState<SavedReading[]>(() => storageService.getSavedReadings());
 
-  // Update localStorage when apiSettings changes
+  // Save API Settings handler
   const handleSaveApiSettings = (newSettings: ApiSettings) => {
     setApiSettings(newSettings);
-    localStorage.setItem('tarot_api_settings', JSON.stringify(newSettings));
+    storageService.saveApiSettings(newSettings);
   };
 
   // Save Current Reading to History
   const handleSaveCurrentReading = () => {
-    if (!readingResult || drawnCards.length === 0) return;
+    if (!readingResult || drawnCards.length === 0 || isSavedCurrent) return;
+
     const newEntry: SavedReading = {
       id: Date.now().toString(),
-      timestamp: new Date().toLocaleDateString('th-TH', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      question,
+      timestamp: Date.now(),
+      question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
       spreadMode,
       drawnCards,
-      resultText: readingResult
+      resultText: readingResult,
     };
 
-    const updated = [newEntry, ...savedReadings];
+    const updated = storageService.saveReading(newEntry);
     setSavedReadings(updated);
-    localStorage.setItem('tarot_saved_readings', JSON.stringify(updated));
     setIsSavedCurrent(true);
   };
 
   // Clear Saved History
   const handleClearHistory = () => {
+    storageService.clearSavedReadings();
     setSavedReadings([]);
-    localStorage.removeItem('tarot_saved_readings');
   };
 
   // Load a reading from history

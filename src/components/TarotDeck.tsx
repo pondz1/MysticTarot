@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { TarotCard } from '../data/tarotCards';
 import { TAROT_CARDS } from '../data/tarotCards';
-import type { DrawnCard } from '../services/aiService';
+import type { DrawnCard, SpreadMode } from '../types/tarot';
+import { getSpreadConfig } from '../data/tarotSpreads';
 import { Sparkles, RefreshCw, Eye, CheckCircle2, BookOpen } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface TarotDeckProps {
-  spreadMode: 'single' | 'three';
+  spreadMode: SpreadMode;
   onCardsSelected: (cards: DrawnCard[], useAi: boolean) => void;
   isAnalyzing: boolean;
 }
@@ -17,11 +18,18 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   onCardsSelected,
   isAnalyzing
 }) => {
-  const targetCount = spreadMode === 'single' ? 1 : 3;
+  const spreadConfig = getSpreadConfig(spreadMode);
+  const targetCount = spreadConfig.cardCount;
+
   const [selectedCards, setSelectedCards] = useState<DrawnCard[]>([]);
   const [useAi, setUseAi] = useState<boolean>(true);
   const [isShuffling, setIsShuffling] = useState(false);
   const [deck, setDeck] = useState<TarotCard[]>(() => shuffleArray([...TAROT_CARDS]));
+
+  // Reset selection when spreadMode changes
+  useEffect(() => {
+    setSelectedCards([]);
+  }, [spreadMode]);
 
   // Helper array shuffle
   function shuffleArray<T>(array: T[]): T[] {
@@ -43,12 +51,9 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     }, 1200);
   };
 
-  // Helper to get position name
+  // Helper to get position name from spread config
   const getPositionName = (index: number) => {
-    if (spreadMode === 'single') return 'ไพ่แทนคำทำนายประจำวัน';
-    if (index === 0) return 'ตำแหน่งที่ 1: อดีต / พื้นดวงชะตา';
-    if (index === 1) return 'ตำแหน่งที่ 2: ปัจจุบัน / สถานการณ์จริง';
-    return 'ตำแหน่งที่ 3: อนาคต / ทางออกและผลลัพธ์';
+    return spreadConfig.positions[index] || `ตำแหน่งที่ ${index + 1}`;
   };
 
   // Seamless Pick / Swap / Deselect card handler
@@ -74,7 +79,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       };
       setSelectedCards((prev) => [...prev, newCardEntry]);
     } else {
-      // 3. Selection is full -> Seamlessly swap/replace the last selected card with newly clicked card!
+      // 3. Selection is full -> Replace the last selected card with newly clicked card
       const updated = [...selectedCards];
       const replaceIndex = targetCount - 1;
       updated[replaceIndex] = {
@@ -98,7 +103,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         colors: ['#EAB308', '#A855F7', '#38BDF8']
       });
     } catch (e) {
-      // ignore if confetti fails
+      // ignore
     }
 
     onCardsSelected(selectedCards, useAi);
@@ -113,16 +118,16 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const isSelectionComplete = selectedCards.length === targetCount;
 
   return (
-    <div className="w-full flex flex-col items-center my-6">
-
-      {/* Selection Progress Header (Top) */}
+    <div className="w-full flex flex-col items-center my-4">
+      
+      {/* Selection Progress Header */}
       <div className="flex flex-col items-center gap-2 mb-2 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-950/80 border border-amber-400/30 text-amber-200 text-xs font-medium shadow-md">
           <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow" />
           <span>
             {isSelectionComplete
-              ? 'เลือกไพ่เรียบร้อยแล้ว! เลือกโหมดทำนายและกดยืนยันด้านล่าง'
-              : `กรุณาเลือกไพ่จากสำรับ (${selectedCards.length} / ${targetCount} ใบ)`}
+              ? `เลือกครบแล้ว (${targetCount}/${targetCount} ใบ)! เลือกโหมดทำนายและกดยืนยันด้านล่าง`
+              : `กรุณาเลือกไพ่จากสำรับสำหรับ "${spreadConfig.titleTh}" (${selectedCards.length} / ${targetCount} ใบ)`}
           </span>
         </div>
 
@@ -150,12 +155,11 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         </div>
       </div>
 
-      {/* Fan Deck Display (Interactive Card Selection - Middle) */}
+      {/* Fan Deck Display */}
       <div className="relative w-full min-h-[320px] md:min-h-[360px] overflow-x-auto py-12 md:py-16 scrollbar-none touch-pan-x">
         <div className="flex justify-start items-center min-w-max px-12 sm:px-16 md:px-24 -space-x-12 sm:-space-x-10 md:-space-x-8 lg:-space-x-7 mx-auto">
           {deck.map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
-            // Smooth fan rotation effect across all 22 cards
             const rotation = (idx - 10) * 2.2;
 
             return (
@@ -165,24 +169,24 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
                 animate={
                   isShuffling
                     ? {
-                      x: (Math.random() - 0.5) * 60,
-                      y: (Math.random() - 0.5) * 30,
-                      rotate: (Math.random() - 0.5) * 30,
-                    }
+                        x: (Math.random() - 0.5) * 60,
+                        y: (Math.random() - 0.5) * 30,
+                        rotate: (Math.random() - 0.5) * 30,
+                      }
                     : isPicked
-                      ? { y: -28, scale: 1.08, rotate: 0, zIndex: 40 }
-                      : { y: 0, rotate: rotation, zIndex: 1 }
+                    ? { y: -28, scale: 1.08, rotate: 0, zIndex: 40 }
+                    : { y: 0, rotate: rotation, zIndex: 1 }
                 }
                 whileHover={{ y: -20, scale: 1.05, zIndex: 30 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
                 onClick={() => handlePickCard(card)}
                 style={{ transform: 'translateZ(0)' }}
-                className={`relative w-24 h-40 sm:w-28 sm:h-44 md:w-32 md:h-52 rounded-xl cursor-pointer shadow-lg border bg-slate-900 flex flex-col items-center justify-center p-2 text-center select-none gpu-accelerated overflow-hidden ${isPicked
-                  ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.8)]'
-                  : 'border-amber-400/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.4)]'
-                  }`}
+                className={`relative w-24 h-40 sm:w-28 sm:h-44 md:w-32 md:h-52 rounded-xl cursor-pointer shadow-lg border bg-slate-900 flex flex-col items-center justify-center p-2 text-center select-none gpu-accelerated overflow-hidden ${
+                  isPicked
+                    ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.8)]'
+                    : 'border-amber-400/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.4)]'
+                }`}
               >
-                {/* Pure Card Back Image */}
                 <img
                   src="/cards/card_back.jpg"
                   alt="Tarot Back"
@@ -194,7 +198,6 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
                   }}
                 />
 
-                {/* Elegant Small Corner Checkmark Badge */}
                 {isPicked && (
                   <div className="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
                     <CheckCircle2 className="w-4 h-4 fill-slate-950 text-amber-400" />
@@ -206,15 +209,15 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         </div>
       </div>
 
-      {/* Helper Text (When not complete) */}
+      {/* Helper Text */}
       {!isSelectionComplete && (
         <p className="text-xs text-purple-300/70 mt-1 flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/40 border border-purple-800/30">
           <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span>แตะคลิกเลือกไพ่ที่สะดุดตาที่สุด ({selectedCards.length} / {targetCount}) • เลื่อนซ้าย-ขวาเพื่อดูไพ่เพิ่มเติม</span>
+          <span>แตะคลิกเลือกไพ่ประจำ {spreadConfig.titleTh} ({selectedCards.length} / {targetCount}) • เลื่อนซ้าย-ขวาเพื่อดูไพ่เพิ่ม</span>
         </p>
       )}
 
-      {/* Confirmation Banner (Placed Below the Deck with Reading Mode Toggle) */}
+      {/* Confirmation Banner */}
       {isSelectionComplete && !isAnalyzing && (
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -226,30 +229,31 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             <span>เลือกไพ่ครบถ้วน ({selectedCards.length} / {targetCount} ใบ)</span>
           </div>
 
-          {/* Reading Mode Selector Switch */}
           <div className="w-full flex items-center justify-center p-1 rounded-xl bg-black/60 border border-purple-500/40 gap-1">
             <button
               type="button"
               onClick={() => setUseAi(true)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${useAi
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-                : 'text-purple-300 hover:text-white hover:bg-purple-900/40'
-                }`}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                useAi
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+                  : 'text-purple-300 hover:text-white hover:bg-purple-900/40'
+              }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>วิเคราะห์ด้วย AI</span>
+              <span>🤖 วิเคราะห์ด้วย AI</span>
             </button>
 
             <button
               type="button"
               onClick={() => setUseAi(false)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${!useAi
-                ? 'bg-purple-800 text-amber-200 font-bold border border-amber-400/40 shadow-md'
-                : 'text-purple-300 hover:text-white hover:bg-purple-900/40'
-                }`}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                !useAi
+                  ? 'bg-purple-800 text-amber-200 font-bold border border-amber-400/40 shadow-md'
+                  : 'text-purple-300 hover:text-white hover:bg-purple-900/40'
+              }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>คำทำนายมาตรฐาน</span>
+              <span>📖 คำทำนายมาตรฐาน</span>
             </button>
           </div>
 
@@ -261,12 +265,12 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             {useAi ? (
               <>
                 <Sparkles className="w-5 h-5 text-purple-950 fill-purple-950" />
-                <span>ยืนยันวิเคราะห์ด้วย AI</span>
+                <span>🔮 ยืนยันวิเคราะห์ด้วย AI ({targetCount} ใบ)</span>
               </>
             ) : (
               <>
                 <BookOpen className="w-5 h-5 text-purple-950" />
-                <span>ยืนยันอ่านคำทำนายมาตรฐาน</span>
+                <span>🔮 ยืนยันอ่านคำทำนายมาตรฐาน ({targetCount} ใบ)</span>
               </>
             )}
           </button>

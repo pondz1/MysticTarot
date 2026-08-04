@@ -1,17 +1,6 @@
 import OpenAI from 'openai';
-import type { TarotCard } from '../data/tarotCards';
-
-export interface ApiSettings {
-  apiKey: string;
-  baseUrl: string;
-  model: string;
-}
-
-export interface DrawnCard {
-  card: TarotCard;
-  isReversed: boolean;
-  position: string; // e.g. "ไพ่แทนคำตอบประจำวัน" or "อดีต/พื้นดวง", "ปัจจุบัน/สถานการณ์", "อนาคต/ทางออก"
-}
+import type { ApiSettings, DrawnCard, SpreadMode } from '../types/tarot';
+import { getSpreadConfig } from '../data/tarotSpreads';
 
 export const DEFAULT_API_SETTINGS: ApiSettings = {
   apiKey: 'sk-dce7f4d0918d74dd-ocq0dk-310c8c1d',
@@ -37,24 +26,25 @@ export const PROVIDER_PRESETS: { name: string; baseUrl: string; model: string; a
 export async function analyzeTarotReading(
   question: string,
   drawnCards: DrawnCard[],
-  spreadMode: 'single' | 'three',
+  spreadMode: SpreadMode,
   settings: ApiSettings
 ): Promise<string> {
-  // If no API key is provided and not local ollama, use the built-in smart AI reader fallback
   const isLocalHost = settings.baseUrl.includes('localhost') || settings.baseUrl.includes('127.0.0.1');
   if (!settings.apiKey && !isLocalHost) {
     return generateFallbackReading(question, drawnCards, spreadMode);
   }
 
-  const systemPrompt = `คุณคือ "หมอดูไพ่ยิปซี AI (Celestial Tarot Prophet)" ที่มีความเชี่ยวชาญ หยั่งรู้ลึกซึ้ง มีความเมตตา ภาษาสละสลวยน่าเลื่อมใส และให้กำลังใจผู้เปิดไพ่
+  const spreadConfig = getSpreadConfig(spreadMode);
+
+  const systemPrompt = `คุณคือ "หมอดูไพ่ยิปซี AI (Celestial Tarot Prophet)" ผู้หยั่งรู้ดวงชะตา มีความเชี่ยวชาญศาสตร์ไพ่ยิปซีสากล ลึกซึ้ง มีความเมตตา ภาษาสละสลวยน่าเลื่อมใส และให้กำลังใจผู้เปิดไพ่
 
 หน้าที่ของคุณ:
-1. วิเคราะห์คำทำนายไพ่ยิปซีโดยเชื่อมโยงไพ่ที่ผู้ใช้จับได้ กับ "สิ่งที่ผู้ใช้ถาม/อยากรู้" อย่างตรงจุด
-2. ตอบเป็นภาษาไทย มีระดับภาษาลึกลับ สละสลวย น่าค้นหา แต่อ่านง่ายและเข้าใจชัดเจน
+1. วิเคราะห์คำทำนายไพ่ยิปซีโดยเชื่อมโยงไพ่ทุกใบที่จับได้ เข้ากับ "สิ่งที่ผู้ใช้ถาม/อยากรู้" อย่างตรงจุด
+2. ตอบเป็นภาษาไทย ระดับภาษาลึกลับ สละสลวย น่าค้นหา แต่อ่านง่ายและเข้าใจชัดเจน
 3. จัดรูปแบบผลทำนายด้วย Markdown โดยใช้โครงสร้างดังนี้:
-   - ## 🔮 ภาพรวมดวงชะตาและพลังงานไพ่
-   - ## 🃏 วิเคราะห์เจาะลึกตามไพ่แต่ละใบ (อธิบายความหมายไพ่กับตำแหน่งของไพ่)
-   - ## 💡 คำทำนายตอบคำถามสิ่งที่อยากรู้ (วิเคราะห์เจาะลึกประเด็นที่ถาม)
+   - ## 🔮 ภาพรวมดวงชะตาและพลังงานไพ่ (${spreadConfig.titleTh})
+   - ## 🃏 วิเคราะห์เจาะลึกตามไพ่แต่ละใบในตำแหน่งสเปรด
+   - ## 💡 บทสรุปตอบคำทำนายตรงประเด็นสิ่งที่อยากรู้
    - ## 🌟 คำแนะนำและข้อคิดจากจักรวาล (Actionable advice & Affirmation)`;
 
   const cardsDescription = drawnCards.map((d, index) => {
@@ -68,18 +58,19 @@ export async function analyzeTarotReading(
 - ธาตุประจำไพ่: ${d.card.element}`;
   }).join('\n\n');
 
-  const userPrompt = `คำถาม / สิ่งที่อยากรู้ของผู้ใช้: "${question || 'ดูดวงภาพรวมประจำวัน คำแนะนำทั่วไป'}"
-รูปแบบสเปรด: ${spreadMode === 'single' ? 'จับไพ่ 1 ใบ (คำตอบฉับไว/สรุปสกัด)' : 'จับไพ่ 3 ใบ (อดีต-ปัจจุบัน-อนาคต / สถานการณ์-อุปสรรค-ทางออก)'}
+  const userPrompt = `คำถาม / สิ่งที่อยากรู้ของผู้ใช้: "${question || 'ดูดวงภาพรวมประจำวันและคำแนะนำชีวิต'}"
+รูปแบบสเปรด: ${spreadConfig.titleTh} (${spreadConfig.badge})
+จำนวนไพ่: ${drawnCards.length} ใบ
 
-ไพ่ที่จับได้ทั้งหมด:
+ไพ่ที่จับได้ทั้งหมดตามตำแหน่ง:
 ${cardsDescription}
 
-โปรดทำนายอย่างละเอียด ลึกซึ้ง และตรงประเด็นคำถามของผู้ใช้`;
+โปรดทำนายอย่างละเอียด ลึกซึ้ง เชื่อมโยงความหมายไพ่กับตำแหน่งในสเปรด และตอบตรงประเด็นคำถามของผู้ใช้`;
 
   try {
     const cleanBaseUrl = settings.baseUrl.replace(/\/+$/, '');
     
-    // Initialize Official OpenAI Client with Browser Support
+    // Initialize Official OpenAI Client
     const client = new OpenAI({
       apiKey: settings.apiKey || 'ollama',
       baseURL: cleanBaseUrl,
@@ -93,7 +84,7 @@ ${cardsDescription}
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.7,
-      max_tokens: 1500,
+      max_tokens: 2200,
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -117,68 +108,43 @@ ${cardsDescription}
 export function generateFallbackReading(
   question: string,
   drawnCards: DrawnCard[],
-  spreadMode: 'single' | 'three',
+  spreadMode: SpreadMode,
   noticePrefix: string = ''
 ): string {
   const qText = question ? `"${question}"` : 'ดวงชะตารายวันและภาพรวมชีวิต';
+  const spreadConfig = getSpreadConfig(spreadMode);
 
-  if (spreadMode === 'single') {
-    const d = drawnCards[0];
+  let cardsSection = '';
+  drawnCards.forEach((d, idx) => {
+    const orientationText = d.isReversed ? 'ไพ่กลับหัว (Reversed)' : 'ไพ่ตั้งหัว (Upright)';
     const meaning = d.isReversed ? d.card.reversedMeaning : d.card.uprightMeaning;
-    
-    return `${noticePrefix}## 🔮 ภาพรวมพลังงานไพ่ประจำวัน
-สายลมแห่งโชคชะตาได้พัดพาไพ่ **${d.card.nameTh}** (${d.isReversed ? 'ไพ่กลับหัว' : 'ไพ่ตั้งหัว'}) มาปรากฏเบื้องหน้าคุณ เพื่อตอบรับสิ่งที่ถามถึง ${qText}
 
-## 🃏 วิเคราะห์เจาะลึกไพ่ ${d.card.nameTh}
-* **ธาตุประจำไพ่:** ${d.card.element} (${d.card.planetOrSign})
+    cardsSection += `### ${idx + 1}. ${d.position}: **${d.card.nameTh}** (${orientationText})
+* **ธาตุ/จักรราศี:** ${d.card.element} (${d.card.planetOrSign})
 * **คีย์เวิร์ดสำคัญ:** ${d.card.keywords.join(', ')}
+* **คำทำนายในตำแหน่งนี้:** ${meaning}
 
-${d.card.description}
+---
 
-**สาระสำคัญของไพ่:** ${meaning}
+`;
+  });
 
-## 💡 สารจากไพ่ถึงเรื่องที่อยากรู้ (${qText})
-* **ด้านงานและการเรียน:** ${d.card.work}
-* **ด้านความรักความสัมพันธ์:** ${d.card.love}
-* **ด้านการเงินและโชคลาภ:** ${d.card.finance}
+  const mainCard = drawnCards[0].card;
+  const outcomeCard = drawnCards[drawnCards.length - 1].card;
+
+  return `${noticePrefix}## 🔮 ภาพรวมการทำนาย: ${spreadConfig.titleTh}
+สำหรับการเปิดไพ่ถามถึง ${qText} ด้วยสเปรด **${spreadConfig.titleTh}** พลังงานแห่งจักรวาลสะท้อนบทเรียนและโอกาสในชีวิตของคุณดังนี้
+
+## 🃏 วิเคราะห์เจาะลึกไพ่ตามตำแหน่งสเปรด
+
+${cardsSection}
+
+## 💡 สรุปเชื่อมโยงคำตอบเรื่อง (${qText})
+พลังแห่งไพ่หลัก **${mainCard.nameTh}** บ่งบอกถึงจุดเริ่มต้นที่สำคัญ ขณะที่ไพ่ **${outcomeCard.nameTh}** ชี้แนะเส้นทางไปสู่ผลลัพธ์ จงใช้ปัญญา สติ และการตัดสินใจที่ถูกต้องตามคำชี้แนะของไพ่
 
 ## 🌟 คำแนะนำและข้อคิดจากจักรวาล
-${d.card.advice}
+* **คำแนะนำหลัก:** ${mainCard.advice}
+* **พลังบวกนำทาง:** ${outcomeCard.advice}
 
 *จำไว้ว่า ไพ่ยิปซีคือเข็มทิศชี้ทาง แต่อนาคตที่แท้จริงขึ้นอยู่กับสติและการตัดสินใจในปัจจุบันของคุณเอง*`;
-  } else {
-    const [c1, c2, c3] = drawnCards;
-
-    return `${noticePrefix}## 🔮 ภาพรวมการทำนาย 3 ชะตา
-สำหรับการถามถึง ${qText} พลังงานของไพ่ทั้งสามใบส่งสัญญาณถึงการเปลี่ยนผ่านและบทเรียนชีวิตที่ต่อเนื่องกันอย่างน่าสนใจ
-
-## 🃏 วิเคราะห์เจาะลึกไพ่ทั้ง 3 ใบ
-
-### 1. ตำแหน่งอดีต/รากฐานความคิด: **${c1.card.nameTh}** ${c1.isReversed ? '(กลับหัว)' : ''}
-* **คีย์เวิร์ด:** ${c1.card.keywords.join(', ')}
-* **คำทำนาย:** ${c1.isReversed ? c1.card.reversedMeaning : c1.card.uprightMeaning}
-
----
-
-### 2. ตำแหน่งปัจจุบัน/สถานการณ์จริง: **${c2.card.nameTh}** ${c2.isReversed ? '(กลับหัว)' : ''}
-* **คีย์เวิร์ด:** ${c2.card.keywords.join(', ')}
-* **คำทำนาย:** ${c2.isReversed ? c2.card.reversedMeaning : c2.card.uprightMeaning}
-
----
-
-### 3. ตำแหน่งอนาคต/ทางออกและผลลัพธ์: **${c3.card.nameTh}** ${c3.isReversed ? '(กลับหัว)' : ''}
-* **คีย์เวิร์ด:** ${c3.card.keywords.join(', ')}
-* **คำทำนาย:** ${c3.isReversed ? c3.card.reversedMeaning : c3.card.uprightMeaning}
-
----
-
-## 💡 สรุปการเชื่อมโยงคำตอบเรื่อง (${qText})
-พลังแห่งอดีตของ **${c1.card.nameTh}** ได้ส่งผลกระทบต่อเนื่องมาถึงปัจจุบันกับไพ่ **${c2.card.nameTh}** โดยมีไพ่ **${c3.card.nameTh}** ชี้แนะเส้นทางไปสู่อนาคต จงใช้ปัญญา ความใจเย็น และสติในการฟันฝ่าอุปสรรคตามคำแนะนำของไพ่
-
-## 🌟 คำแนะนำและข้อคิดจากจักรวาล
-* **คำแนะนำจากไพ่หลัก:** ${c2.card.advice}
-* **พลังบวกนำทาง:** ${c3.card.advice}
-
-*จงเชื่อมั่นในตนเอง ไพ่เป็นเพียงผู้เปิดเผยแสงสว่าง ส่วนคุณคือผู้กำหนดชะตาชีวิตของตนเอง*`;
-  }
 }
