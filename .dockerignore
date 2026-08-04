@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.gitignore
+.gemini
+*.log
+README.md
+card-list.md
+prompts.md
