@@ -261,12 +261,12 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             {useAi ? (
               <>
                 <Sparkles className="w-5 h-5 text-purple-950 fill-purple-950" />
-                <span>🔮 ยืนยันวิเคราะห์ด้วย AI</span>
+                <span>ยืนยันวิเคราะห์ด้วย AI</span>
               </>
             ) : (
               <>
                 <BookOpen className="w-5 h-5 text-purple-950" />
-                <span>🔮 ยืนยันอ่านคำทำนายมาตรฐาน</span>
+                <span>ยืนยันอ่านคำทำนายมาตรฐาน</span>
               </>
             )}
           </button>
