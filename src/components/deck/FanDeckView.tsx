@@ -26,10 +26,13 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
   const isSelectionComplete = selectedCards.length === targetCount;
   const [numRows, setNumRows] = useState<number>(2);
 
-  // Responsive rows: 3 rows on mobile (< 640px), 2 rows on tablet/desktop (>= 640px)
+  // Responsive row breaks: 4 rows (< 480px), 3 rows (< 840px), 2 rows (>= 840px)
   useEffect(() => {
     const updateRows = () => {
-      if (window.innerWidth < 640) {
+      const w = window.innerWidth;
+      if (w < 480) {
+        setNumRows(4);
+      } else if (w < 840) {
         setNumRows(3);
       } else {
         setNumRows(2);
@@ -58,14 +61,14 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
     const midIdx = (rowCards.length - 1) / 2;
 
     return (
-      <div className="flex justify-center items-center w-full max-w-full mx-auto my-1 sm:my-2.5">
+      <div className="flex justify-center items-center w-full max-w-full mx-auto my-1 sm:my-2">
         {rowCards.map((card, idx) => {
           const globalIdx = startIdxOffset + idx;
           const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
 
           // Gentle fan curve per row
-          const fanAngle = (idx - midIdx) * 1.8;
-          const arcY = Math.abs(idx - midIdx) * 1.2;
+          const fanAngle = (idx - midIdx) * 1.6;
+          const arcY = Math.abs(idx - midIdx) * 1.1;
 
           return (
             <motion.div
@@ -96,12 +99,14 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
               onClick={() => onPickCard(card)}
               style={{
                 transformOrigin: 'bottom center',
-                marginLeft: idx > 0 ? (numRows === 3 ? 'calc(-3.2vw - 8px)' : 'calc(-2.4vw - 10px)') : '0px',
+                marginLeft: idx > 0 ? (numRows === 4 ? '-2.8%' : numRows === 3 ? '-3.5%' : '-4.2%') : '0px',
               }}
               className={`relative rounded-lg sm:rounded-xl cursor-pointer shadow-2xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none overflow-hidden shrink-0 transition-shadow duration-200 ${
-                numRows === 3
-                  ? 'w-14 xs:w-16 sm:w-22 md:w-26 h-22 xs:h-26 sm:h-34 md:h-40'
-                  : 'w-12 xs:w-14 sm:w-24 md:w-28 lg:w-32 h-19 xs:h-22 sm:h-38 md:h-44 lg:h-50'
+                numRows === 4
+                  ? 'w-[15vw] max-w-[70px] min-w-[48px] h-[23vw] max-h-[108px] min-h-[74px]'
+                  : numRows === 3
+                  ? 'w-[11.5vw] max-w-[95px] min-w-[58px] h-[17.5vw] max-h-[148px] min-h-[90px]'
+                  : 'w-[8.5vw] max-w-[125px] min-w-[72px] h-[13vw] max-h-[192px] min-h-[110px]'
               } ${
                 isPicked
                   ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
@@ -136,7 +141,7 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
       {/* Responsive Multi-Row Magical Fan Deck Display */}
       <div
         ref={deckContainerRef}
-        className="relative w-full max-w-5xl md:max-w-6xl flex flex-col items-center justify-center pt-6 pb-4 sm:pt-10 sm:pb-6 px-1 sm:px-4 my-2"
+        className="relative w-full max-w-5xl md:max-w-6xl flex flex-col items-center justify-center pt-6 pb-4 sm:pt-10 sm:pb-6 px-2 my-2 overflow-hidden"
       >
         {deckRows.map((rowCards, rIdx) => {
           const offset = rIdx * Math.ceil(deck.length / numRows);
