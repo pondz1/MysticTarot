@@ -9,6 +9,8 @@ import confetti from 'canvas-confetti';
 import { DeckModeSelector } from './deck/DeckModeSelector';
 import { FanDeckView } from './deck/FanDeckView';
 import { Cut3DeckView } from './deck/Cut3DeckView';
+import { OrbitDeckView } from './deck/OrbitDeckView';
+import { MindfulHoldView } from './deck/MindfulHoldView';
 import { DeckConfirmation } from './deck/DeckConfirmation';
 
 interface TarotDeckProps {
@@ -110,7 +112,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     }, 700);
   };
 
-  // Seamless Pick / Swap / Deselect card handler for manual fan deck
+  // Seamless Pick / Swap / Deselect card handler for manual fan deck & orbit view
   const handlePickCard = (card: TarotCard) => {
     if (isShuffling || isAnalyzing) return;
 
@@ -194,8 +196,8 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           disabled={isShuffling || isAnalyzing}
         />
 
-        {/* Action Controls for Fan Deck Mode */}
-        {selectionMode !== 'cut3' && (
+        {/* Action Controls for Fan Deck Mode & Orbit Mode */}
+        {(selectionMode === 'manual' || selectionMode === 'auto') && (
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-0.5">
             <button
               type="button"
@@ -233,6 +235,24 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       {/* Render Selected View Strategy */}
       {selectionMode === 'cut3' ? (
         <Cut3DeckView
+          deck={deck}
+          selectedCards={selectedCards}
+          targetCount={targetCount}
+          isAnalyzing={isAnalyzing}
+          onPickCardsBatch={(cards) => setSelectedCards(cards)}
+          getPositionName={getPositionName}
+          onReset={handleResetSelection}
+        />
+      ) : selectionMode === 'orbit' ? (
+        <OrbitDeckView
+          deck={deck}
+          selectedCards={selectedCards}
+          targetCount={targetCount}
+          isAnalyzing={isAnalyzing}
+          onPickCard={handlePickCard}
+        />
+      ) : selectionMode === 'hold' ? (
+        <MindfulHoldView
           deck={deck}
           selectedCards={selectedCards}
           targetCount={targetCount}
