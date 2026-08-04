@@ -169,15 +169,15 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
                         rotate: (Math.random() - 0.5) * 30,
                       }
                     : isPicked
-                    ? { y: -24, scale: 1.05, rotate: 0 }
-                    : { y: 0, rotate: rotation }
+                    ? { y: -28, scale: 1.08, rotate: 0, zIndex: 40 }
+                    : { y: 0, rotate: rotation, zIndex: 1 }
                 }
                 whileHover={{ y: -20, scale: 1.05, zIndex: 30 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
                 onClick={() => handlePickCard(card)}
                 className={`relative w-24 h-40 sm:w-28 sm:h-44 md:w-32 md:h-52 rounded-xl cursor-pointer shadow-lg border bg-slate-900 flex flex-col items-center justify-center p-2 text-center select-none will-change-transform overflow-hidden ${
                   isPicked
-                    ? 'border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(234,179,8,0.6)]'
+                    ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.8)]'
                     : 'border-amber-400/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.4)]'
                 }`}
               >
@@ -187,20 +187,16 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
                   alt="Tarot Back"
                   loading="eager"
                   decoding="async"
-                  className={`absolute inset-0 w-full h-full object-cover z-0 pointer-events-none transition-opacity ${
-                    isPicked ? 'opacity-70' : 'opacity-100'
-                  }`}
+                  className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
 
-                {/* Selected Indicator Badge */}
+                {/* Elegant Small Corner Checkmark Badge */}
                 {isPicked && (
-                  <div className="absolute inset-0 z-10 bg-amber-950/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1 p-2 text-amber-200">
-                    <CheckCircle2 className="w-6 h-6 text-amber-400" />
-                    <span className="text-[10px] font-bold">เลือกแล้ว</span>
-                    <span className="text-[9px] text-amber-300/80 underline">แตะสลับ/ยกเลิก</span>
+                  <div className="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
+                    <CheckCircle2 className="w-4 h-4 fill-slate-950 text-amber-400" />
                   </div>
                 )}
               </motion.div>
