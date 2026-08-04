@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import type { TarotCard } from '../../data/tarotCards';
 import type { DrawnCard } from '../../types/tarot';
 import { Orbit, CheckCircle2, RotateCcw, RotateCw, Eye } from 'lucide-react';
@@ -58,7 +57,6 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
   }, []);
 
   const totalCards = deck.length;
-  const angleStep = 360 / totalCards;
 
   const handlePointerDown = (e: React.PointerEvent) => {
     setIsDragging(true);
@@ -151,7 +149,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
-        className="relative w-full max-w-4xl sm:max-w-5xl h-[330px] xs:h-[370px] sm:h-[450px] md:h-[520px] flex items-center justify-center overflow-visible cursor-grab active:cursor-grabbing touch-pan-y my-2 sm:my-4 px-4 py-4"
+        className="relative w-full max-w-4xl sm:max-w-5xl h-[340px] xs:h-[380px] sm:h-[460px] md:h-[530px] flex items-center justify-center overflow-visible cursor-grab active:cursor-grabbing touch-pan-y my-2 sm:my-4 px-4 py-4"
       >
         {/* Central Cosmic Core Icon */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
@@ -161,58 +159,51 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         </div>
 
         {/* Rotatable Wheel Container - hardware accelerated transform */}
-        <motion.div
-          animate={{ rotate: rotationDeg }}
-          transition={isDragging ? { duration: 0 } : { type: 'spring', stiffness: 260, damping: 28 }}
-          style={{ transformOrigin: 'center center', willChange: 'transform' }}
+        <div
+          style={{
+            transform: `rotate(${rotationDeg}deg)`,
+            transformOrigin: 'center center',
+            willChange: 'transform',
+            transition: isDragging ? 'none' : 'transform 0.15s ease-out',
+          }}
           className="relative w-full h-full flex items-center justify-center"
         >
           {deck.map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
 
-            // Fixed angle position on circle stage
-            const baseAngle = idx * angleStep;
+            // Use 2 concentric rings for large decks (56/78 cards) to avoid crowding and boost 60FPS performance
+            const isLargeDeck = totalCards > 50;
+            const useInnerRing = isLargeDeck && idx % 2 === 1;
+
+            const ringCount = isLargeDeck ? (useInnerRing ? Math.floor(totalCards / 2) : Math.ceil(totalCards / 2)) : totalCards;
+            const ringIdx = isLargeDeck ? Math.floor(idx / 2) : idx;
+            const ringAngleStep = 360 / ringCount;
+
+            const baseAngle = ringIdx * ringAngleStep;
             const rad = (baseAngle * Math.PI) / 180;
 
-            const rCurr = radius + (isPicked ? 12 : 0);
-            const x = Math.sin(rad) * rCurr;
-            const y = -Math.cos(rad) * rCurr;
-            const xFloat = Math.sin(rad) * (rCurr - 4);
-            const yFloat = -Math.cos(rad) * (rCurr - 4);
+            const effectiveRadius = (useInnerRing ? radius * 0.65 : radius) + (isPicked ? 12 : 0);
+            const x = Math.sin(rad) * effectiveRadius;
+            const y = -Math.cos(rad) * effectiveRadius;
 
             return (
-              <motion.div
+              <div
                 key={card.id}
-                initial={{ x, y, rotate: baseAngle, scale: 1 }}
-                animate={
-                  isPicked
-                    ? { x, y, rotate: baseAngle, scale: 1.12, zIndex: 50 }
-                    : {
-                        x: [x, xFloat, x],
-                        y: [y, yFloat, y],
-                        rotate: baseAngle,
-                        scale: 1,
-                        zIndex: 10,
-                      }
-                }
-                whileHover={{ scale: 1.15, zIndex: 45 }}
-                transition={{
-                  duration: 0.2,
-                  ease: 'easeOut',
-                  x: isPicked ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: (idx % 12) * 0.15 },
-                  y: isPicked ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: (idx % 12) * 0.15 },
-                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isAnalyzing) onPickCard(card);
                 }}
                 style={{
                   position: 'absolute',
+                  transform: `translate3d(${x}px, ${y}px, 0px) rotate(${baseAngle}deg) scale(${isPicked ? 1.15 : 1})`,
+                  transformOrigin: 'center center',
+                  zIndex: isPicked ? 50 : useInnerRing ? 20 : 10,
+                  willChange: 'transform',
                 }}
-                className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-shadow duration-150 ${
+                className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-all duration-150 ${
                   isPicked
                     ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
-                    : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_24px_rgba(234,179,8,0.6)]'
+                    : 'border-amber-400/40 hover:border-amber-300 hover:scale-110 hover:shadow-[0_0_24px_rgba(234,179,8,0.6)]'
                 }`}
               >
                 <img
@@ -229,10 +220,10 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                     <CheckCircle2 className="w-3 h-3 fill-slate-950 text-amber-400" />
                   </div>
                 )}
-              </motion.div>
+              </div>
             );
           })}
-        </motion.div>
+        </div>
       </div>
 
       {/* Touch Swipe Hint */}

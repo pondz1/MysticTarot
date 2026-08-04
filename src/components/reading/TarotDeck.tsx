@@ -29,7 +29,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const targetCount = spreadConfig.cardCount;
 
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('manual');
-  const [deckFilter, setDeckFilter] = useState<'all' | 'major' | 'minor'>('all');
+  const [deckFilter, setDeckFilter] = useState<'all' | 'major' | 'minor'>('major');
   const [selectedCards, setSelectedCards] = useState<DrawnCard[]>([]);
   const [useAi, setUseAi] = useState<boolean>(true);
   const [isShuffling, setIsShuffling] = useState(false);
@@ -44,7 +44,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     return TAROT_CARDS;
   };
 
-  const [deck, setDeck] = useState<TarotCard[]>(() => shuffleArray(getFilteredCards('all')));
+  const [deck, setDeck] = useState<TarotCard[]>(() => shuffleArray(getFilteredCards('major')));
 
   const deckContainerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -193,7 +193,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center my-2 sm:my-4">
-      
+
       {/* Header Badge */}
       <div className="w-full max-w-full px-2 flex flex-col items-center gap-1.5 sm:gap-2 mb-2 text-center">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-purple-950/80 border border-amber-400/30 text-amber-200 text-[10px] sm:text-xs font-medium shadow-md">
@@ -211,11 +211,10 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             type="button"
             disabled={isShuffling || isAnalyzing}
             onClick={() => handleFilterChange('all')}
-            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${
-              deckFilter === 'all'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
-            }`}
+            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${deckFilter === 'all'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+              : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+              }`}
           >
             🔮 ทั้งสำรับ (78)
           </button>
@@ -223,11 +222,10 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             type="button"
             disabled={isShuffling || isAnalyzing}
             onClick={() => handleFilterChange('major')}
-            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${
-              deckFilter === 'major'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
-            }`}
+            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${deckFilter === 'major'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+              : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+              }`}
           >
             🌟 Major (22)
           </button>
@@ -235,11 +233,10 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             type="button"
             disabled={isShuffling || isAnalyzing}
             onClick={() => handleFilterChange('minor')}
-            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${
-              deckFilter === 'minor'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
-            }`}
+            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${deckFilter === 'minor'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+              : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+              }`}
           >
             🃏 Minor (56)
           </button>
