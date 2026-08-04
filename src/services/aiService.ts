@@ -85,6 +85,7 @@ ${cardsDescription}
         ],
         temperature: 0.7,
         max_tokens: 1500,
+        stream: false,
       }),
     });
 
@@ -94,8 +95,52 @@ ${cardsDescription}
       return generateFallbackReading(question, drawnCards, spreadMode, `⚠️ (ข้อความจาก API: ${response.statusText} - ระบบสลับมาใช้ Smart AI Reader อัตโนมัติ)\n\n`);
     }
 
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || generateFallbackReading(question, drawnCards, spreadMode);
+    const rawText = await response.text();
+    let data: any;
+
+    try {
+      // Standard JSON parse
+      data = JSON.parse(rawText.trim());
+    } catch {
+      // Robust fallback: Extract first valid JSON object if response has trailing text or concatenated JSON
+      const firstJsonMatch = rawText.match(/\{[\s\S]*?\}(?=\s*(\{|data:|\n|$))/);
+      if (firstJsonMatch) {
+        try {
+          data = JSON.parse(firstJsonMatch[0]);
+        } catch {
+          // ignore
+        }
+      }
+
+      // Robust fallback for SSE streaming responses (data: {...})
+      if (!data && rawText.includes('data:')) {
+        const lines = rawText.split('\n');
+        let accumulatedText = '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data:') && !trimmed.includes('[DONE]')) {
+            try {
+              const jsonStr = trimmed.replace(/^data:\s*/, '');
+              const chunk = JSON.parse(jsonStr);
+              const content = chunk.choices?.[0]?.delta?.content || chunk.choices?.[0]?.message?.content || '';
+              accumulatedText += content;
+            } catch {
+              // ignore chunk parse error
+            }
+          }
+        }
+        if (accumulatedText.trim()) {
+          return accumulatedText;
+        }
+      }
+    }
+
+    const aiContent = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || data?.content;
+    if (aiContent && typeof aiContent === 'string' && aiContent.trim()) {
+      return aiContent;
+    }
+
+    return generateFallbackReading(question, drawnCards, spreadMode);
   } catch (error) {
     console.error('Failed to connect to OpenAI API:', error);
     return generateFallbackReading(question, drawnCards, spreadMode, `⚠️ (ไม่สามารถเชื่อมต่อ API ได้: ${error instanceof Error ? error.message : 'Connection Error'} - ระบบใช้ Smart AI Reader อัตโนมัติ)\n\n`);
