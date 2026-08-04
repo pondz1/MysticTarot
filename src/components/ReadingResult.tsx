@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Sparkles, Copy, Check, RefreshCw, Save, Feather, Moon } from 'lucide-react';
 
 interface ReadingResultProps {
@@ -23,56 +25,6 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
     navigator.clipboard.writeText(resultText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  // Helper to parse markdown-like headers for beautiful display
-  const renderFormattedMarkdown = (content: string) => {
-    const lines = content.split('\n');
-    return lines.map((line, idx) => {
-      if (line.startsWith('## ')) {
-        return (
-          <h2 key={idx} className="text-base md:text-lg font-bold font-serif-mystic text-gold-gradient mt-6 mb-3 pb-1 border-b border-amber-500/30 flex items-center gap-2">
-            <span>{line.replace('## ', '')}</span>
-          </h2>
-        );
-      }
-      if (line.startsWith('### ')) {
-        return (
-          <h3 key={idx} className="text-sm md:text-base font-bold text-amber-200 mt-4 mb-2">
-            {line.replace('### ', '')}
-          </h3>
-        );
-      }
-      if (line.startsWith('* ') || line.startsWith('- ')) {
-        return (
-          <li key={idx} className="ml-4 list-disc text-slate-200 text-xs md:text-sm my-1 leading-relaxed">
-            {renderBoldText(line.replace(/^[\*\-]\s+/, ''))}
-          </li>
-        );
-      }
-      if (line.trim() === '---') {
-        return <hr key={idx} className="my-4 border-amber-500/20" />;
-      }
-      if (line.trim() === '') {
-        return <div key={idx} className="h-2" />;
-      }
-      return (
-        <p key={idx} className="text-xs md:text-sm text-slate-200 my-1.5 leading-relaxed">
-          {renderBoldText(line)}
-        </p>
-      );
-    });
-  };
-
-  // Format **bold** text inline
-  const renderBoldText = (text: string) => {
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} className="text-amber-200 font-semibold">{part.slice(2, -2)}</strong>;
-      }
-      return part;
-    });
   };
 
   return (
@@ -133,9 +85,90 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
             </div>
           </div>
 
-          {/* Formatted Content */}
-          <div className="prose prose-invert max-w-none font-prompt">
-            {renderFormattedMarkdown(resultText)}
+          {/* Formatted Content via ReactMarkdown & remarkGfm */}
+          <div className="prose prose-invert max-w-none font-prompt text-slate-200 text-xs md:text-sm leading-relaxed">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                h1: ({ children }) => (
+                  <h2 className="text-base md:text-lg font-bold font-serif-mystic text-gold-gradient mt-6 mb-3 pb-1 border-b border-amber-500/30 flex items-center gap-2">
+                    {children}
+                  </h2>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-base md:text-lg font-bold font-serif-mystic text-gold-gradient mt-6 mb-3 pb-1 border-b border-amber-500/30 flex items-center gap-2">
+                    {children}
+                  </h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="text-sm md:text-base font-bold text-amber-200 mt-4 mb-2">
+                    {children}
+                  </h3>
+                ),
+                p: ({ children }) => (
+                  <p className="my-2 leading-relaxed text-slate-200">
+                    {children}
+                  </p>
+                ),
+                strong: ({ children }) => (
+                  <strong className="text-amber-200 font-semibold">
+                    {children}
+                  </strong>
+                ),
+                blockquote: ({ children }) => (
+                  <blockquote className="my-4 pl-4 border-l-4 border-amber-400 bg-amber-500/10 py-2.5 px-4 rounded-r-xl italic text-amber-200/95 shadow-sm">
+                    {children}
+                  </blockquote>
+                ),
+                ul: ({ children }) => (
+                  <ul className="my-2 ml-4 list-disc space-y-1 text-slate-200">
+                    {children}
+                  </ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="my-2 ml-4 list-decimal space-y-1 text-slate-200">
+                    {children}
+                  </ol>
+                ),
+                li: ({ children }) => (
+                  <li className="leading-relaxed">
+                    {children}
+                  </li>
+                ),
+                hr: () => (
+                  <hr className="my-4 border-amber-500/20" />
+                ),
+                table: ({ children }) => (
+                  <div className="my-4 overflow-x-auto rounded-xl border border-amber-500/30 bg-slate-950/70 p-2 shadow-inner">
+                    <table className="w-full text-xs md:text-sm text-left text-slate-200 border-collapse">
+                      {children}
+                    </table>
+                  </div>
+                ),
+                thead: ({ children }) => (
+                  <thead className="bg-amber-500/20 text-amber-200 font-bold border-b border-amber-500/30 border-amber-500/30">
+                    {children}
+                  </thead>
+                ),
+                th: ({ children }) => (
+                  <th className="px-3 py-2 text-amber-300 font-semibold border-b border-amber-500/30">
+                    {children}
+                  </th>
+                ),
+                tr: ({ children }) => (
+                  <tr className="border-b border-amber-500/10 hover:bg-amber-500/10 transition-colors">
+                    {children}
+                  </tr>
+                ),
+                td: ({ children }) => (
+                  <td className="px-3 py-2 align-top">
+                    {children}
+                  </td>
+                ),
+              }}
+            >
+              {resultText}
+            </ReactMarkdown>
           </div>
 
           {/* Footer Action to start new reading */}

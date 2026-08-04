@@ -96,7 +96,7 @@ ${cardsDescription}
 
   try {
     const cleanBaseUrl = settings.baseUrl.replace(/\/+$/, '');
-    
+
     // Initialize Official OpenAI Client
     const client = new OpenAI({
       apiKey: settings.apiKey || 'ollama',
@@ -111,7 +111,7 @@ ${cardsDescription}
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.7,
-      max_tokens: 2200,
+      max_tokens: 5000,
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -138,8 +138,8 @@ export function cleanAiResponse(rawContent: string): string {
   // 1. Remove <think>...</think> tags (common in DeepSeek / Reasoning models)
   let cleaned = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
-  // 2. Extract content starting from the first Markdown heading (e.g., ## 🔮 or ## 🃏)
-  const headingMatch = cleaned.match(/(##\s*🔮?[\s\S]*)/i);
+  // 2. Extract content starting from the first Markdown heading (e.g., # 🔮 or ## 🔮 or ## 🃏)
+  const headingMatch = cleaned.match(/(#+\s*🔮?[\s\S]*)/i);
   if (headingMatch && headingMatch[1]) {
     cleaned = headingMatch[1].trim();
   } else {
