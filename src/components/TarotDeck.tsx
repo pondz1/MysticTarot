@@ -11,6 +11,7 @@ import { FanDeckView } from './deck/FanDeckView';
 import { Cut3DeckView } from './deck/Cut3DeckView';
 import { OrbitDeckView } from './deck/OrbitDeckView';
 import { MindfulHoldView } from './deck/MindfulHoldView';
+import { AutoDeckView } from './deck/AutoDeckView';
 import { DeckConfirmation } from './deck/DeckConfirmation';
 
 interface TarotDeckProps {
@@ -189,15 +190,12 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           selectionMode={selectionMode}
           onSelectMode={(mode) => {
             setSelectionMode(mode);
-            if (mode === 'auto') {
-              handleAutoPick();
-            }
           }}
           disabled={isShuffling || isAnalyzing}
         />
 
-        {/* Action Controls for Fan Deck Mode & Orbit Mode */}
-        {(selectionMode === 'manual' || selectionMode === 'auto') && (
+        {/* Action Controls for Fan Deck Mode */}
+        {selectionMode === 'manual' && (
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-0.5">
             <button
               type="button"
@@ -223,7 +221,17 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       </div>
 
       {/* Render Selected View Strategy */}
-      {selectionMode === 'cut3' ? (
+      {selectionMode === 'auto' ? (
+        <AutoDeckView
+          deck={deck}
+          selectedCards={selectedCards}
+          targetCount={targetCount}
+          isAnalyzing={isAnalyzing}
+          isShuffling={isShuffling}
+          onAutoPick={handleAutoPick}
+          onReset={handleResetSelection}
+        />
+      ) : selectionMode === 'cut3' ? (
         <Cut3DeckView
           deck={deck}
           selectedCards={selectedCards}
