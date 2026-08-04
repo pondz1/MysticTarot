@@ -51,7 +51,7 @@ export const AutoDeckView: React.FC<AutoDeckViewProps> = ({
             className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-purple-600 hover:from-amber-300 hover:to-purple-500 text-slate-950 font-bold text-sm border border-amber-200 shadow-[0_0_30px_rgba(234,179,8,0.6)] disabled:opacity-40 transition-all cursor-pointer"
           >
             <Sparkles className={`w-5 h-5 ${isShuffling ? 'animate-spin text-slate-950' : 'text-slate-950 fill-slate-950'}`} />
-            <span>{isShuffling ? 'กำลังสื่อสารกับจักรวาล...' : '⚡ กดให้จักรวาลเลือกไพ่ให้'}</span>
+            <span>{isShuffling ? 'กำลังสื่อสารกับจักรวาล...' : 'กดให้จักรวาลเลือกไพ่ให้'}</span>
           </motion.button>
         ) : (
           <div className="flex flex-col items-center gap-3">
