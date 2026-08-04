@@ -80,13 +80,6 @@ export const SpreadSelector: React.FC<SpreadSelectorProps> = ({
                   {spread.description}
                 </p>
               </div>
-
-              {isSelected && (
-                <div className="mt-2 pt-1.5 sm:mt-3 sm:pt-2 border-t border-amber-400/30 text-[9px] sm:text-[10px] text-amber-300 font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping shrink-0" />
-                  <span className="truncate">กำลังใช้งาน</span>
-                </div>
-              )}
             </button>
           );
         })}
