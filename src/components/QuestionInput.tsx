@@ -1,5 +1,5 @@
 import React from 'react';
-import { HelpCircle, Heart, Briefcase, Coins, Stethoscope, Sparkles } from 'lucide-react';
+import { HelpCircle, Heart, Briefcase, Coins, Stethoscope, Sparkles, X } from 'lucide-react';
 
 interface QuestionInputProps {
   question: string;
@@ -35,15 +35,17 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuest
           disabled={disabled}
           placeholder="เช่น เรื่องความรักกับคนปัจจุบันจะเป็นอย่างไร? ควรย้ายงานใหม่ดีไหม?..."
           rows={2}
-          className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl glass-panel text-xs sm:text-sm text-slate-100 placeholder-slate-400/60 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 transition-all resize-none shadow-inner"
+          className="w-full pl-3.5 pr-24 py-2.5 sm:pl-4 sm:pr-28 sm:py-3 rounded-xl glass-panel text-xs sm:text-sm text-slate-100 placeholder-slate-400/60 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 transition-all resize-none shadow-inner"
         />
         {question && (
           <button
             type="button"
+            disabled={disabled}
             onClick={() => setQuestion('')}
-            className="absolute top-2 right-3 text-xs text-purple-400 hover:text-amber-300"
+            className="absolute top-2 right-2.5 sm:top-2.5 sm:right-3 text-[10px] sm:text-[11px] text-amber-300 hover:text-amber-100 cursor-pointer flex items-center gap-1 font-medium transition-colors bg-purple-950/90 hover:bg-purple-900 px-2 py-0.5 rounded-md border border-amber-400/40 shadow-xs z-10"
           >
-            ล้างคำถาม
+            <X className="w-3 h-3 text-amber-300" />
+            <span>ล้างคำถาม</span>
           </button>
         )}
       </div>
