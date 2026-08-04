@@ -54,7 +54,7 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ drawnCards, onOpenCard
             {/* Interactive Card Container */}
             <div
               onClick={() => onOpenCardDetails(dCard)}
-              className="group relative w-full h-[320px] sm:h-[360px] cursor-pointer transition-transform duration-300 hover:scale-105"
+              className="group relative w-full aspect-[1/1.68] cursor-pointer transition-transform duration-300 hover:scale-105"
             >
               <TarotArt card={dCard.card} isReversed={dCard.isReversed} size="full" />
 

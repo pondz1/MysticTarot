@@ -42,7 +42,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, isRevers
         <div className="flex flex-col md:flex-row gap-6">
 
           {/* Card Visual Artwork */}
-          <div className="w-full md:w-56 h-80 shrink-0 mx-auto">
+          <div className="w-full sm:w-56 aspect-[1/1.68] shrink-0 mx-auto">
             <TarotArt card={card} isReversed={isReversed} size="full" />
           </div>
 
