@@ -13,7 +13,7 @@ import type { ApiSettings, DrawnCard, SavedReading, SpreadMode } from './types/t
 import { analyzeTarotReading, generateFallbackReading } from './services/aiService';
 import { storageService } from './services/storageService';
 import type { TarotCard } from './data/tarotCards';
-import { Sparkles, Wand2 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export function App() {
   // Mode selection ('single' | 'three' | 'four' | 'five' | 'celtic')
@@ -197,13 +197,21 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-amber-500/20 glass-panel py-6 text-center text-xs text-purple-300/60">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center px-4 gap-2">
-          <p className="flex items-center gap-1">
-            <Wand2 className="w-3.5 h-3.5 text-amber-400" />
-            <span>Mystic Tarot AI • ขับเคลื่อนด้วยพลังแห่งไพ่ยิปซีและปัญญาประดิษฐ์จักรวาล</span>
+      <footer className="w-full border-t border-amber-500/20 bg-slate-950/80 backdrop-blur-md py-6 sm:py-8 text-xs text-purple-300/70">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 gap-3 sm:gap-4 text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-purple-900/60 border border-amber-400/30 flex items-center justify-center shadow-xs shrink-0">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            </div>
+            <div>
+              <p className="font-semibold text-purple-200 text-xs sm:text-sm">Mystic Tarot AI</p>
+              <p className="text-[11px] text-purple-300/60 leading-tight">ขับเคลื่อนด้วยพลังแห่งไพ่ยิปซีและปัญญาประดิษฐ์จักรวาล</p>
+            </div>
+          </div>
+          
+          <p className="text-[11px] sm:text-xs text-purple-400/60 font-mono">
+            © 2026 Mystic Tarot AI. All rights reserved.
           </p>
-          <p>© 2026 Mystic Tarot AI. All rights reserved.</p>
         </div>
       </footer>
 
