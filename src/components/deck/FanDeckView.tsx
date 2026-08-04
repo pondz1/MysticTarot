@@ -87,10 +87,10 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
                       rotate: (Math.random() - 0.5) * 20,
                     }
                   : isPicked
-                  ? { y: -28, scale: 1.18, rotate: 0, zIndex: 50 }
+                  ? { y: -16, scale: 1.12, rotate: 0, zIndex: 50 }
                   : { y: [arcY, arcY - 4, arcY], rotate: fanAngle, zIndex: idx + 1 }
               }
-              whileHover={{ y: -22, scale: 1.15, rotate: 0, zIndex: 45 }}
+              whileHover={{ y: -12, scale: 1.1, rotate: 0, zIndex: 45 }}
               transition={{
                 duration: isShuffling ? 0.3 : 0.2,
                 ease: 'easeOut',

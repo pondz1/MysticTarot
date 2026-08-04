@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { TarotCard } from '../../data/tarotCards';
 import type { DrawnCard } from '../../types/tarot';
@@ -24,16 +24,32 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
   const [dragStartX, setDragStartX] = useState(0);
   const [radius, setRadius] = useState<number>(150);
 
-  // Responsive circle radius calculation for mobile, tablet, and desktop
+  const velocityRef = useRef(0);
+  const lastXRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const animFrameRef = useRef<number | null>(null);
+
+  // Clean up animation frame on unmount
+  useEffect(() => {
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, []);
+
+  // Responsive circle radius calculation taking into account both viewport width AND height
   useEffect(() => {
     const updateRadius = () => {
       const w = window.innerWidth;
+      const h = window.innerHeight;
+      // Max radius so top/bottom cards when selected never overflow top/bottom screen boundaries
+      const maxByHeight = Math.max(90, Math.floor((h - 280) / 2 - 40));
+
       if (w < 480) {
-        setRadius(130);
+        setRadius(Math.min(115, maxByHeight));
       } else if (w < 768) {
-        setRadius(185);
+        setRadius(Math.min(150, maxByHeight));
       } else {
-        setRadius(235);
+        setRadius(Math.min(195, maxByHeight));
       }
     };
     updateRadius();
@@ -47,17 +63,44 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
   const handlePointerDown = (e: React.PointerEvent) => {
     setIsDragging(true);
     setDragStartX(e.clientX);
+    lastXRef.current = e.clientX;
+    lastTimeRef.current = performance.now();
+    velocityRef.current = 0;
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
+    const now = performance.now();
+    const dt = now - lastTimeRef.current;
     const deltaX = e.clientX - dragStartX;
-    setRotationDeg((prev) => prev + deltaX * 0.45);
+
+    if (dt > 0) {
+      velocityRef.current = (e.clientX - lastXRef.current) / dt;
+    }
+
+    setRotationDeg((prev) => prev + deltaX * 0.5);
     setDragStartX(e.clientX);
+    lastXRef.current = e.clientX;
+    lastTimeRef.current = now;
   };
 
   const handlePointerUp = () => {
+    if (!isDragging) return;
     setIsDragging(false);
+
+    // Inertia spin momentum
+    let currentVel = velocityRef.current * 14;
+    if (Math.abs(currentVel) > 0.4) {
+      const decay = () => {
+        currentVel *= 0.92;
+        if (Math.abs(currentVel) > 0.05) {
+          setRotationDeg((prev) => prev + currentVel);
+          animFrameRef.current = requestAnimationFrame(decay);
+        }
+      };
+      animFrameRef.current = requestAnimationFrame(decay);
+    }
   };
 
   const isSelectionComplete = selectedCards.length === targetCount;
@@ -79,8 +122,11 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
       <div className="flex items-center gap-3 mt-1 sm:mt-2 mb-2 sm:mb-4">
         <button
           type="button"
-          onClick={() => setRotationDeg((prev) => prev + 30)}
-          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-all cursor-pointer shadow-sm"
+          onClick={() => {
+            if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+            setRotationDeg((prev) => prev + 30);
+          }}
+          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-colors cursor-pointer shadow-sm"
         >
           <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
           <span>หมุนซ้าย</span>
@@ -88,8 +134,11 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
 
         <button
           type="button"
-          onClick={() => setRotationDeg((prev) => prev - 30)}
-          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-all cursor-pointer shadow-sm"
+          onClick={() => {
+            if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+            setRotationDeg((prev) => prev - 30);
+          }}
+          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-colors cursor-pointer shadow-sm"
         >
           <span>หมุนขวา</span>
           <RotateCw className="w-3.5 h-3.5 text-amber-300" />
@@ -102,7 +151,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
-        className="relative w-full max-w-4xl sm:max-w-5xl h-[370px] xs:h-[420px] sm:h-[510px] md:h-[610px] flex items-center justify-center overflow-visible cursor-grab active:cursor-grabbing touch-pan-y my-2 sm:my-4 px-4"
+        className="relative w-full max-w-4xl sm:max-w-5xl h-[330px] xs:h-[370px] sm:h-[450px] md:h-[520px] flex items-center justify-center overflow-visible cursor-grab active:cursor-grabbing touch-pan-y my-2 sm:my-4 px-4 py-4"
       >
         {/* Central Cosmic Core Icon */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
@@ -111,31 +160,37 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
           </div>
         </div>
 
-        <div className="relative w-full h-full flex items-center justify-center">
+        {/* Rotatable Wheel Container - hardware accelerated transform */}
+        <motion.div
+          animate={{ rotate: rotationDeg }}
+          transition={isDragging ? { duration: 0 } : { type: 'spring', stiffness: 260, damping: 28 }}
+          style={{ transformOrigin: 'center center', willChange: 'transform' }}
+          className="relative w-full h-full flex items-center justify-center"
+        >
           {deck.map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
 
-            // Calculate angle on 360° full circle
-            const angleDeg = (idx * angleStep + rotationDeg) % 360;
-            const rad = (angleDeg * Math.PI) / 180;
+            // Fixed angle position on circle stage
+            const baseAngle = idx * angleStep;
+            const rad = (baseAngle * Math.PI) / 180;
 
-            const rCurr = radius + (isPicked ? 24 : 0);
+            const rCurr = radius + (isPicked ? 12 : 0);
             const x = Math.sin(rad) * rCurr;
             const y = -Math.cos(rad) * rCurr;
-            const xFloat = Math.sin(rad) * (rCurr - 6);
-            const yFloat = -Math.cos(rad) * (rCurr - 6);
+            const xFloat = Math.sin(rad) * (rCurr - 4);
+            const yFloat = -Math.cos(rad) * (rCurr - 4);
 
             return (
               <motion.div
                 key={card.id}
-                initial={{ x, y, rotate: angleDeg, scale: 1 }}
+                initial={{ x, y, rotate: baseAngle, scale: 1 }}
                 animate={
                   isPicked
-                    ? { x, y, rotate: angleDeg, scale: 1.18, zIndex: 50 }
+                    ? { x, y, rotate: baseAngle, scale: 1.12, zIndex: 50 }
                     : {
                         x: [x, xFloat, x],
                         y: [y, yFloat, y],
-                        rotate: angleDeg,
+                        rotate: baseAngle,
                         scale: 1,
                         zIndex: 10,
                       }
@@ -144,8 +199,8 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                 transition={{
                   duration: 0.2,
                   ease: 'easeOut',
-                  x: isPicked ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: idx * 0.1 },
-                  y: isPicked ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: idx * 0.1 },
+                  x: isPicked ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: (idx % 12) * 0.15 },
+                  y: isPicked ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: (idx % 12) * 0.15 },
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -154,7 +209,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                 style={{
                   position: 'absolute',
                 }}
-                className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-all duration-200 ${
+                className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-shadow duration-150 ${
                   isPicked
                     ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
                     : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_24px_rgba(234,179,8,0.6)]'
@@ -177,7 +232,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
               </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
 
       {/* Touch Swipe Hint */}
