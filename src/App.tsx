@@ -35,6 +35,7 @@ export function App() {
   const [isCardListOpen, setIsCardListOpen] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [selectedInspectCard, setSelectedInspectCard] = useState<{ card: TarotCard; isReversed?: boolean } | null>(null);
+  const [openedFromList, setOpenedFromList] = useState<boolean>(false);
 
   // Persistent API Settings in localStorage
   const [apiSettings, setApiSettings] = useState<ApiSettings>(() => {
@@ -234,13 +235,21 @@ export function App() {
         onSelectCard={(card) => {
           setSelectedInspectCard({ card });
           setIsCardListOpen(false);
+          setOpenedFromList(true);
         }}
       />
 
       <CardDetailModal
         card={selectedInspectCard?.card || null}
         isReversed={selectedInspectCard?.isReversed}
-        onClose={() => setSelectedInspectCard(null)}
+        isFromList={openedFromList}
+        onClose={() => {
+          setSelectedInspectCard(null);
+          if (openedFromList) {
+            setIsCardListOpen(true);
+            setOpenedFromList(false);
+          }
+        }}
       />
 
       <HistoryModal

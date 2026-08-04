@@ -7,22 +7,37 @@ interface CardDetailModalProps {
   card: TarotCard | null;
   isReversed?: boolean;
   onClose: () => void;
+  isFromList?: boolean;
 }
 
-export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, isReversed = false, onClose }) => {
+export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, isReversed = false, onClose, isFromList = false }) => {
   if (!card) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-2xl max-h-[90vh] glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-y-auto">
         
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/60 transition-colors z-10"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Close / Back Header Buttons */}
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-amber-500/20">
+          {isFromList ? (
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-100 bg-purple-950/80 px-3 py-1.5 rounded-lg border border-amber-400/30 transition-colors"
+            >
+              <span>← กลับไปสารานุกรมไพ่</span>
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/60 transition-colors"
+            title="ปิดหน้าต่าง"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
         <div className="flex flex-col md:flex-row gap-6">
           
