@@ -22,17 +22,21 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartX, setDragStartX] = useState(0);
   const [radiusX, setRadiusX] = useState<number>(200);
+  const [radiusY, setRadiusY] = useState<number>(65);
 
   // Responsive radius calculation for mobile, tablet, and desktop
   useEffect(() => {
     const updateRadius = () => {
       const w = window.innerWidth;
       if (w < 480) {
-        setRadiusX(130);
+        setRadiusX(135);
+        setRadiusY(45);
       } else if (w < 768) {
-        setRadiusX(175);
+        setRadiusX(180);
+        setRadiusY(60);
       } else {
         setRadiusX(230);
+        setRadiusY(75);
       }
     };
     updateRadius();
@@ -101,7 +105,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
-        className="relative w-full max-w-2xl h-[260px] sm:h-[320px] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing touch-pan-y my-2"
+        className="relative w-full max-w-2xl h-[280px] sm:h-[340px] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing touch-pan-y my-2"
       >
         <div className="relative w-full h-full flex items-center justify-center">
           {deck.map((card, idx) => {
@@ -112,12 +116,14 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
             const rad = (angleDeg * Math.PI) / 180;
 
             const x = Math.sin(rad) * radiusX;
+            const yOffset = -Math.cos(rad) * radiusY - (isPicked ? 24 : 0);
+            const cardTilt = Math.sin(rad) * 22; // Radial tilt along curve (in deg)
+
             const zNorm = (Math.cos(rad) + 1) / 2; // 0 (back) to 1 (front)
 
-            const scale = (0.65 + 0.35 * zNorm) * (isPicked ? 1.15 : 1);
-            const opacity = 0.35 + 0.65 * zNorm;
+            const scale = (0.68 + 0.32 * zNorm) * (isPicked ? 1.15 : 1);
+            const opacity = 0.4 + 0.6 * zNorm;
             const zIndex = Math.round(zNorm * 100) + (isPicked ? 50 : 0);
-            const yOffset = -Math.cos(rad) * 16 - (isPicked ? 24 : 0);
 
             return (
               <div
@@ -128,7 +134,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                 }}
                 style={{
                   position: 'absolute',
-                  transform: `translate3d(${x}px, ${yOffset}px, 0px) scale(${scale})`,
+                  transform: `translate3d(${x}px, ${yOffset}px, 0px) scale(${scale}) rotate(${cardTilt}deg)`,
                   opacity,
                   zIndex,
                 }}
