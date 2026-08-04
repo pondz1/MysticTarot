@@ -17,13 +17,13 @@ const PRESET_QUESTIONS = [
 
 export const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, disabled }) => {
   return (
-    <div className="w-full max-w-xl mx-auto my-3 flex flex-col gap-2">
+    <div className="w-full max-w-xl mx-auto my-2 sm:my-3 flex flex-col gap-1.5 sm:gap-2">
       <div className="flex justify-between items-center px-1">
-        <label className="text-xs uppercase tracking-widest font-semibold text-purple-300 flex items-center gap-1.5">
-          <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
-          กรอกสิ่งที่อยากรู้ / คำถามของคุณ
+        <label className="text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest font-semibold text-purple-300 flex items-center gap-1.5">
+          <HelpCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>กรอกคำถามของคุณ</span>
         </label>
-        <span className="text-[11px] text-purple-400/70">
+        <span className="text-[10px] sm:text-[11px] text-purple-400/70">
           (ไม่กรอก = ทำนายภาพรวม)
         </span>
       </div>
@@ -34,8 +34,8 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuest
           onChange={(e) => setQuestion(e.target.value)}
           disabled={disabled}
           placeholder="เช่น เรื่องความรักกับคนปัจจุบันจะเป็นอย่างไร? ควรย้ายงานใหม่ดีไหม?..."
-          rows={3}
-          className="w-full px-4 py-3 rounded-xl glass-panel text-sm text-slate-100 placeholder-slate-400/60 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 transition-all resize-none shadow-inner"
+          rows={2}
+          className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl glass-panel text-xs sm:text-sm text-slate-100 placeholder-slate-400/60 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 transition-all resize-none shadow-inner"
         />
         {question && (
           <button
@@ -49,8 +49,8 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuest
       </div>
 
       {/* Preset Suggestion Chips */}
-      <div className="flex flex-wrap items-center gap-1.5 pt-1">
-        <span className="text-[10px] text-purple-300/60 mr-1">หัวข้อแนะนำ:</span>
+      <div className="flex overflow-x-auto sm:flex-wrap items-center gap-1.5 pt-1 pb-1 scrollbar-none -mx-1 px-1 sm:mx-0 sm:px-0">
+        <span className="text-[10px] text-purple-300/60 mr-0.5 shrink-0">หัวข้อแนะนำ:</span>
         {PRESET_QUESTIONS.map((item, index) => {
           const Icon = item.icon;
           return (
@@ -59,10 +59,10 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuest
               type="button"
               disabled={disabled}
               onClick={() => setQuestion(item.prompt)}
-              className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-purple-950/60 hover:bg-purple-900 border border-purple-500/30 hover:border-amber-400/50 text-purple-200 hover:text-amber-200 transition-all cursor-pointer shadow-sm"
+              className="flex items-center gap-1 text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full bg-purple-950/60 hover:bg-purple-900 border border-purple-500/30 hover:border-amber-400/50 text-purple-200 hover:text-amber-200 transition-all cursor-pointer shadow-sm shrink-0"
             >
-              <Icon className="w-3 h-3 text-amber-300" />
-              <span>{item.label}</span>
+              <Icon className="w-3 h-3 text-amber-300 shrink-0" />
+              <span className="whitespace-nowrap">{item.label}</span>
             </button>
           );
         })}
