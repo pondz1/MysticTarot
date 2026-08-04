@@ -1,41 +1,21 @@
 import { useState } from 'react';
-import { Navbar } from './components/Navbar';
-import { SpreadSelector } from './components/SpreadSelector';
-import { QuestionInput } from './components/QuestionInput';
-import { TarotDeck } from './components/TarotDeck';
-import { CardDisplay } from './components/CardDisplay';
-import { ReadingResult } from './components/ReadingResult';
-import { ApiSettingsModal } from './components/ApiSettingsModal';
-import { CardListModal } from './components/CardListModal';
-import { CardDetailModal } from './components/CardDetailModal';
-import { HistoryModal } from './components/HistoryModal';
-import type { ApiSettings, DrawnCard, SavedReading, SpreadMode } from './types/tarot';
-import { analyzeTarotReading, generateFallbackReading } from './services/aiService';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Navbar } from './components/common/Navbar';
+import { Footer } from './components/common/Footer';
+import { ApiSettingsModal } from './components/modals/ApiSettingsModal';
+import { CardDetailModal } from './components/modals/CardDetailModal';
+import { HistoryModal } from './components/modals/HistoryModal';
+import { ReadingPage } from './pages/ReadingPage';
+import { EncyclopediaPage } from './pages/EncyclopediaPage';
+import type { ApiSettings, SavedReading } from './types/tarot';
 import { storageService } from './services/storageService';
 import type { TarotCard } from './data/tarotCards';
-import { Sparkles } from 'lucide-react';
 
 export function App() {
-  // Mode selection ('single' | 'three' | 'four' | 'five' | 'celtic')
-  const [spreadMode, setSpreadMode] = useState<SpreadMode>('single');
-
-  // User Question Input
-  const [question, setQuestion] = useState<string>('');
-
-  // Selected Drawn Cards
-  const [drawnCards, setDrawnCards] = useState<DrawnCard[]>([]);
-
-  // AI Reading Result Text & Loading State
-  const [readingResult, setReadingResult] = useState<string>('');
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
-  const [isSavedCurrent, setIsSavedCurrent] = useState<boolean>(false);
-
   // Modals Visibility
   const [isApiSettingsOpen, setIsApiSettingsOpen] = useState<boolean>(false);
-  const [isCardListOpen, setIsCardListOpen] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [selectedInspectCard, setSelectedInspectCard] = useState<{ card: TarotCard; isReversed?: boolean } | null>(null);
-  const [openedFromList, setOpenedFromList] = useState<boolean>(false);
 
   // Persistent API Settings in localStorage via storageService
   const [apiSettings, setApiSettings] = useState<ApiSettings>(() => storageService.getApiSettings());
@@ -49,24 +29,6 @@ export function App() {
     storageService.saveApiSettings(newSettings);
   };
 
-  // Save Current Reading to History
-  const handleSaveCurrentReading = () => {
-    if (!readingResult || drawnCards.length === 0 || isSavedCurrent) return;
-
-    const newEntry: SavedReading = {
-      id: Date.now().toString(),
-      timestamp: Date.now(),
-      question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
-      spreadMode,
-      drawnCards,
-      resultText: readingResult,
-    };
-
-    const updated = storageService.saveReading(newEntry);
-    setSavedReadings(updated);
-    setIsSavedCurrent(true);
-  };
-
   // Clear Saved History
   const handleClearHistory = () => {
     storageService.clearSavedReadings();
@@ -74,43 +36,8 @@ export function App() {
   };
 
   // Load a reading from history
-  const handleLoadHistoryReading = (reading: SavedReading) => {
-    setSpreadMode(reading.spreadMode);
-    setQuestion(reading.question);
-    setDrawnCards(reading.drawnCards);
-    setReadingResult(reading.resultText);
-    setIsSavedCurrent(true);
-  };
-
-  // Handle when cards are selected from TarotDeck
-  const handleCardsSelected = async (cards: DrawnCard[], useAi: boolean = true) => {
-    setDrawnCards(cards);
-    setIsAnalyzing(true);
-    setReadingResult('');
-    setIsSavedCurrent(false);
-
-    try {
-      if (useAi) {
-        const analysis = await analyzeTarotReading(question, cards, spreadMode, apiSettings);
-        setReadingResult(analysis);
-      } else {
-        // Direct classic offline interpretation (0ms instant response)
-        const classicReading = generateFallbackReading(question, cards, spreadMode);
-        setReadingResult(classicReading);
-      }
-    } catch (err) {
-      console.error(err);
-      setReadingResult('เกิดข้อผิดพลาดในการวิเคราะห์ไพ่ กรุณาลองใหม่อีกครั้ง');
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  // Reset all for a new reading
-  const handleResetNewReading = () => {
-    setDrawnCards([]);
-    setReadingResult('');
-    setIsSavedCurrent(false);
+  const handleLoadHistoryReading = () => {
+    // History loading callback handled inside ReadingPage
   };
 
   return (
@@ -122,103 +49,37 @@ export function App() {
       {/* Navbar Header */}
       <Navbar
         onOpenSettings={() => setIsApiSettingsOpen(true)}
-        onOpenCardList={() => setIsCardListOpen(true)}
         onOpenHistory={() => setIsHistoryOpen(true)}
         hasCustomKey={!!apiSettings.apiKey}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 flex flex-col items-center">
-
-        {/* Hero Section Banner */}
-        <div className="text-center my-2 sm:my-4 max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-300 text-[10px] sm:text-xs mb-2 sm:mb-3 shadow-inner">
-            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-            <span>ศาสตร์แห่งไพ่ยิปซี & ปัญญาประดิษฐ์จักรวาล</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold font-serif-mystic text-gold-gradient tracking-tight leading-tight pt-2">
-            หยั่งรู้ดวงชะตาสลักชะตาชีวิต
-          </h1>
-          <p className="text-[11px] sm:text-sm text-purple-200/80 mt-1.5 sm:mt-2 font-light leading-relaxed max-w-xl mx-auto">
-            เลือกรูปแบบไพ่ยิปซี พิมพ์เรื่องราวที่คุณอยากรู้ แล้วให้พลังแห่งสถิตไพ่และ AI ช่วยวิเคราะห์คำตอบ
-          </p>
-        </div>
-
-        {/* Step 1: Select Spread Mode */}
-        {drawnCards.length === 0 && (
-          <>
-            <SpreadSelector
-              mode={spreadMode}
-              onSelectMode={(m) => {
-                setSpreadMode(m);
-                setDrawnCards([]);
-              }}
-              disabled={isAnalyzing}
-            />
-
-            {/* Step 2: Question Input */}
-            <QuestionInput
-              question={question}
-              setQuestion={setQuestion}
-              disabled={isAnalyzing}
-            />
-          </>
-        )}
-
-        {/* Step 3: Interactive Card Deck */}
-        {drawnCards.length === 0 && (
-          <TarotDeck
-            spreadMode={spreadMode}
-            onCardsSelected={handleCardsSelected}
-            isAnalyzing={isAnalyzing}
+        <Routes>
+          {/* Home / Reading Route */}
+          <Route
+            path="/"
+            element={
+              <ReadingPage
+                apiSettings={apiSettings}
+                onOpenCardDetails={(inspect) => setSelectedInspectCard(inspect)}
+                savedReadings={savedReadings}
+                setSavedReadings={setSavedReadings}
+              />
+            }
           />
-        )}
 
-        {/* Step 4: Display Selected Cards */}
-        {drawnCards.length > 0 && (
-          <CardDisplay
-            drawnCards={drawnCards}
-            onOpenCardDetails={(dCard) => setSelectedInspectCard({ card: dCard.card, isReversed: dCard.isReversed })}
-          />
-        )}
+          {/* Encyclopedia Routes */}
+          <Route path="/encyclopedia" element={<EncyclopediaPage />} />
+          <Route path="/encyclopedia/:cardId" element={<EncyclopediaPage />} />
 
-        {/* Step 5: AI Reading Result Output */}
-        {(isAnalyzing || readingResult) && (
-          <ReadingResult
-            resultText={readingResult}
-            isAnalyzing={isAnalyzing}
-            onNewReading={handleResetNewReading}
-            onSaveReading={handleSaveCurrentReading}
-            isSaved={isSavedCurrent}
-          />
-        )}
-
+          {/* Fallback Route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-amber-500/20 bg-slate-950/80 backdrop-blur-md py-6 sm:py-8 text-xs text-purple-300/70">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 gap-4 text-center sm:text-left">
-          
-          {/* Brand Info */}
-          <div className="flex flex-col sm:flex-row items-center gap-2.5 sm:gap-3">
-            <div className="w-8 h-8 rounded-full bg-purple-900/60 border border-amber-400/30 flex items-center justify-center shadow-xs shrink-0">
-              <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-            </div>
-            <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
-              <p className="font-semibold text-purple-200 text-xs sm:text-sm">Mystic Tarot AI</p>
-              <p className="text-[11px] text-purple-300/60 leading-tight mt-0.5">
-                ขับเคลื่อนด้วยพลังแห่งไพ่ยิปซีและปัญญาประดิษฐ์จักรวาล
-              </p>
-            </div>
-          </div>
-          
-          {/* Copyright */}
-          <p className="text-[11px] sm:text-xs text-purple-400/60 font-mono text-center sm:text-right">
-            © 2026 Mystic Tarot AI. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Modals */}
       <ApiSettingsModal
@@ -228,27 +89,10 @@ export function App() {
         onSaveSettings={handleSaveApiSettings}
       />
 
-      <CardListModal
-        isOpen={isCardListOpen}
-        onClose={() => setIsCardListOpen(false)}
-        onSelectCard={(card) => {
-          setSelectedInspectCard({ card });
-          setIsCardListOpen(false);
-          setOpenedFromList(true);
-        }}
-      />
-
       <CardDetailModal
         card={selectedInspectCard?.card || null}
         isReversed={selectedInspectCard?.isReversed}
-        isFromList={openedFromList}
-        onClose={() => {
-          setSelectedInspectCard(null);
-          if (openedFromList) {
-            setIsCardListOpen(true);
-            setOpenedFromList(false);
-          }
-        }}
+        onClose={() => setSelectedInspectCard(null)}
       />
 
       <HistoryModal

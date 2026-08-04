@@ -1,6 +1,6 @@
 import React from 'react';
-import type { TarotCard } from '../data/tarotCards';
-import { TarotArt } from './TarotArt';
+import type { TarotCard } from '../../data/tarotCards';
+import { TarotArt } from '../common/TarotArt';
 import { X, Sparkles, Heart, Briefcase, Coins, ShieldAlert, Compass } from 'lucide-react';
 
 interface CardDetailModalProps {

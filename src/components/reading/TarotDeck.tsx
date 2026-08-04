@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { TarotCard } from '../data/tarotCards';
-import { TAROT_CARDS } from '../data/tarotCards';
-import type { DrawnCard, SpreadMode, SelectionMode } from '../types/tarot';
-import { getSpreadConfig } from '../data/tarotSpreads';
+import type { TarotCard } from '../../data/tarotCards';
+import { TAROT_CARDS } from '../../data/tarotCards';
+import type { DrawnCard, SpreadMode, SelectionMode } from '../../types/tarot';
+import { getSpreadConfig } from '../../data/tarotSpreads';
 import { Sparkles, RefreshCw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-import { DeckModeSelector } from './deck/DeckModeSelector';
-import { FanDeckView } from './deck/FanDeckView';
-import { Cut3DeckView } from './deck/Cut3DeckView';
-import { OrbitDeckView } from './deck/OrbitDeckView';
-import { MindfulHoldView } from './deck/MindfulHoldView';
-import { AutoDeckView } from './deck/AutoDeckView';
-import { DeckConfirmation } from './deck/DeckConfirmation';
+import { DeckModeSelector } from '../deck/DeckModeSelector';
+import { FanDeckView } from '../deck/FanDeckView';
+import { Cut3DeckView } from '../deck/Cut3DeckView';
+import { OrbitDeckView } from '../deck/OrbitDeckView';
+import { MindfulHoldView } from '../deck/MindfulHoldView';
+import { AutoDeckView } from '../deck/AutoDeckView';
+import { DeckConfirmation } from '../deck/DeckConfirmation';
 
 interface TarotDeckProps {
   spreadMode: SpreadMode;

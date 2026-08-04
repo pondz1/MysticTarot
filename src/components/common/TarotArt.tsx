@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TarotCard } from '../data/tarotCards';
+import type { TarotCard } from '../../data/tarotCards';
 import {
   Sun, Moon, Compass, Crown, Shield, Heart, Sparkles, Feather,
   Wand2, BookOpen, Flame, Scale, Anchor, Eye, Skull, Star, Music, Award, HelpCircle

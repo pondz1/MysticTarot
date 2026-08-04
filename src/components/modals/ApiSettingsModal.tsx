@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { ApiSettings } from '../types/tarot';
-import { PROVIDER_PRESETS } from '../services/aiService';
+import type { ApiSettings } from '../../types/tarot';
+import { PROVIDER_PRESETS } from '../../services/aiService';
 import { Settings, X, Key, Globe, Cpu, Check, HelpCircle, Sparkles } from 'lucide-react';
 
 interface ApiSettingsModalProps {

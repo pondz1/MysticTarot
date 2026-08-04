@@ -175,7 +175,7 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
           <div className="mt-8 pt-6 border-t border-amber-400/30 flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-[11px] text-purple-300/70 italic flex items-center gap-1">
               <Moon className="w-3.5 h-3.5 text-amber-400" />
-              "โชคชะตาไม่ได้สลักไว้บนก้อนหิน แต่อยู่ในมือของคุณ"
+              "โชคชะตาไม่ได้สลักไว้บนก้อนหิน แ่อยู่ในมือของคุณ"
             </p>
 
             <button

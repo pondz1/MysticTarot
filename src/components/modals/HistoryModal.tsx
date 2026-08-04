@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SavedReading } from '../types/tarot';
+import type { SavedReading } from '../../types/tarot';
 import { X, History, Trash2, ExternalLink } from 'lucide-react';
 
 interface HistoryModalProps {
