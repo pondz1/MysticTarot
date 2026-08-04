@@ -114,13 +114,13 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   return (
     <div className="w-full flex flex-col items-center my-6">
       
-      {/* Selection Progress Header */}
-      <div className="flex flex-col items-center gap-2 mb-4 text-center">
+      {/* Selection Progress Header (Top) */}
+      <div className="flex flex-col items-center gap-2 mb-2 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-950/80 border border-amber-400/30 text-amber-200 text-xs font-medium shadow-md">
           <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow" />
           <span>
             {isSelectionComplete
-              ? 'เลือกไพ่เรียบร้อยแล้ว! แตะใบอื่นเพื่อสลับเปลี่ยน หรือกดยืนยันเพื่ออ่านคำทำนาย'
+              ? 'เลือกไพ่เรียบร้อยแล้ว! ตรวจสอบด้านล่างเพื่อยืนยัน'
               : `กรุณาเลือกไพ่จากสำรับ (${selectedCards.length} / ${targetCount} ใบ)`}
           </span>
         </div>
@@ -149,35 +149,8 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         </div>
       </div>
 
-      {/* Confirmation Banner (When selection is complete) */}
-      {isSelectionComplete && !isAnalyzing && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md glass-panel-gold rounded-2xl p-4 mb-4 flex flex-col items-center gap-2.5 text-center border border-amber-400/60 shadow-xl"
-        >
-          <div className="flex items-center gap-1.5 text-amber-300 text-xs font-semibold">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>เลือกไพ่ครบถ้วน ({selectedCards.length} / {targetCount} ใบ)</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleConfirmSelection}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-bold text-sm sm:text-base shadow-lg shadow-amber-500/25 border border-amber-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"
-          >
-            <Sparkles className="w-5 h-5 text-purple-950 fill-purple-950" />
-            <span>🔮 ยืนยันการเลือกไพ่ & อ่านทำนาย</span>
-          </button>
-
-          <p className="text-[11px] text-purple-300/70">
-            * คลิกที่ไพ่ใบอื่นในสำรับได้ทันที หากต้องการสลับเปลี่ยนไพ่
-          </p>
-        </motion.div>
-      )}
-
-      {/* Fan Deck Display (Interactive Card Selection) */}
-      <div className="relative w-full max-w-5xl min-h-[260px] md:min-h-[300px] flex justify-start md:justify-center items-center overflow-x-auto py-8 px-4 scrollbar-none touch-pan-x">
+      {/* Fan Deck Display (Interactive Card Selection - Middle) */}
+      <div className="relative w-full max-w-5xl min-h-[250px] md:min-h-[290px] flex justify-start md:justify-center items-center overflow-x-auto py-6 px-4 scrollbar-none touch-pan-x">
         <div className="flex -space-x-12 sm:-space-x-10 md:-space-x-8 lg:-space-x-7 justify-start md:justify-center items-center min-w-max px-8 sm:px-12">
           {deck.slice(0, 15).map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
@@ -236,12 +209,39 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         </div>
       </div>
 
-      {/* Instruction Helper Text */}
+      {/* Helper Text (When not complete) */}
       {!isSelectionComplete && (
-        <p className="text-xs text-purple-300/70 mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/40 border border-purple-800/30">
+        <p className="text-xs text-purple-300/70 mt-1 flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/40 border border-purple-800/30">
           <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           <span>แตะคลิกเลือกไพ่ที่สะดุดตาที่สุด ({selectedCards.length} / {targetCount}) • เลื่อนซ้าย-ขวาเพื่อดูไพ่เพิ่มเติม</span>
         </p>
+      )}
+
+      {/* Confirmation Banner (Placed Below the Deck - Reading flow: Top -> Deck -> Bottom Confirm) */}
+      {isSelectionComplete && !isAnalyzing && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md glass-panel-gold rounded-2xl p-4 mt-2 flex flex-col items-center gap-2.5 text-center border border-amber-400/60 shadow-xl"
+        >
+          <div className="flex items-center gap-1.5 text-amber-300 text-xs font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>เลือกไพ่ครบถ้วน ({selectedCards.length} / {targetCount} ใบ)</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleConfirmSelection}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-bold text-sm sm:text-base shadow-lg shadow-amber-500/25 border border-amber-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+          >
+            <Sparkles className="w-5 h-5 text-purple-950 fill-purple-950" />
+            <span>🔮 ยืนยันการเลือกไพ่ & อ่านทำนาย</span>
+          </button>
+
+          <p className="text-[11px] text-purple-300/70">
+            * หากต้องการสลับเปลี่ยนไพ่ ให้แตะคลิกที่ไพ่ใบอื่นในสำรับได้ทันที
+          </p>
+        </motion.div>
       )}
 
     </div>
