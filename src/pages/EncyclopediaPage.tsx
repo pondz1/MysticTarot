@@ -20,9 +20,14 @@ import {
   Compass,
   SlidersHorizontal,
   X,
-  Compass as ReadingIcon
+  Compass as ReadingIcon,
+  Layers,
+  Crown,
+  LayoutGrid,
 } from 'lucide-react';
 
+type ArcanaFilter = 'all' | 'major' | 'minor';
+type SuitFilter = 'all' | 'wands' | 'cups' | 'swords' | 'pentacles';
 type ElementFilter = 'all' | 'fire' | 'water' | 'air' | 'earth';
 type SortOption = 'number' | 'nameAsc' | 'nameDesc';
 
@@ -31,6 +36,8 @@ export const EncyclopediaPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedArcana, setSelectedArcana] = useState<ArcanaFilter>('all');
+  const [selectedSuit, setSelectedSuit] = useState<SuitFilter>('all');
   const [selectedElement, setSelectedElement] = useState<ElementFilter>('all');
   const [sortBy, setSortBy] = useState<SortOption>('number');
 
@@ -43,6 +50,10 @@ export const EncyclopediaPage: React.FC = () => {
     return 'all';
   };
 
+  // Counts for filters
+  const majorCount = useMemo(() => TAROT_CARDS.filter((c) => c.arcana === 'major' || !c.arcana).length, []);
+  const minorCount = useMemo(() => TAROT_CARDS.filter((c) => c.arcana === 'minor').length, []);
+
   // Filter & sort list of cards
   const filteredAndSortedCards = useMemo(() => {
     return TAROT_CARDS.filter((card) => {
@@ -54,18 +65,27 @@ export const EncyclopediaPage: React.FC = () => {
         card.romanNumeral.toLowerCase() === searchQuery.toLowerCase().trim() ||
         card.keywords.some((kw) => kw.toLowerCase().includes(searchQuery.toLowerCase()));
 
+      // Arcana filter
+      const cardArcana = card.arcana || 'major';
+      const matchesArcana =
+        selectedArcana === 'all' || cardArcana === selectedArcana;
+
+      // Suit filter (only active when Minor or All is selected)
+      const matchesSuit =
+        selectedSuit === 'all' || card.suit === selectedSuit;
+
       // Element filter
       const matchesElement =
         selectedElement === 'all' || getElementCategory(card.element) === selectedElement;
 
-      return matchesSearch && matchesElement;
+      return matchesSearch && matchesArcana && matchesSuit && matchesElement;
     }).sort((a, b) => {
       if (sortBy === 'number') return a.number - b.number;
-      if (sortBy === 'nameAsc') return a.nameTh.localeCompare(b.nameTh, 'th');
+      if (sortBy === 'nameAsc') return a.nameTh.localeCompare(a.nameTh, 'th');
       if (sortBy === 'nameDesc') return b.nameTh.localeCompare(a.nameTh, 'th');
       return 0;
     });
-  }, [searchQuery, selectedElement, sortBy]);
+  }, [searchQuery, selectedArcana, selectedSuit, selectedElement, sortBy]);
 
   // Selected Card for deep detail view from URL param
   const selectedCard = useMemo(() => {
@@ -116,7 +136,7 @@ export const EncyclopediaPage: React.FC = () => {
             {/* Pagination / Sequential Card Nav */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-purple-300/80 hidden sm:inline">
-                ใบที่ {selectedCard.number + 1} จาก {TAROT_CARDS.length}
+                ใบที่ {currentCardIndex + 1} จาก {TAROT_CARDS.length}
               </span>
               <div className="flex items-center gap-1.5">
                 <button
@@ -163,7 +183,7 @@ export const EncyclopediaPage: React.FC = () => {
               <div className="border-b border-amber-500/25 pb-4">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <span className="text-xs font-semibold bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-md border border-amber-400/30">
-                    เลข {selectedCard.number} ({selectedCard.romanNumeral})
+                    {selectedCard.arcana === 'minor' ? `Minor Arcana` : `Major Arcana (${selectedCard.romanNumeral})`}
                   </span>
                   <span className="text-xs bg-purple-900/60 text-purple-200 px-2.5 py-1 rounded-md border border-purple-500/30">
                     ธาตุ: {selectedCard.element}
@@ -292,21 +312,69 @@ export const EncyclopediaPage: React.FC = () => {
           <div className="text-center max-w-2xl mx-auto mt-2 mb-1">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-300 text-xs mb-3 shadow-inner">
               <BookOpen className="w-3.5 h-3.5 shrink-0" />
-              <span>คลังความรู้ไพ่ยิปซี Major Arcana</span>
+              <span>คลังความรู้ไพ่ยิปซีครบสมบูรณ์ (78 ใบ)</span>
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-extrabold font-serif-mystic text-gold-gradient tracking-tight leading-tight">
-              สารานุกรมไพ่ยิปซี (22 ใบ)
+              สารานุกรมไพ่ยิปซี (78 ใบ)
             </h1>
             <p className="text-xs sm:text-sm text-purple-200/80 mt-2 font-light leading-relaxed">
-              สำรวจความหมาย สัญลักษณ์ พลังแห่งธาตุ และคำทำนายในแต่ละแง่มุมชีวิตของไพ่ยิปซีชุดใหญ่ครบถ้วน
+              สำรวจความหมาย สัญลักษณ์ พลังแห่งธาตุ และคำทำนายในแต่ละแง่มุมชีวิตของไพ่ยิปซีชุดใหญ่ (Major 22 ใบ) และชุดย่อย (Minor 56 ใบ) ครบถ้วน 78 ใบ
             </p>
+          </div>
+
+          {/* Arcana Filter Tabs (ทั้งสำรับ 78 / Major 22 / Minor 56) */}
+          <div className="w-full max-w-xs xs:max-w-sm sm:max-w-md mx-auto grid grid-cols-3 gap-1 p-1 bg-black/60 backdrop-blur-md rounded-xl border border-amber-500/30 text-[10px] sm:text-xs shadow-inner">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedArcana('all');
+                setSelectedSuit('all');
+              }}
+              className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate flex items-center justify-center gap-1 sm:gap-1.5 ${
+                selectedArcana === 'all'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+                  : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+              }`}
+            >
+              <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+              <span>ทั้งสำรับ ({TAROT_CARDS.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedArcana('major');
+                setSelectedSuit('all');
+              }}
+              className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate flex items-center justify-center gap-1 sm:gap-1.5 ${
+                selectedArcana === 'major'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+                  : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+              }`}
+            >
+              <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+              <span>Major ({majorCount})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedArcana('minor');
+              }}
+              className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate flex items-center justify-center gap-1 sm:gap-1.5 ${
+                selectedArcana === 'minor'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+                  : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+              }`}
+            >
+              <LayoutGrid className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+              <span>Minor ({minorCount})</span>
+            </button>
           </div>
 
           {/* Search Bar & Filter Controls Bar */}
           <div className="glass-panel rounded-2xl p-4 border border-amber-500/30 shadow-xl flex flex-col md:flex-row gap-4 items-center justify-between">
             {/* Search Input */}
-            <div className="relative w-full md:w-80">
+            <div className="relative w-full md:w-72">
               <Search className="w-4 h-4 text-purple-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
@@ -337,7 +405,7 @@ export const EncyclopediaPage: React.FC = () => {
                     : 'bg-purple-950/60 text-purple-300 border border-purple-500/30 hover:border-amber-400/40'
                 }`}
               >
-                ทั้งหมด ({TAROT_CARDS.length})
+                ทุกธาตุ
               </button>
 
               <button
@@ -401,7 +469,7 @@ export const EncyclopediaPage: React.FC = () => {
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
                 className="bg-black/60 border border-purple-500/40 text-xs text-amber-200 rounded-xl px-2.5 py-2 focus:outline-none focus:border-amber-400 cursor-pointer"
               >
-                <option value="number">เรียงตามเลขไพ่ (0 - 21)</option>
+                <option value="number">เรียงตามลำดับเลขไพ่</option>
                 <option value="nameAsc">เรียงตามชื่อ (ก - ฮ)</option>
                 <option value="nameDesc">เรียงตามชื่อ (ฮ - ก)</option>
               </select>
@@ -413,11 +481,13 @@ export const EncyclopediaPage: React.FC = () => {
             <div className="glass-panel rounded-2xl p-12 text-center border border-purple-500/30 my-8">
               <Search className="w-10 h-10 text-purple-400 mx-auto mb-3 opacity-60" />
               <p className="text-base font-semibold text-purple-200">ไม่พบไพ่ยิปซีที่ตรงกับเงื่อนไขการค้นหา</p>
-              <p className="text-xs text-purple-400 mt-1">ลองเปลี่ยนคำค้นหา หรือเลือกตัวกรองธาตุเป็น "ทั้งหมด"</p>
+              <p className="text-xs text-purple-400 mt-1">ลองเปลี่ยนคำค้นหา หรือล้างตัวกรอง</p>
               <button
                 type="button"
                 onClick={() => {
                   setSearchQuery('');
+                  setSelectedArcana('all');
+                  setSelectedSuit('all');
                   setSelectedElement('all');
                 }}
                 className="mt-4 px-4 py-2 rounded-xl bg-purple-900/60 border border-amber-400/40 text-amber-200 text-xs hover:bg-purple-800 transition-all cursor-pointer"
@@ -442,9 +512,9 @@ export const EncyclopediaPage: React.FC = () => {
                   }}
                   className="group cursor-pointer flex flex-col items-center p-3 rounded-2xl glass-panel hover:glass-panel-gold border border-amber-500/20 hover:border-amber-400/70 transition-all hover:-translate-y-1.5 hover:shadow-[0_10px_25px_rgba(234,179,8,0.2)] will-change-transform outline-none focus-visible:ring-2 focus-visible:ring-amber-400 relative overflow-hidden"
                 >
-                  {/* Roman Numeral Badge */}
+                  {/* Roman Numeral / Arcana Badge */}
                   <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/70 border border-amber-400/40 text-amber-300 text-[10px] font-bold backdrop-blur-xs">
-                    {card.romanNumeral}
+                    {card.arcana === 'minor' ? `#${card.number}` : card.romanNumeral}
                   </div>
 
                   {/* Card Thumbnail */}
