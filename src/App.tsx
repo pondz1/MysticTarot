@@ -11,7 +11,7 @@ import { CardDetailModal } from './components/CardDetailModal';
 import { HistoryModal } from './components/HistoryModal';
 import type { SavedReading } from './components/HistoryModal';
 import type { ApiSettings, DrawnCard } from './services/aiService';
-import { DEFAULT_API_SETTINGS, analyzeTarotReading } from './services/aiService';
+import { DEFAULT_API_SETTINGS, analyzeTarotReading, generateFallbackReading } from './services/aiService';
 import type { TarotCard } from './data/tarotCards';
 import { Sparkles, Wand2 } from 'lucide-react';
 
@@ -103,15 +103,21 @@ export function App() {
   };
 
   // Handle when cards are selected from TarotDeck
-  const handleCardsSelected = async (cards: DrawnCard[]) => {
+  const handleCardsSelected = async (cards: DrawnCard[], useAi: boolean = true) => {
     setDrawnCards(cards);
     setIsAnalyzing(true);
     setReadingResult('');
     setIsSavedCurrent(false);
 
     try {
-      const analysis = await analyzeTarotReading(question, cards, spreadMode, apiSettings);
-      setReadingResult(analysis);
+      if (useAi) {
+        const analysis = await analyzeTarotReading(question, cards, spreadMode, apiSettings);
+        setReadingResult(analysis);
+      } else {
+        // Direct classic offline interpretation (0ms instant response)
+        const classicReading = generateFallbackReading(question, cards, spreadMode);
+        setReadingResult(classicReading);
+      }
     } catch (err) {
       console.error(err);
       setReadingResult('เกิดข้อผิดพลาดในการวิเคราะห์ไพ่ กรุณาลองใหม่อีกครั้ง');

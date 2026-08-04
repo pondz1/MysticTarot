@@ -114,7 +114,7 @@ ${cardsDescription}
 }
 
 // Built-in Smart AI Reader Fallback generator
-function generateFallbackReading(
+export function generateFallbackReading(
   question: string,
   drawnCards: DrawnCard[],
   spreadMode: 'single' | 'three',
