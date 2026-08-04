@@ -240,7 +240,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>🤖 วิเคราะห์ด้วย AI</span>
+              <span>วิเคราะห์ด้วย AI</span>
             </button>
 
             <button
@@ -253,7 +253,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>📖 คำทำนายมาตรฐาน</span>
+              <span>คำทำนายมาตรฐาน</span>
             </button>
           </div>
 
@@ -265,12 +265,12 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             {useAi ? (
               <>
                 <Sparkles className="w-5 h-5 text-purple-950 fill-purple-950" />
-                <span>🔮 ยืนยันวิเคราะห์ด้วย AI ({targetCount} ใบ)</span>
+                <span>ยืนยันวิเคราะห์ด้วย AI ({targetCount} ใบ)</span>
               </>
             ) : (
               <>
                 <BookOpen className="w-5 h-5 text-purple-950" />
-                <span>🔮 ยืนยันอ่านคำทำนายมาตรฐาน ({targetCount} ใบ)</span>
+                <span>ยืนยันอ่านคำทำนายมาตรฐาน ({targetCount} ใบ)</span>
               </>
             )}
           </button>
