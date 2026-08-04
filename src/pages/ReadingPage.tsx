@@ -56,6 +56,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
 
   // Handle when cards are selected from TarotDeck
   const handleCardsSelected = async (cards: DrawnCard[], useAi: boolean = true) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setDrawnCards(cards);
     setIsAnalyzing(true);
     setReadingResult('');
