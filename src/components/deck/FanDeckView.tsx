@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import type { TarotCard } from '../../data/tarotCards';
 import type { DrawnCard } from '../../types/tarot';
-import { CheckCircle2, Eye } from 'lucide-react';
+import { CheckCircle2, Touchpad } from 'lucide-react';
 
 interface FanDeckViewProps {
   deck: TarotCard[];
@@ -26,16 +26,19 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
   const isSelectionComplete = selectedCards.length === targetCount;
 
   return (
-    <div className="w-full flex flex-col items-center">
-      {/* Fan Deck Display */}
+    <div className="w-full flex flex-col items-center py-2 select-none">
+      {/* Fan Deck Display (Fits 100% on screen - No Horizontal Scroll Needed) */}
       <div
         ref={deckContainerRef}
-        className="relative w-full min-h-[220px] sm:min-h-[290px] md:min-h-[340px] overflow-x-auto pt-10 pb-2 sm:pt-14 sm:pb-4 md:pt-16 md:pb-6 scrollbar-none touch-pan-x"
+        className="relative w-full max-w-4xl min-h-[220px] sm:min-h-[300px] md:min-h-[360px] flex items-center justify-center overflow-visible pt-12 pb-4 sm:pt-16 sm:pb-6 px-1 sm:px-4 my-2"
       >
-        <div className="flex justify-start items-center min-w-max px-8 sm:px-16 md:px-24 -space-x-12 sm:-space-x-10 md:-space-x-8 lg:-space-x-7 mx-auto">
+        <div className="flex justify-center items-center w-full max-w-full mx-auto">
           {deck.map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
-            const rotation = (idx - 10) * 2.2;
+            // Fan curve rotation: -22deg to +22deg across 22 cards
+            const rotation = (idx - 10.5) * 2.1;
+            // Arc vertical offset: cards at center curve downwards slightly
+            const arcY = Math.abs(idx - 10.5) * 0.8;
 
             return (
               <motion.div
@@ -45,7 +48,7 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
                     cardRefs.current[idx] = el;
                   }
                 }}
-                initial={{ y: 0, rotate: rotation }}
+                initial={{ y: arcY, rotate: rotation }}
                 animate={
                   isShuffling
                     ? {
@@ -54,17 +57,20 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
                         rotate: (Math.random() - 0.5) * 30,
                       }
                     : isPicked
-                    ? { y: -24, scale: 1.08, rotate: 0, zIndex: 40 }
-                    : { y: 0, rotate: rotation, zIndex: 1 }
+                    ? { y: -32, scale: 1.18, rotate: 0, zIndex: 50 }
+                    : { y: arcY, rotate: rotation, zIndex: idx + 1 }
                 }
-                whileHover={{ y: -16, scale: 1.05, zIndex: 30 }}
-                transition={{ duration: 0.15, ease: 'easeOut' }}
+                whileHover={{ y: -24, scale: 1.15, zIndex: 40 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
                 onClick={() => onPickCard(card)}
-                style={{ transform: 'translateZ(0)' }}
-                className={`relative w-20 h-32 sm:w-28 sm:h-44 md:w-32 md:h-52 rounded-xl cursor-pointer shadow-lg border bg-slate-900 flex flex-col items-center justify-center p-1.5 sm:p-2 text-center select-none gpu-accelerated overflow-hidden ${
+                style={{
+                  transformOrigin: 'bottom center',
+                  marginLeft: idx > 0 ? 'calc(-1.4vw - 4px)' : '0px',
+                }}
+                className={`relative w-9 xs:w-11 sm:w-18 md:w-22 lg:w-26 h-16 xs:h-20 sm:h-32 md:h-40 lg:h-46 rounded-lg sm:rounded-xl cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 sm:p-1 select-none overflow-hidden shrink-0 transition-shadow duration-200 ${
                   isPicked
-                    ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.8)]'
-                    : 'border-amber-400/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.4)]'
+                    ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.9)]'
+                    : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_20px_rgba(234,179,8,0.5)]'
                 }`}
               >
                 <img
@@ -79,8 +85,8 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
                 />
 
                 {isPicked && (
-                  <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
-                    <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-slate-950 text-amber-400" />
+                  <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 z-10 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
+                    <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 fill-slate-950 text-amber-400" />
                   </div>
                 )}
               </motion.div>
@@ -91,9 +97,9 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
 
       {/* Helper Text */}
       {!isSelectionComplete && (
-        <p className="text-[10px] sm:text-xs text-purple-300/70 mt-1 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-950/40 border border-purple-800/30">
-          <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span>แตะเลือกไพ่ ({selectedCards.length} / {targetCount}) • เลื่อนซ้าย-ขวาเพื่อดูไพ่เพิ่ม</span>
+        <p className="text-[10px] sm:text-xs text-purple-300/70 mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/40 border border-purple-800/30">
+          <Touchpad className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>แตะเลือกไพ่ ({selectedCards.length} / {targetCount} ใบ) • ไพ่ทุกใบคลี่แสดงพร้อมกันเต็มหน้าจอ</span>
         </p>
       )}
     </div>
