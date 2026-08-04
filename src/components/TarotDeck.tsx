@@ -156,7 +156,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       </div>
 
       {/* Fan Deck Display */}
-      <div className="relative w-full min-h-[250px] sm:min-h-[320px] md:min-h-[360px] overflow-x-auto py-6 sm:py-12 md:py-16 scrollbar-none touch-pan-x">
+      <div className="relative w-full min-h-[220px] sm:min-h-[290px] md:min-h-[340px] overflow-x-auto pt-10 pb-2 sm:pt-14 sm:pb-4 md:pt-16 md:pb-6 scrollbar-none touch-pan-x">
         <div className="flex justify-start items-center min-w-max px-8 sm:px-16 md:px-24 -space-x-12 sm:-space-x-10 md:-space-x-8 lg:-space-x-7 mx-auto">
           {deck.map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
