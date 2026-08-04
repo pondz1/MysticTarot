@@ -40,7 +40,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "จงเปิดใจกว้างและกล้าที่จะก้าวเดิน แต่อย่าลืมมองพื้นใต้เท้าก่อนก้าวเสมอ",
     iconSymbol: "sun-cloud",
     colorTheme: "from-amber-400 via-orange-500 to-yellow-600",
-    imageUrl: "/cards/0_fool.jpg"
+    imageUrl: "/cards/0_fool.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "1-magician",
@@ -60,7 +62,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เชื่อมั่นในศักยภาพของตัวเอง คุณมีทุกอย่างที่จำเป็นสำหรับการประสบความสำเร็จแล้ว",
     iconSymbol: "wand",
     colorTheme: "from-yellow-400 via-amber-500 to-purple-600",
-    imageUrl: "/cards/1_magician.jpg"
+    imageUrl: "/cards/1_magician.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "2-high-priestess",
@@ -80,7 +84,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ถอยกลับมาพักผ่อน ฟังเสียงหัวใจตนเอง ความจริงจะปรากฏในความเงียบสงบ",
     iconSymbol: "moon-stars",
     colorTheme: "from-blue-400 via-indigo-600 to-purple-900",
-    imageUrl: "/cards/2_high_priestess.jpg"
+    imageUrl: "/cards/2_high_priestess.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "3-empress",
@@ -100,7 +106,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เปิดรับความสุขและโอบรับสิ่งดีๆ รอบตัว ดูแลตัวเองและคนที่คุณรักด้วยความอ่อนโยน",
     iconSymbol: "crown-heart",
     colorTheme: "from-emerald-400 via-teal-500 to-amber-500",
-    imageUrl: "/cards/3_empress.jpg"
+    imageUrl: "/cards/3_empress.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "4-emperor",
@@ -120,7 +128,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ตั้งมั่นในเป้าหมาย ใช้ความเด็ดเดี่ยวและระเบียบวินัยนำทางความสำเร็จ",
     iconSymbol: "shield-crown",
     colorTheme: "from-red-500 via-rose-600 to-amber-700",
-    imageUrl: "/cards/4_emperor.jpg"
+    imageUrl: "/cards/4_emperor.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "5-hierophant",
@@ -140,7 +150,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "รับฟังคำแนะนำจากผู้มีประสบการณ์ และรักษาคุณธรรมในการดำเนินชีวิต",
     iconSymbol: "book-open",
     colorTheme: "from-amber-600 via-yellow-600 to-orange-800",
-    imageUrl: "/cards/5_hierophant.jpg"
+    imageUrl: "/cards/5_hierophant.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "6-lovers",
@@ -160,7 +172,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เลือกเส้นทางที่ซื่อสัตย์ต่อความรู้สึกและค่านิยมที่แท้จริงของคุณ",
     iconSymbol: "heart-sparkles",
     colorTheme: "from-pink-500 via-rose-500 to-purple-600",
-    imageUrl: "/cards/6_lovers.jpg"
+    imageUrl: "/cards/6_lovers.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "7-chariot",
@@ -180,7 +194,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "จับบังเหียนชีวิตตนเองให้แน่น มุ่งหน้าลุยต่อไปอย่างไม่ย่อท้อ ชัยชนะอยู่นอกประตู!",
     iconSymbol: "swords",
     colorTheme: "from-blue-600 via-cyan-600 to-indigo-800",
-    imageUrl: "/cards/7_chariot.jpg"
+    imageUrl: "/cards/7_chariot.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "8-strength",
@@ -200,7 +216,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ใช้น้ำเย็นเข้าลูบ ความอ่อนน้อมและความอดทนคือสัตยวุธที่แข็งแกร่งที่สุดของคุณ",
     iconSymbol: "infinity-lion",
     colorTheme: "from-amber-500 via-orange-600 to-red-600",
-    imageUrl: "/cards/8_strength.jpg"
+    imageUrl: "/cards/8_strength.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "9-hermit",
@@ -220,7 +238,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ถอยออกมาหนึ่งก้าว ใช้เวลาอยู่กับความเงียบเพื่อค้นหาคำตอบที่แท้จริงในใจคุณ",
     iconSymbol: "lantern",
     colorTheme: "from-slate-600 via-cyan-800 to-blue-950",
-    imageUrl: "/cards/9_hermit.jpg"
+    imageUrl: "/cards/9_hermit.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "10-wheel-of-fortune",
@@ -240,7 +260,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เตรียมตัวให้พร้อมสำหรับโอกาสใหม่ และยอมรับการเปลี่ยนแปลงตามจังหวะเวลา",
     iconSymbol: "wheel",
     colorTheme: "from-purple-500 via-amber-500 to-indigo-700",
-    imageUrl: "/cards/10_wheel_of_fortune.jpg"
+    imageUrl: "/cards/10_wheel_of_fortune.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "11-justice",
@@ -260,7 +282,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ตัดสินใจทุกอย่างด้วยความจริงและเหตุผล กระทำสิ่งใดไว้จะได้รับผลเช่นนั้น",
     iconSymbol: "scale-sword",
     colorTheme: "from-blue-500 via-slate-600 to-amber-600",
-    imageUrl: "/cards/11_justice.jpg"
+    imageUrl: "/cards/11_justice.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "12-hanged-man",
@@ -280,7 +304,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ปล่อยวางสิ่งที่ควบคุมไม่ได้ ลองมองปัญหาจากมุมกลับ แล้วคุณจะพบคำตอบ",
     iconSymbol: "upside-down-person",
     colorTheme: "from-teal-600 via-indigo-700 to-purple-900",
-    imageUrl: "/cards/12_hanged_man.jpg"
+    imageUrl: "/cards/12_hanged_man.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "13-death",
@@ -300,7 +326,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "กล้าทิ้งสิ่งที่ไม่ใช่ เพื่อเปิดพื้นที่ให้สิ่งที่ดีกว่าเข้ามาในชีวิตคุณ",
     iconSymbol: "skeleton-rose",
     colorTheme: "from-slate-900 via-gray-800 to-purple-950",
-    imageUrl: "/cards/13_death.jpg"
+    imageUrl: "/cards/13_death.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "14-temperance",
@@ -320,7 +348,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เดินสายกลาง ประนีประนอม และให้เวลาเป็นตัวเยียวยาทุกสิ่ง",
     iconSymbol: "angel-cups",
     colorTheme: "from-cyan-500 via-blue-600 to-indigo-700",
-    imageUrl: "/cards/14_temperance.jpg"
+    imageUrl: "/cards/14_temperance.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "15-devil",
@@ -340,7 +370,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "ตั้งสติและตระหนักรู้ว่าคุณมีอิสรภาพที่จะตัดพันธนาการเหล่านั้นออกได้เสมอ",
     iconSymbol: "horns-flame",
     colorTheme: "from-rose-950 via-red-900 to-purple-950",
-    imageUrl: "/cards/15_devil.jpg"
+    imageUrl: "/cards/15_devil.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "16-tower",
@@ -360,7 +392,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "อย่าตกใจกับความเปลี่ยนแปลง สิ่งที่พังทลายไปจะเปิดโอกาสให้คุณสร้างใหม่ให้แข็งแกร่งกว่าเดิม",
     iconSymbol: "lightning-tower",
     colorTheme: "from-amber-600 via-red-700 to-stone-900",
-    imageUrl: "/cards/16_tower.jpg"
+    imageUrl: "/cards/16_tower.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "17-star",
@@ -380,7 +414,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "รักษาความหวังและศรัทธาในตนเอง แสงสว่างกำลังนำทางคุณไปสู่สิ่งที่ดีงาม",
     iconSymbol: "big-star",
     colorTheme: "from-indigo-400 via-sky-500 to-purple-600",
-    imageUrl: "/cards/17_star.jpg"
+    imageUrl: "/cards/17_star.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "18-moon",
@@ -400,7 +436,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "อย่าปล่อยให้ความกลัวในจิตใจหลอกลวงคุณ รอให้แสงอาทิตย์ส่องสว่างแล้วค่อยตัดสินใจ",
     iconSymbol: "crescent-moon",
     colorTheme: "from-blue-900 via-indigo-900 to-slate-950",
-    imageUrl: "/cards/18_moon.jpg"
+    imageUrl: "/cards/18_moon.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "19-sun",
@@ -420,7 +458,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "เปล่งประกายความสุขและแบ่งปันพลังบวกให้แก่คนรอบข้าง ชีวิตคุณกำลังอยู่ในจุดที่สดใสที่สุด!",
     iconSymbol: "radiant-sun",
     colorTheme: "from-amber-400 via-yellow-500 to-orange-500",
-    imageUrl: "/cards/19_sun.jpg"
+    imageUrl: "/cards/19_sun.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "20-judgement",
@@ -440,7 +480,9 @@ export const TAROT_CARDS: TarotCard[] = [
     advice: "รับฟังเสียงเรียกในใจ ยอมรับอดีตและก้าวสู่วิถีชีวิตใหม่ที่ตื่นรู้",
     iconSymbol: "angel-trumpet",
     colorTheme: "from-purple-600 via-indigo-700 to-amber-500",
-    imageUrl: "/cards/20_judgement.jpg"
+    imageUrl: "/cards/20_judgement.jpg",
+    arcana: "major",
+    suit: "major"
   },
   {
     id: "21-world",
