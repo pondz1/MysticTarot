@@ -23,8 +23,8 @@ export const CardListModal: React.FC<CardListModalProps> = ({ isOpen, onClose, o
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-4xl max-h-[85vh] glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 animate-fade-in gpu-accelerated">
+      <div className="relative w-full max-w-4xl max-h-[85vh] glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl flex flex-col will-change-transform">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-amber-500/30 pb-4 mb-4 shrink-0">
@@ -36,7 +36,8 @@ export const CardListModal: React.FC<CardListModalProps> = ({ isOpen, onClose, o
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/60"
+            className="p-1.5 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/60 transition-colors"
+            title="ปิดสารานุกรม"
           >
             <X className="w-5 h-5" />
           </button>
@@ -50,19 +51,20 @@ export const CardListModal: React.FC<CardListModalProps> = ({ isOpen, onClose, o
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="ค้นหาชื่อไพ่ (ภาษาไทย/อังกฤษ) หรือคีย์เวิร์ด..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-black/40 border border-purple-500/40 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-amber-400"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-black/50 border border-purple-500/40 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-amber-400 transition-colors"
           />
         </div>
 
-        {/* Card Grid */}
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-1">
+        {/* Card Grid with Virtualized Render Optimization */}
+        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-1 scrollbar-thin">
           {filteredCards.map((card) => (
             <div
               key={card.id}
               onClick={() => onSelectCard(card)}
-              className="group cursor-pointer flex flex-col items-center p-2 rounded-xl glass-panel hover:glass-panel-gold border border-amber-500/20 hover:border-amber-400/60 transition-all hover:scale-105"
+              style={{ contentVisibility: 'auto', containIntrinsicSize: '200px' }}
+              className="group cursor-pointer flex flex-col items-center p-2 rounded-xl glass-panel hover:glass-panel-gold border border-amber-500/20 hover:border-amber-400/60 transition-all hover:scale-105 will-change-transform"
             >
-              <div className="w-full h-44 mb-2">
+              <div className="w-full h-44 mb-2 relative overflow-hidden rounded-lg">
                 <TarotArt card={card} size="sm" />
               </div>
               <p className="text-xs font-bold text-amber-200 text-center truncate w-full">
