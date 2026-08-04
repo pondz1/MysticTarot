@@ -34,8 +34,9 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ drawnCards, onOpenCard
             key={dCard.card.id + index}
             initial={{ opacity: 0, y: 30, rotateY: 180 }}
             animate={{ opacity: 1, y: 0, rotateY: 0 }}
-            transition={{ duration: 0.8, delay: index * 0.2 }}
-            className="flex flex-col items-center w-full max-w-[280px]"
+            transition={{ duration: 0.7, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+            style={{ transform: 'translateZ(0)' }}
+            className="flex flex-col items-center w-full max-w-[280px] gpu-accelerated"
           >
             {/* Spread Position Tag */}
             <div className="mb-2 px-3 py-1 rounded-full bg-purple-950/80 border border-amber-400/40 text-amber-200 text-xs font-semibold shadow-md flex items-center gap-1.5">

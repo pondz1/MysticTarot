@@ -175,7 +175,8 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
                 whileHover={{ y: -20, scale: 1.05, zIndex: 30 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
                 onClick={() => handlePickCard(card)}
-                className={`relative w-24 h-40 sm:w-28 sm:h-44 md:w-32 md:h-52 rounded-xl cursor-pointer shadow-lg border bg-slate-900 flex flex-col items-center justify-center p-2 text-center select-none will-change-transform overflow-hidden ${
+                style={{ transform: 'translateZ(0)' }}
+                className={`relative w-24 h-40 sm:w-28 sm:h-44 md:w-32 md:h-52 rounded-xl cursor-pointer shadow-lg border bg-slate-900 flex flex-col items-center justify-center p-2 text-center select-none gpu-accelerated overflow-hidden ${
                   isPicked
                     ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.8)]'
                     : 'border-amber-400/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.4)]'
