@@ -17,10 +17,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 w-full border-b border-amber-500/20 glass-panel backdrop-blur-md px-3 sm:px-4 py-2.5">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
-        
+
         {/* Brand Logo */}
-        <div 
-          className="flex items-center gap-2 sm:gap-3 cursor-pointer group shrink-0" 
+        <div
+          className="flex items-center gap-2 sm:gap-3 cursor-pointer group shrink-0"
           onClick={() => window.location.reload()}
         >
           <div className="relative p-1.5 sm:p-2 rounded-xl bg-gradient-to-tr from-purple-900 to-amber-600 border border-amber-400/40 shadow-lg group-hover:scale-105 transition-transform shrink-0">
@@ -38,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Navigation Action Buttons */}
         <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 shrink-0">
-          
+
           {/* Browse Tarot Database */}
           <button
             onClick={onOpenCardList}
@@ -66,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="ตั้งค่าเชื่อมต่อ AI"
           >
             <Settings className="w-4 h-4 text-amber-300 animate-spin-slow shrink-0" />
-            <span className="whitespace-nowrap text-xs">ตั้งค่า AI</span>
+            <span className="whitespace-nowrap text-xs">AI</span>
             {hasCustomKey && (
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
             )}
