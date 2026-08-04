@@ -174,7 +174,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     <div className="w-full flex flex-col items-center my-2 sm:my-4">
       
       {/* Header Badge */}
-      <div className="flex flex-col items-center gap-1.5 sm:gap-2 mb-2 text-center">
+      <div className="w-full max-w-full px-2 flex flex-col items-center gap-1.5 sm:gap-2 mb-2 text-center">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-purple-950/80 border border-amber-400/30 text-amber-200 text-[10px] sm:text-xs font-medium shadow-md">
           <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin-slow shrink-0" />
           <span className="leading-tight">
