@@ -13,6 +13,7 @@ export interface TarotSpread {
   description: string;
   iconName: string;
   positions: string[];
+  aiGuideline?: string;
 }
 
 export interface DrawnCard {

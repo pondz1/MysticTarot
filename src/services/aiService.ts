@@ -36,19 +36,44 @@ export async function analyzeTarotReading(
 
   const spreadConfig = getSpreadConfig(spreadMode);
 
-  const systemPrompt = `คุณคือ "หมอดูไพ่ยิปซี AI (Celestial Tarot Prophet)" ผู้หยั่งรู้ดวงชะตา มีความเชี่ยวชาญศาสตร์ไพ่ยิปซีสากล ลึกซึ้ง มีความเมตตา ภาษาสละสลวยน่าเลื่อมใส และให้กำลังใจผู้เปิดไพ่
+  const spreadGuidelineSection = spreadConfig.aiGuideline
+    ? `\n\n🎯 **วัตถุประสงค์และแนวทางวิเคราะห์เฉพาะสำหรับสเปรดนี้ (${spreadConfig.titleTh})**:\n👉 ${spreadConfig.aiGuideline}`
+    : '';
 
-หน้าที่ของคุณ:
-1. วิเคราะห์คำทำนายไพ่ยิปซีโดยเชื่อมโยงไพ่ทุกใบที่จับได้ เข้ากับ "สิ่งที่ผู้ใช้ถาม/อยากรู้" อย่างตรงจุด
-2. ตอบเป็นภาษาไทย ระดับภาษาลึกลับ สละสลวย น่าค้นหา แต่อ่านง่ายและเข้าใจชัดเจน
-3. จัดรูปแบบผลทำนายด้วย Markdown โดยใช้โครงสร้างดังนี้:
-   - ## 🔮 ภาพรวมดวงชะตาและพลังงานไพ่ (${spreadConfig.titleTh})
-   - ## 🃏 วิเคราะห์เจาะลึกตามไพ่แต่ละใบในตำแหน่งสเปรด
-   - ## 💡 บทสรุปตอบคำทำนายตรงประเด็นสิ่งที่อยากรู้
-   - ## 🌟 คำแนะนำและข้อคิดจากจักรวาล (Actionable advice & Affirmation)`;
+  const systemPrompt = `คุณคือ "หมอดูไพ่ยิปซี AI ระดับปรมาจารย์ (Celestial Master Tarot Prophet)" ผู้หยั่งรู้ดวงชะตา อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
+
+📜 **กฎและข้อบังคับในการทำนาย (Strict Response Directives)**:
+1. **ภาษาไทยสละสลวย 100% (High-Quality Thai Only)**:
+   - ใช้ภาษาไทยระดับสละสลวย งดงาม นุ่มนวล มีพลังน่าเลื่อมใส ห้ามใช้คำแปลแปลกๆ จากภาษาอังกฤษ หรือคำพูดทื่อๆ แบบหุ่นยนต์
+   - สะท้อนความเข้าใจในอารมณ์ความรู้สึกของผู้ถามอย่างเมตตา (Empathetic & Insightful)
+
+2. **ตอบตรงประเด็นคำถามของผู้ใช้ (Direct & Clear Answer)**:
+   - ไม่ว่าผู้ใช้จะถามเรื่องความรัก การงาน การเงิน หรือชีวิต ให้คำตอบที่ชัดเจน ตรงกับสิ่งที่อยากรู้ ไม่ตอบแบบคลุมเครือหรือหลบหลีก
+
+3. **วิเคราะห์เชื่อมโยงไพ่ทุกใบ (Contextual Card Synthesis)**:
+   - ห้ามอ่านไพ่แยกใบกันโดยไม่เกี่ยวข้องกัน ต้องร้อยเรียงความหมายของไพ่ทุกใบ สัญลักษณ์ ธาตุประจำไพ่ และสถานะ (ไพ่ตั้งหัว Upright / ไพ่กลับหัว Reversed) ให้กลายเป็นเรื่องราวเดียวกันอย่างมีเอกภาพ${spreadGuidelineSection}
+
+4. **การจัดรูปแบบผลทำนายด้วย Markdown ที่สวยงาม**:
+   - ใช้ Markdown Headings (##), ข้อความตัวหนา (**Bold**), และ Bullet points เพื่อให้อ่านง่ายและน่าเลื่อมใส
+   - ใช้ Blockquote (>) สำหรับคำคมหรือข้อคิดปิดท้าย
+
+📌 **โครงสร้างผลทำนายที่ต้องใช้เป็นมาตรฐาน**:
+## 🔮 ภาพรวมดวงชะตาและพลังงานไพ่ (${spreadConfig.titleTh})
+(เกริ่นเปิดภาพรวมดวงชะตา สะท้อนพลังงานไพ่และอารมณ์เรื่องที่ถามด้วยภาษาสละสลวย)
+
+## 🃏 วิเคราะห์เจาะลึกไพ่ตามตำแหน่งสเปรด
+(วิเคราะห์ไพ่แต่ละใบตามตำแหน่งอย่างมีมิติ เชื่อมโยงความหมาย ไพ่ตั้งหัว/กลับหัว ธาตุประจำไพ่ และบริบทเรื่องที่ถาม)
+
+## 💡 บทสรุปคำตอบตรงประเด็นคำถาม
+(ฟันธงตอบสิ่งที่ผู้ใช้ถามอย่างตรงจุด ชัดเจน และมีสติปัญญา)
+
+## 🌟 คำแนะนำและข้อคิดชี้ทางจากจักรวาล
+(แจงคำแนะนำที่นำไปปฏิบัติได้จริงเป็นข้อๆ Actionable Advice)
+
+> 🌌 *คำคม/Affirmation ประจำการเปิดไพ่ครั้งนี้*`;
 
   const cardsDescription = drawnCards.map((d, index) => {
-    const orientation = d.isReversed ? 'ไพ่กลับหัว (Reversed)' : 'ไพ่ตั้งหัว (Upright)';
+    const orientation = d.isReversed ? 'ไพ่กลับหัว (Reversed - พลังงานติดขัด/สะท้อนมุมมองภายใน)' : 'ไพ่ตั้งหัว (Upright - พลังงานสมบูรณ์/แสดงผลชัดเจน)';
     const meaning = d.isReversed ? d.card.reversedMeaning : d.card.uprightMeaning;
     return `[ใบที่ ${index + 1}] ตำแหน่ง: ${d.position}
 - ชื่อไพ่: ${d.card.nameTh} (${d.card.nameEn})
@@ -61,6 +86,8 @@ export async function analyzeTarotReading(
   const userPrompt = `คำถาม / สิ่งที่อยากรู้ของผู้ใช้: "${question || 'ดูดวงภาพรวมประจำวันและคำแนะนำชีวิต'}"
 รูปแบบสเปรด: ${spreadConfig.titleTh} (${spreadConfig.badge})
 จำนวนไพ่: ${drawnCards.length} ใบ
+
+แนวทางการทำนายสเปรดนี้: ${spreadConfig.aiGuideline || 'วิเคราะห์เชื่อมโยงไพ่กับตำแหน่งอย่างละเอียด'}
 
 ไพ่ที่จับได้ทั้งหมดตามตำแหน่ง:
 ${cardsDescription}
@@ -89,7 +116,7 @@ ${cardsDescription}
 
     const content = completion.choices[0]?.message?.content;
     if (content && content.trim()) {
-      return content;
+      return cleanAiResponse(content);
     }
 
     return generateFallbackReading(question, drawnCards, spreadMode);
@@ -102,6 +129,27 @@ ${cardsDescription}
       `⚠️ (ข้อความจาก OpenAI SDK: ${error instanceof Error ? error.message : 'API Error'} - ระบบใช้ Smart AI Reader อัตโนมัติ)\n\n`
     );
   }
+}
+
+// Sanitizer function to clean up AI thinking / prompt leakage (e.g., Reasoning Models or proxies returning internal planning)
+export function cleanAiResponse(rawContent: string): string {
+  if (!rawContent) return '';
+
+  // 1. Remove <think>...</think> tags (common in DeepSeek / Reasoning models)
+  let cleaned = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+  // 2. Extract content starting from the first Markdown heading (e.g., ## 🔮 or ## 🃏)
+  const headingMatch = cleaned.match(/(##\s*🔮?[\s\S]*)/i);
+  if (headingMatch && headingMatch[1]) {
+    cleaned = headingMatch[1].trim();
+  } else {
+    // Fallback: If no heading found, strip common English prompt reflection lines
+    cleaned = cleaned
+      .replace(/^(We need to|Constraints:|Let's craft|Pattern:|Structure:|Must keep|The instruction says)[\s\S]*?(?=\n\n|$)/gi, '')
+      .trim();
+  }
+
+  return cleaned || rawContent.trim();
 }
 
 // Built-in Smart AI Reader Fallback generator
