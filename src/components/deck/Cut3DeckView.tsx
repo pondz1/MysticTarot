@@ -4,6 +4,7 @@ import type { TarotCard } from '../../data/tarotCards';
 import type { DrawnCard } from '../../types/tarot';
 import { Sparkles, CheckCircle2, RefreshCw, Zap, Hand } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { FanDeckView } from './FanDeckView';
 
 interface Cut3DeckViewProps {
   deck: TarotCard[];
@@ -33,6 +34,9 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
   const [subMode, setSubMode] = useState<'auto' | 'manual'>('auto');
   const [selectedPile, setSelectedPile] = useState<number | null>(null);
   const [isCutting, setIsCutting] = useState(false);
+
+  const manualCardRefs = React.useRef<(HTMLDivElement | null)[]>([]);
+  const manualDeckContainerRef = React.useRef<HTMLDivElement | null>(null);
 
   const isSelectionComplete = selectedCards.length === targetCount;
 
@@ -233,8 +237,8 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
 
       {/* Manual Card Selection Fan from Selected Pile */}
       {subMode === 'manual' && selectedPile !== null && (
-        <div className="w-full max-w-3xl px-2 my-2 flex flex-col items-center select-none">
-          <div className="flex items-center justify-between w-full max-w-xl px-4 mb-2">
+        <div className="w-full max-w-5xl px-2 my-2 flex flex-col items-center select-none">
+          <div className="flex items-center justify-between w-full max-w-xl px-4 mb-1">
             <span className="text-xs font-bold text-amber-300">
               คลี่เลือกไพ่จาก {PILE_NAMES[selectedPile].title} ({selectedCards.length} / {targetCount} ใบ)
             </span>
@@ -247,65 +251,15 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
             </button>
           </div>
 
-          {/* Overlapping Arc Fan Ribbon for Selected Pile */}
-          <div className="w-full flex justify-center items-center py-6 px-1 my-1 overflow-hidden">
-            <div className="flex justify-center items-center w-full max-w-xl mx-auto">
-              {getPileCards(selectedPile).map((card, idx) => {
-                const pileCards = getPileCards(selectedPile);
-                const midIdx = (pileCards.length - 1) / 2;
-                const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
-
-                // Gentle arc fan angle (-10deg to +10deg)
-                const fanAngle = (idx - midIdx) * 3;
-                const arcY = Math.abs(idx - midIdx) * 1.6;
-
-                return (
-                  <motion.div
-                    key={card.id}
-                    initial={{ y: arcY, rotate: fanAngle }}
-                    animate={
-                      isPicked
-                        ? { y: -16, scale: 1.12, rotate: 0, zIndex: 50 }
-                        : { y: [arcY, arcY - 4, arcY], rotate: fanAngle, zIndex: idx + 1 }
-                    }
-                    whileHover={{ y: -12, scale: 1.1, rotate: 0, zIndex: 45 }}
-                    transition={{
-                      duration: 0.2,
-                      ease: 'easeOut',
-                      y: isPicked ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: idx * 0.08 },
-                    }}
-                    onClick={() => handleManualPickFromPile(card)}
-                    style={{
-                      transformOrigin: 'bottom center',
-                      marginLeft: idx > 0 ? '-3.8%' : '0px',
-                    }}
-                    className={`relative w-[12.5vw] max-w-[110px] min-w-[64px] h-[19vw] max-h-[168px] min-h-[98px] rounded-lg sm:rounded-xl cursor-pointer shadow-2xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none overflow-hidden shrink-0 transition-shadow duration-200 ${
-                      isPicked
-                        ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
-                        : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_24px_rgba(234,179,8,0.65)]'
-                    }`}
-                  >
-                    <img
-                      src="/cards/card_back.jpg"
-                      alt="Tarot Back"
-                      loading="eager"
-                      decoding="async"
-                      className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-
-                    {isPicked && (
-                      <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 z-10 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
-                        <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 fill-slate-950 text-amber-400" />
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
+          <FanDeckView
+            deck={getPileCards(selectedPile)}
+            selectedCards={selectedCards}
+            targetCount={targetCount}
+            isShuffling={false}
+            onPickCard={(card) => handleManualPickFromPile(card)}
+            cardRefs={manualCardRefs}
+            deckContainerRef={manualDeckContainerRef}
+          />
         </div>
       )}
 
