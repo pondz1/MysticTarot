@@ -2,6 +2,8 @@ import type { TarotCard } from '../data/tarotCards';
 
 export type SpreadMode = 'single' | 'three' | 'four' | 'five' | 'celtic';
 
+export type SelectionMode = 'manual' | 'auto' | 'cut3';
+
 export interface TarotSpread {
   id: SpreadMode;
   cardCount: number;
