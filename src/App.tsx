@@ -134,7 +134,7 @@ export function App() {
         <div className="text-center my-4 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-300 text-xs mb-3 shadow-inner">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Tarot Reading (OpenAI Compatible)</span>
+            <span>✨ ศาสตร์แห่งไพ่ยิปซี & ปัญญาประดิษฐ์จักรวาล</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold font-serif-mystic text-gold-gradient tracking-tight leading-tight">
@@ -201,7 +201,7 @@ export function App() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center px-4 gap-2">
           <p className="flex items-center gap-1">
             <Wand2 className="w-3.5 h-3.5 text-amber-400" />
-            <span>Mystic Tarot AI Engine • Powered by OpenAI-compatible API</span>
+            <span>Mystic Tarot AI • ขับเคลื่อนด้วยพลังแห่งไพ่ยิปซีและปัญญาประดิษฐ์จักรวาล</span>
           </p>
           <p>© 2026 Mystic Tarot AI. All rights reserved.</p>
         </div>

@@ -54,7 +54,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-amber-300 animate-spin-slow" />
             <h3 className="text-base font-bold font-serif-mystic text-gold-gradient">
-              ตั้งค่า AI Connection (OpenAI Compatible)
+              ตั้งค่าการเชื่อมต่อปัญญาประดิษฐ์ AI
             </h3>
           </div>
           <button
@@ -69,7 +69,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
         <div className="mb-4">
           <label className="text-xs text-purple-200 font-medium mb-1.5 flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            เลือกผู้ให้บริการสำเร็จรูป (Quick Presets):
+            เลือกโมเดล AI ที่ต้องการเชื่อมต่อ:
           </label>
           <div className="flex flex-wrap gap-1.5 mt-1">
             {PROVIDER_PRESETS.map((preset, idx) => (
@@ -77,7 +77,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
                 key={idx}
                 type="button"
                 onClick={() => handleApplyPreset(preset)}
-                className="text-[11px] px-2.5 py-1 rounded-md bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-200 hover:text-amber-200 transition-all"
+                className="text-[11px] px-2.5 py-1 rounded-md bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-200 hover:text-amber-200 transition-all cursor-pointer"
               >
                 {preset.name}
               </button>
@@ -92,7 +92,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
           <div>
             <label className="text-xs font-medium text-slate-200 mb-1 flex items-center gap-1.5">
               <Key className="w-3.5 h-3.5 text-amber-400" />
-              API Key (เว้นว่างไว้เพื่อใช้ Smart AI Reader ออฟไลน์)
+              API Key (ระบบตั้งค่าคีย์เริ่มต้นให้พร้อมใช้งานทันที)
             </label>
             <input
               type="password"

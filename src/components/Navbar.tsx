@@ -63,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onOpenSettings}
             className="relative flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-amber-100 bg-gradient-to-r from-amber-900/90 to-purple-900/90 border border-amber-400/50 hover:border-amber-300 hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-all shadow-sm shrink-0 whitespace-nowrap"
-            title="ตั้งค่า OpenAI API Key"
+            title="ตั้งค่าเชื่อมต่อ AI"
           >
             <Settings className="w-4 h-4 text-amber-300 animate-spin-slow shrink-0" />
             <span className="whitespace-nowrap text-xs">ตั้งค่า AI</span>
