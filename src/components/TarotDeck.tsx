@@ -152,10 +152,10 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       {/* Fan Deck Display (Interactive Card Selection - Middle) */}
       <div className="relative w-full min-h-[320px] md:min-h-[360px] overflow-x-auto py-12 md:py-16 scrollbar-none touch-pan-x">
         <div className="flex justify-start items-center min-w-max px-12 sm:px-16 md:px-24 -space-x-12 sm:-space-x-10 md:-space-x-8 lg:-space-x-7 mx-auto">
-          {deck.slice(0, 15).map((card, idx) => {
+          {deck.map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
-            // Slight fan rotation effect
-            const rotation = (idx - 7) * 3;
+            // Smooth fan rotation effect across all 22 cards
+            const rotation = (idx - 10) * 2.2;
 
             return (
               <motion.div
