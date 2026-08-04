@@ -28,11 +28,11 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
     const updateRadius = () => {
       const w = window.innerWidth;
       if (w < 480) {
-        setRadius(100);
+        setRadius(95);
       } else if (w < 768) {
-        setRadius(130);
+        setRadius(125);
       } else {
-        setRadius(160);
+        setRadius(150);
       }
     };
     updateRadius();
@@ -75,23 +75,23 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
       </div>
 
       {/* Orbit Controls */}
-      <div className="flex items-center gap-3 my-1 sm:my-2">
+      <div className="flex items-center gap-3 mt-1 sm:mt-2 mb-4 sm:mb-6">
         <button
           type="button"
           onClick={() => setRotationDeg((prev) => prev + 30)}
-          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-2.5 py-1 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-all cursor-pointer shadow-sm"
+          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-all cursor-pointer shadow-sm"
         >
-          <RotateCcw className="w-3 h-3 text-amber-300" />
+          <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
           <span>หมุนซ้าย</span>
         </button>
 
         <button
           type="button"
           onClick={() => setRotationDeg((prev) => prev - 30)}
-          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-2.5 py-1 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-all cursor-pointer shadow-sm"
+          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-all cursor-pointer shadow-sm"
         >
           <span>หมุนขวา</span>
-          <RotateCw className="w-3 h-3 text-amber-300" />
+          <RotateCw className="w-3.5 h-3.5 text-amber-300" />
         </button>
       </div>
 
@@ -101,7 +101,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
-        className="relative w-full max-w-2xl h-[300px] sm:h-[370px] md:h-[410px] flex items-center justify-center overflow-visible cursor-grab active:cursor-grabbing touch-pan-y my-2 sm:my-4 px-2 sm:px-4"
+        className="relative w-full max-w-2xl h-[310px] sm:h-[410px] md:h-[480px] flex items-center justify-center overflow-visible cursor-grab active:cursor-grabbing touch-pan-y my-2 sm:my-4 px-4"
       >
         {/* Central Cosmic Core Icon */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
@@ -135,7 +135,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                   transform: `translate3d(${x}px, ${y}px, 0px) rotate(${cardRotation}deg) ${isPicked ? 'scale(1.15)' : 'scale(1)'}`,
                   zIndex: isPicked ? 50 : 10,
                 }}
-                className={`w-12 h-18 xs:w-14 xs:h-22 sm:w-16 sm:h-26 md:w-18 md:h-28 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-all duration-200 ${
+                className={`w-11 h-17 xs:w-13 xs:h-20 sm:w-15 sm:h-24 md:w-16 md:h-26 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-all duration-200 ${
                   isPicked
                     ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.9)]'
                     : 'border-amber-400/40 hover:border-amber-300'
@@ -163,7 +163,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
 
       {/* Touch Swipe Hint */}
       {!isSelectionComplete && (
-        <p className="text-[10px] sm:text-xs text-purple-300/70 mt-1 flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/40 border border-purple-800/30">
+        <p className="text-[10px] sm:text-xs text-purple-300/70 mt-4 sm:mt-6 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-950/40 border border-purple-800/30">
           <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           <span>ปัดเลื่อนซ้าย-ขวาเพื่อหมุนกงล้อ แล้วแตะเลือกไพ่ที่ต้องการ</span>
         </p>
