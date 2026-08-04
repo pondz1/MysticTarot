@@ -57,13 +57,19 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
 
     setIsShuffling(true);
     setTimeout(() => {
-      const shuffled = shuffleArray([...TAROT_CARDS]);
-      setDeck(shuffled);
+      // Pick targetCount distinct random indices spread across the deck
+      const indices: number[] = [];
+      while (indices.length < targetCount && indices.length < deck.length) {
+        const r = Math.floor(Math.random() * deck.length);
+        if (!indices.includes(r)) {
+          indices.push(r);
+        }
+      }
 
-      const picked: DrawnCard[] = shuffled.slice(0, targetCount).map((card, idx) => ({
-        card,
+      const picked: DrawnCard[] = indices.map((idx, posIdx) => ({
+        card: deck[idx],
         isReversed: Math.random() < 0.25,
-        position: getPositionName(idx)
+        position: getPositionName(posIdx)
       }));
 
       setSelectedCards(picked);
