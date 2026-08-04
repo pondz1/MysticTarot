@@ -3,7 +3,7 @@ import type { TarotCard } from '../data/tarotCards';
 import { TAROT_CARDS } from '../data/tarotCards';
 import type { DrawnCard, SpreadMode, SelectionMode } from '../types/tarot';
 import { getSpreadConfig } from '../data/tarotSpreads';
-import { Sparkles, RefreshCw, Zap } from 'lucide-react';
+import { Sparkles, RefreshCw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { DeckModeSelector } from './deck/DeckModeSelector';
@@ -199,16 +199,6 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         {/* Action Controls for Fan Deck Mode & Orbit Mode */}
         {(selectionMode === 'manual' || selectionMode === 'auto') && (
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-0.5">
-            <button
-              type="button"
-              disabled={isShuffling || isAnalyzing}
-              onClick={handleAutoPick}
-              className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 via-amber-500 to-purple-600 hover:from-amber-300 hover:to-purple-500 text-slate-950 font-bold border border-amber-200 shadow-[0_0_15px_rgba(234,179,8,0.4)] disabled:opacity-40 transition-all cursor-pointer hover:scale-105 active:scale-95"
-            >
-              <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950 animate-pulse" />
-              <span>ให้จักรวาลเลือกให้</span>
-            </button>
-
             <button
               type="button"
               disabled={isShuffling || selectedCards.length > 0 || isAnalyzing}
