@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import type { TarotCard } from '../../data/tarotCards';
 import type { DrawnCard } from '../../types/tarot';
 import { Orbit, CheckCircle2, RotateCcw, RotateCw, Eye } from 'lucide-react';
@@ -121,24 +122,42 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
             const rCurr = radius + (isPicked ? 24 : 0);
             const x = Math.sin(rad) * rCurr;
             const y = -Math.cos(rad) * rCurr;
-            const cardRotation = angleDeg; // Point card tops radially outward
+            const xFloat = Math.sin(rad) * (rCurr - 6);
+            const yFloat = -Math.cos(rad) * (rCurr - 6);
 
             return (
-              <div
+              <motion.div
                 key={card.id}
+                initial={{ x, y, rotate: angleDeg, scale: 1 }}
+                animate={
+                  isPicked
+                    ? { x, y, rotate: angleDeg, scale: 1.18, zIndex: 50 }
+                    : {
+                        x: [x, xFloat, x],
+                        y: [y, yFloat, y],
+                        rotate: angleDeg,
+                        scale: 1,
+                        zIndex: 10,
+                      }
+                }
+                whileHover={{ scale: 1.15, zIndex: 45 }}
+                transition={{
+                  duration: 0.2,
+                  ease: 'easeOut',
+                  x: isPicked ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: idx * 0.1 },
+                  y: isPicked ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: idx * 0.1 },
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isAnalyzing) onPickCard(card);
                 }}
                 style={{
                   position: 'absolute',
-                  transform: `translate3d(${x}px, ${y}px, 0px) rotate(${cardRotation}deg) ${isPicked ? 'scale(1.18)' : 'scale(1)'}`,
-                  zIndex: isPicked ? 50 : 10,
                 }}
                 className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-all duration-200 ${
                   isPicked
                     ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
-                    : 'border-amber-400/40 hover:border-amber-300'
+                    : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_24px_rgba(234,179,8,0.6)]'
                 }`}
               >
                 <img
@@ -155,7 +174,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                     <CheckCircle2 className="w-3 h-3 fill-slate-950 text-amber-400" />
                   </div>
                 )}
-              </div>
+              </motion.div>
             );
           })}
         </div>
