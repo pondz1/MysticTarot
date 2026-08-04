@@ -18,7 +18,7 @@ import { Sparkles, Wand2 } from 'lucide-react';
 export function App() {
   // Mode selection ('single' | 'three' | 'four' | 'five' | 'celtic')
   const [spreadMode, setSpreadMode] = useState<SpreadMode>('single');
-  
+
   // User Question Input
   const [question, setQuestion] = useState<string>('');
 
@@ -115,7 +115,7 @@ export function App() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between text-slate-100 bg-[#050510] relative overflow-hidden">
-      
+
       {/* Background Star Particles */}
       <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:32px_32px] opacity-10 pointer-events-none" />
 
@@ -129,7 +129,7 @@ export function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 flex flex-col items-center">
-        
+
         {/* Hero Section Banner */}
         <div className="text-center my-2 sm:my-4 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-300 text-[10px] sm:text-xs mb-2 sm:mb-3 shadow-inner">
@@ -137,7 +137,7 @@ export function App() {
             <span>ศาสตร์แห่งไพ่ยิปซี & ปัญญาประดิษฐ์จักรวาล</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold font-serif-mystic text-gold-gradient tracking-tight leading-tight">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold font-serif-mystic text-gold-gradient tracking-tight leading-tight pt-2">
             หยั่งรู้ดวงชะตาสลักชะตาชีวิต
           </h1>
           <p className="text-[11px] sm:text-sm text-purple-200/80 mt-1.5 sm:mt-2 font-light leading-relaxed max-w-xl mx-auto">
