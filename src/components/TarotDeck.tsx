@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import type { TarotCard } from '../data/tarotCards';
 import { TAROT_CARDS } from '../data/tarotCards';
 import type { DrawnCard } from '../services/aiService';
-import { Sparkles, RefreshCw, Eye, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Sparkles, RefreshCw, Eye, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface TarotDeckProps {
@@ -42,36 +42,47 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     }, 1200);
   };
 
-  // Trigger card pick
-  const handlePickCard = (card: TarotCard) => {
-    if (selectedCards.length >= targetCount || isShuffling || isAnalyzing) return;
-
-    // Check if card already selected
-    if (selectedCards.some((sc) => sc.card.id === card.id)) return;
-
-    // Random reversed status (25% chance of being reversed for authentic tarot experience)
-    const isReversed = Math.random() < 0.25;
-
-    // Position naming
-    let positionName = 'ไพ่แทนคำทำนายประจำวัน';
-    if (spreadMode === 'three') {
-      if (selectedCards.length === 0) positionName = 'ตำแหน่งที่ 1: อดีต / พื้นดวงชะตา';
-      else if (selectedCards.length === 1) positionName = 'ตำแหน่งที่ 2: ปัจจุบัน / สถานการณ์จริง';
-      else positionName = 'ตำแหน่งที่ 3: อนาคต / ทางออกและผลลัพธ์';
-    }
-
-    const newSelection = [
-      ...selectedCards,
-      { card, isReversed, position: positionName }
-    ];
-
-    setSelectedCards(newSelection);
+  // Helper to get position name
+  const getPositionName = (index: number) => {
+    if (spreadMode === 'single') return 'ไพ่แทนคำทำนายประจำวัน';
+    if (index === 0) return 'ตำแหน่งที่ 1: อดีต / พื้นดวงชะตา';
+    if (index === 1) return 'ตำแหน่งที่ 2: ปัจจุบัน / สถานการณ์จริง';
+    return 'ตำแหน่งที่ 3: อนาคต / ทางออกและผลลัพธ์';
   };
 
-  // Deselect a card if user changes their mind
-  const handleDeselectCard = (cardId: string) => {
-    if (isAnalyzing) return;
-    setSelectedCards((prev) => prev.filter((sc) => sc.card.id !== cardId));
+  // Seamless Pick / Swap / Deselect card handler
+  const handlePickCard = (card: TarotCard) => {
+    if (isShuffling || isAnalyzing) return;
+
+    const isAlreadyPicked = selectedCards.some((sc) => sc.card.id === card.id);
+
+    // 1. If card is already selected -> Deselect it
+    if (isAlreadyPicked) {
+      setSelectedCards((prev) => prev.filter((sc) => sc.card.id !== card.id));
+      return;
+    }
+
+    const isReversed = Math.random() < 0.25;
+
+    // 2. If selection is not full yet -> Add new card
+    if (selectedCards.length < targetCount) {
+      const newCardEntry: DrawnCard = {
+        card,
+        isReversed,
+        position: getPositionName(selectedCards.length)
+      };
+      setSelectedCards((prev) => [...prev, newCardEntry]);
+    } else {
+      // 3. Selection is full -> Seamlessly swap/replace the last selected card with newly clicked card!
+      const updated = [...selectedCards];
+      const replaceIndex = targetCount - 1;
+      updated[replaceIndex] = {
+        card,
+        isReversed,
+        position: getPositionName(replaceIndex)
+      };
+      setSelectedCards(updated);
+    }
   };
 
   // Confirm selection and trigger reading
@@ -104,12 +115,12 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     <div className="w-full flex flex-col items-center my-6">
       
       {/* Selection Progress Header */}
-      <div className="flex flex-col items-center gap-2 mb-6 text-center">
+      <div className="flex flex-col items-center gap-2 mb-4 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-950/80 border border-amber-400/30 text-amber-200 text-xs font-medium shadow-md">
           <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow" />
           <span>
             {isSelectionComplete
-              ? 'เลือกไพ่ครบถ้วนแล้ว! กรุณากดยืนยันเพื่อเริ่มอ่านทำนาย'
+              ? 'เลือกไพ่เรียบร้อยแล้ว! แตะใบอื่นเพื่อสลับเปลี่ยน หรือกดยืนยันเพื่ออ่านคำทำนาย'
               : `กรุณาเลือกไพ่จากสำรับ (${selectedCards.length} / ${targetCount} ใบ)`}
           </span>
         </div>
@@ -130,50 +141,38 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             <button
               type="button"
               onClick={handleResetSelection}
-              className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 transition-all cursor-pointer"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-              <span>ล้างเลือกไพ่ใหม่</span>
+              <span>ล้างเลือกใหม่</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Confirmation Step Bar (When selection reaches targetCount) */}
+      {/* Confirmation Banner (When selection is complete) */}
       {isSelectionComplete && !isAnalyzing && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-xl glass-panel-gold rounded-2xl p-4 mb-6 flex flex-col items-center gap-3 text-center border border-amber-400/60 shadow-xl"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md glass-panel-gold rounded-2xl p-4 mb-4 flex flex-col items-center gap-2.5 text-center border border-amber-400/60 shadow-xl"
         >
-          <div className="flex items-center gap-2 text-amber-300 text-sm font-semibold">
+          <div className="flex items-center gap-1.5 text-amber-300 text-xs font-semibold">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>เลือกไพ่ครบแล้ว ({selectedCards.length} ใบ)</span>
+            <span>เลือกไพ่ครบถ้วน ({selectedCards.length} / {targetCount} ใบ)</span>
           </div>
 
-          <p className="text-xs text-purple-200/80">
-            หากพอใจกับไพ่ที่เลือก กดยืนยันเพื่อรับคำทำนาย หรือกดเปลี่ยนใจเพื่อสุ่มเลือกใหม่ได้ทุกเมื่อ
+          <button
+            type="button"
+            onClick={handleConfirmSelection}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-bold text-sm sm:text-base shadow-lg shadow-amber-500/25 border border-amber-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+          >
+            <Sparkles className="w-5 h-5 text-purple-950 fill-purple-950" />
+            <span>🔮 ยืนยันการเลือกไพ่ & อ่านทำนาย</span>
+          </button>
+
+          <p className="text-[11px] text-purple-300/70">
+            * คลิกที่ไพ่ใบอื่นในสำรับได้ทันที หากต้องการสลับเปลี่ยนไพ่
           </p>
-
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-center mt-1">
-            <button
-              type="button"
-              onClick={handleConfirmSelection}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/25 border border-amber-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-purple-950 fill-purple-950" />
-              <span>🔮 ยืนยันการเลือกไพ่ & อ่านทำนาย</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleResetSelection}
-              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-400/40 text-purple-200 text-xs transition-all cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-purple-300" />
-              <span>เปลี่ยนใจ / เลือกใหม่</span>
-            </button>
-          </div>
         </motion.div>
       )}
 
@@ -197,18 +196,12 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
                         rotate: (Math.random() - 0.5) * 30,
                       }
                     : isPicked
-                    ? { y: -24, scale: 1.04, rotate: 0 }
+                    ? { y: -24, scale: 1.05, rotate: 0 }
                     : { y: 0, rotate: rotation }
                 }
                 whileHover={{ y: -20, scale: 1.05, zIndex: 30 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
-                onClick={() => {
-                  if (isPicked) {
-                    handleDeselectCard(card.id);
-                  } else {
-                    handlePickCard(card);
-                  }
-                }}
+                onClick={() => handlePickCard(card)}
                 className={`relative w-24 h-40 sm:w-28 sm:h-44 md:w-32 md:h-52 rounded-xl cursor-pointer shadow-lg border bg-slate-900 flex flex-col items-center justify-center p-2 text-center select-none will-change-transform overflow-hidden ${
                   isPicked
                     ? 'border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(234,179,8,0.6)]'
@@ -234,7 +227,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
                   <div className="absolute inset-0 z-10 bg-amber-950/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1 p-2 text-amber-200">
                     <CheckCircle2 className="w-6 h-6 text-amber-400" />
                     <span className="text-[10px] font-bold">เลือกแล้ว</span>
-                    <span className="text-[9px] text-amber-300/80 underline">แตะเพื่อยกเลิก</span>
+                    <span className="text-[9px] text-amber-300/80 underline">แตะสลับ/ยกเลิก</span>
                   </div>
                 )}
               </motion.div>
