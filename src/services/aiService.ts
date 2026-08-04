@@ -53,13 +53,17 @@ export async function analyzeTarotReading(
 3. **วิเคราะห์เชื่อมโยงไพ่ทุกใบ (Contextual Card Synthesis)**:
    - ห้ามอ่านไพ่แยกใบกันโดยไม่เกี่ยวข้องกัน ต้องร้อยเรียงความหมายของไพ่ทุกใบ สัญลักษณ์ ธาตุประจำไพ่ และสถานะ (ไพ่ตั้งหัว Upright / ไพ่กลับหัว Reversed) ให้กลายเป็นเรื่องราวเดียวกันอย่างมีเอกภาพ${spreadGuidelineSection}
 
-4. **การจัดรูปแบบผลทำนายด้วย Markdown ที่สวยงาม**:
+4. **การวิเคราะห์สัดส่วนไพ่ (Arcana Dominance & Proportion)**:
+   - **สัดส่วน Major Arcana สูง:** หากไพ่ส่วนใหญ่เป็น Major Arcana ให้เน้นย้ำว่าผู้ใช้กำลังเผชิญหน้ากับจุดเปลี่ยนสำคัญ โชคชะตา หรือบทเรียนชีวิตครั้งใหญ่
+   - **สัดส่วน Minor Arcana สูง:** หากไพ่ส่วนใหญ่เป็น Minor Arcana ให้เน้นย้ำว่าเป็นเรื่องราว/สถานการณ์ในชีวิตประจำวันทั่วไป ที่ผู้ใช้มีสติและพลังในการควบคุมจัดการได้ด้วยตัวเอง
+
+5. **การจัดรูปแบบผลทำนายด้วย Markdown ที่สวยงาม**:
    - ใช้ Markdown Headings (##), ข้อความตัวหนา (**Bold**), และ Bullet points เพื่อให้อ่านง่ายและน่าเลื่อมใส
    - ใช้ Blockquote (>) สำหรับคำคมหรือข้อคิดปิดท้าย
 
 📌 **โครงสร้างผลทำนายที่ต้องใช้เป็นมาตรฐาน**:
 ## 🔮 ภาพรวมดวงชะตาและพลังงานไพ่ (${spreadConfig.titleTh})
-(เกริ่นเปิดภาพรวมดวงชะตา สะท้อนพลังงานไพ่และอารมณ์เรื่องที่ถามด้วยภาษาสละสลวย)
+(เกริ่นเปิดภาพรวมดวงชะตา วิเคราะห์สัดส่วน Major/Minor Arcana และสะท้อนพลังงานไพ่ด้วยภาษาสละสลวย)
 
 ## 🃏 วิเคราะห์เจาะลึกไพ่ตามตำแหน่งสเปรด
 (วิเคราะห์ไพ่แต่ละใบตามตำแหน่งอย่างมีมิติ เชื่อมโยงความหมาย ไพ่ตั้งหัว/กลับหัว ธาตุประจำไพ่ และบริบทเรื่องที่ถาม)
@@ -75,8 +79,10 @@ export async function analyzeTarotReading(
   const cardsDescription = drawnCards.map((d, index) => {
     const orientation = d.isReversed ? 'ไพ่กลับหัว (Reversed - พลังงานติดขัด/สะท้อนมุมมองภายใน)' : 'ไพ่ตั้งหัว (Upright - พลังงานสมบูรณ์/แสดงผลชัดเจน)';
     const meaning = d.isReversed ? d.card.reversedMeaning : d.card.uprightMeaning;
+    const arcanaType = d.card.arcana === 'minor' ? `Minor Arcana - ชุด${d.card.suit === 'wands' ? 'ไม้เท้า (Wands)' : d.card.suit === 'cups' ? 'ถ้วย (Cups)' : d.card.suit === 'swords' ? 'ดาบ (Swords)' : d.card.suit === 'pentacles' ? 'เหรียญ (Pentacles)' : ''}` : 'Major Arcana (ชุดใหญ่)';
     return `[ใบที่ ${index + 1}] ตำแหน่ง: ${d.position}
 - ชื่อไพ่: ${d.card.nameTh} (${d.card.nameEn})
+- หมวดหมู่ไพ่: ${arcanaType}
 - สถานะ: ${orientation}
 - คีย์เวิร์ด: ${d.card.keywords.join(', ')}
 - ความหมายไพ่: ${meaning}
@@ -92,7 +98,7 @@ export async function analyzeTarotReading(
 ไพ่ที่จับได้ทั้งหมดตามตำแหน่ง:
 ${cardsDescription}
 
-โปรดทำนายอย่างละเอียด ลึกซึ้ง เชื่อมโยงความหมายไพ่กับตำแหน่งในสเปรด และตอบตรงประเด็นคำถามของผู้ใช้`;
+โปรดทำนายอย่างละเอียด ลึกซึ้ง เชื่อมโยงความหมายไพ่กับตำแหน่งในสเปรด วิเคราะห์พลังงานสัดส่วน Major/Minor Arcana และตอบตรงประเด็นคำถามของผู้ใช้`;
 
   try {
     const cleanBaseUrl = settings.baseUrl.replace(/\/+$/, '');

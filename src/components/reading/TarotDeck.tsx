@@ -29,10 +29,22 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const targetCount = spreadConfig.cardCount;
 
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('manual');
+  const [deckFilter, setDeckFilter] = useState<'all' | 'major' | 'minor'>('all');
   const [selectedCards, setSelectedCards] = useState<DrawnCard[]>([]);
   const [useAi, setUseAi] = useState<boolean>(true);
   const [isShuffling, setIsShuffling] = useState(false);
-  const [deck, setDeck] = useState<TarotCard[]>(() => shuffleArray([...TAROT_CARDS]));
+
+  const getFilteredCards = (filter: 'all' | 'major' | 'minor'): TarotCard[] => {
+    if (filter === 'major') {
+      return TAROT_CARDS.filter((c) => c.arcana === 'major' || !c.arcana);
+    }
+    if (filter === 'minor') {
+      return TAROT_CARDS.filter((c) => c.arcana === 'minor');
+    }
+    return TAROT_CARDS;
+  };
+
+  const [deck, setDeck] = useState<TarotCard[]>(() => shuffleArray(getFilteredCards('all')));
 
   const deckContainerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -52,12 +64,20 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     return arr;
   }
 
+  // Handle deck filter change
+  const handleFilterChange = (filter: 'all' | 'major' | 'minor') => {
+    if (isShuffling || isAnalyzing) return;
+    setDeckFilter(filter);
+    setSelectedCards([]);
+    setDeck(shuffleArray(getFilteredCards(filter)));
+  };
+
   // Trigger shuffle animation
   const handleShuffle = () => {
     if (isShuffling || selectedCards.length > 0) return;
     setIsShuffling(true);
     setTimeout(() => {
-      setDeck(shuffleArray([...TAROT_CARDS]));
+      setDeck(shuffleArray(getFilteredCards(deckFilter)));
       setIsShuffling(false);
     }, 1200);
   };
@@ -183,6 +203,46 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
               ? `เลือกครบแล้ว (${targetCount}/${targetCount} ใบ)! กดยืนยันด้านล่าง`
               : `เลือกไพ่สำหรับ "${spreadConfig.titleTh}" (${selectedCards.length} / ${targetCount} ใบ)`}
           </span>
+        </div>
+
+        {/* Deck Filter Selector Tabs (สำรับเต็ม 78 / Major 22 / Minor 56) */}
+        <div className="w-full max-w-xs xs:max-w-sm sm:max-w-md mx-auto grid grid-cols-3 gap-1 p-1 bg-black/60 backdrop-blur-md rounded-xl border border-amber-500/30 text-[10px] sm:text-xs shadow-inner">
+          <button
+            type="button"
+            disabled={isShuffling || isAnalyzing}
+            onClick={() => handleFilterChange('all')}
+            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${
+              deckFilter === 'all'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+            }`}
+          >
+            🔮 ทั้งสำรับ (78)
+          </button>
+          <button
+            type="button"
+            disabled={isShuffling || isAnalyzing}
+            onClick={() => handleFilterChange('major')}
+            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${
+              deckFilter === 'major'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+            }`}
+          >
+            🌟 Major (22)
+          </button>
+          <button
+            type="button"
+            disabled={isShuffling || isAnalyzing}
+            onClick={() => handleFilterChange('minor')}
+            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${
+              deckFilter === 'minor'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+            }`}
+          >
+            🃏 Minor (56)
+          </button>
         </div>
 
         {/* Selection Mode Switcher Tabs */}

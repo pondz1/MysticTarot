@@ -24,26 +24,42 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
   deckContainerRef,
 }) => {
   const isSelectionComplete = selectedCards.length === targetCount;
-  const [numRows, setNumRows] = useState<number>(2);
+  const [numRows, setNumRows] = useState<number>(3);
 
-  // Responsive row breaks: 4 rows (< 480px), 3 rows (< 840px), 2 rows (>= 840px)
+  // Full responsive breakpoint rules: Default (Mobile), sm (640px), md (768px), lg (1024px), xl (1280px), 2xl (1536px)
   useEffect(() => {
     const updateRows = () => {
       const w = window.innerWidth;
+      const count = deck.length;
+
       if (w < 480) {
-        setNumRows(4);
-      } else if (w < 840) {
-        setNumRows(3);
+        // Compact Mobile (< 480px)
+        if (count > 60) setNumRows(6);
+        else if (count > 30) setNumRows(5);
+        else setNumRows(3);
+      } else if (w < 640) {
+        // Mobile Landscape / Large Phone (480px - 639px)
+        if (count > 60) setNumRows(6);
+        else if (count > 30) setNumRows(4);
+        else setNumRows(3);
+      } else if (w < 1024) {
+        // Tablet / Medium Screen (sm & md: 640px - 1023px)
+        if (count > 60) setNumRows(6);
+        else if (count > 30) setNumRows(4);
+        else setNumRows(3);
       } else {
-        setNumRows(2);
+        // Laptop / Large Desktop / Ultra-wide (lg, xl, 2xl: >= 1024px)
+        if (count > 60) setNumRows(6);
+        else if (count > 30) setNumRows(5);
+        else setNumRows(3);
       }
     };
     updateRows();
     window.addEventListener('resize', updateRows);
     return () => window.removeEventListener('resize', updateRows);
-  }, []);
+  }, [deck.length]);
 
-  // Split deck into numRows balanced rows
+  // Split deck into balanced rows
   const getDeckRows = () => {
     const rows: TarotCard[][] = [];
     const perRow = Math.ceil(deck.length / numRows);
@@ -61,14 +77,33 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
     const midIdx = (rowCards.length - 1) / 2;
 
     return (
-      <div className="flex justify-center items-center w-full max-w-full mx-auto my-1 sm:my-2">
+      <div className="flex justify-center items-center w-full max-w-full mx-auto my-0.5 sm:my-1 lg:my-1.5">
         {rowCards.map((card, idx) => {
           const globalIdx = startIdxOffset + idx;
           const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
 
-          // Gentle fan curve per row
-          const fanAngle = (idx - midIdx) * 1.6;
-          const arcY = Math.abs(idx - midIdx) * 1.1;
+          // Gentle magical fan arc calculation
+          const fanAngle = (idx - midIdx) * (numRows >= 5 ? 0.7 : 1.1);
+          const arcY = Math.abs(idx - midIdx) * (numRows >= 5 ? 0.4 : 0.7);
+
+          // Negative margin tuned per row count and device tier for consistent 30% overlap
+          let marginLeft = '0px';
+          if (idx > 0) {
+            if (numRows >= 6) marginLeft = '-14px';
+            else if (numRows === 5) marginLeft = '-18px';
+            else if (numRows === 4) marginLeft = '-22px';
+            else marginLeft = '-28px';
+          }
+
+          // Complete Breakpoint Matrix: default (mobile), sm (640px), md (768px), lg (1024px), xl (1280px), 2xl (1536px)
+          const cardSizeClass =
+            numRows >= 6
+              ? 'w-[38px] sm:w-[48px] md:w-[54px] lg:w-[68px] xl:w-[76px] 2xl:w-[84px] h-[57px] sm:h-[72px] md:h-[81px] lg:h-[102px] xl:h-[114px] 2xl:h-[126px]'
+              : numRows === 5
+                ? 'w-[44px] sm:w-[56px] md:w-[62px] lg:w-[78px] xl:w-[88px] 2xl:w-[98px] h-[66px] sm:h-[84px] md:h-[93px] lg:h-[117px] xl:h-[132px] 2xl:h-[147px]'
+                : numRows === 4
+                  ? 'w-[50px] sm:w-[64px] md:w-[70px] lg:w-[90px] xl:w-[102px] 2xl:w-[114px] h-[75px] sm:h-[96px] md:h-[105px] lg:h-[135px] xl:h-[153px] 2xl:h-[171px]'
+                  : 'w-[64px] sm:w-[84px] md:w-[90px] lg:w-[118px] xl:w-[134px] 2xl:w-[148px] h-[96px] sm:h-[126px] md:h-[135px] lg:h-[177px] xl:h-[201px] 2xl:h-[222px]';
 
           return (
             <motion.div
@@ -82,36 +117,29 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
               animate={
                 isShuffling
                   ? {
-                      x: (Math.random() - 0.5) * 60,
-                      y: (Math.random() - 0.5) * 30,
-                      rotate: (Math.random() - 0.5) * 20,
-                    }
+                    x: (Math.random() - 0.5) * 50,
+                    y: (Math.random() - 0.5) * 25,
+                    rotate: (Math.random() - 0.5) * 20,
+                  }
                   : isPicked
-                  ? { y: -16, scale: 1.12, rotate: 0, zIndex: 50 }
-                  : { y: [arcY, arcY - 4, arcY], rotate: fanAngle, zIndex: idx + 1 }
+                    ? { y: -16, scale: 1.12, rotate: 0, zIndex: 50 }
+                    : { y: [arcY, arcY - 4, arcY], rotate: fanAngle, zIndex: idx + 1 }
               }
-              whileHover={{ y: -12, scale: 1.1, rotate: 0, zIndex: 45 }}
+              whileHover={{ y: -14, scale: 1.14, rotate: 0, zIndex: 45 }}
               transition={{
                 duration: isShuffling ? 0.3 : 0.2,
                 ease: 'easeOut',
-                y: isPicked || isShuffling ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: idx * 0.08 },
+                y: isPicked || isShuffling ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.6, delay: idx * 0.07 },
               }}
               onClick={() => onPickCard(card)}
               style={{
                 transformOrigin: 'bottom center',
-                marginLeft: idx > 0 ? (numRows === 4 ? '-2.8%' : numRows === 3 ? '-3.5%' : '-4.2%') : '0px',
+                marginLeft,
               }}
-              className={`relative rounded-lg sm:rounded-xl cursor-pointer shadow-2xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none overflow-hidden shrink-0 transition-shadow duration-200 ${
-                numRows === 4
-                  ? 'w-[15vw] max-w-[70px] min-w-[48px] h-[23vw] max-h-[108px] min-h-[74px]'
-                  : numRows === 3
-                  ? 'w-[11.5vw] max-w-[95px] min-w-[58px] h-[17.5vw] max-h-[148px] min-h-[90px]'
-                  : 'w-[8.5vw] max-w-[125px] min-w-[72px] h-[13vw] max-h-[192px] min-h-[110px]'
-              } ${
-                isPicked
-                  ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
-                  : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_24px_rgba(234,179,8,0.65)]'
-              }`}
+              className={`relative rounded-lg sm:rounded-xl cursor-pointer shadow-2xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none overflow-hidden shrink-0 transition-shadow duration-200 ${cardSizeClass} ${isPicked
+                ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.9)] z-30'
+                : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_20px_rgba(234,179,8,0.65)]'
+                }`}
             >
               <img
                 src="/cards/card_back.jpg"
@@ -125,7 +153,7 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
               />
 
               {isPicked && (
-                <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 z-10 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
+                <div className="absolute top-1 right-1 z-10 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
                   <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 fill-slate-950 text-amber-400" />
                 </div>
               )}
@@ -138,10 +166,10 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center py-2 select-none">
-      {/* Responsive Multi-Row Magical Fan Deck Display */}
+      {/* Magical Fan Deck Display Container */}
       <div
         ref={deckContainerRef}
-        className="relative w-full max-w-5xl md:max-w-6xl flex flex-col items-center justify-center pt-6 pb-4 sm:pt-10 sm:pb-6 px-2 my-2 overflow-hidden"
+        className="w-full max-w-5xl sm:max-w-6xl mx-auto flex flex-col items-center justify-center pt-6 pb-4 sm:pt-8 sm:pb-6 px-1 sm:px-2 my-2 overflow-visible sm:overflow-hidden"
       >
         {deckRows.map((rowCards, rIdx) => {
           const offset = rIdx * Math.ceil(deck.length / numRows);
@@ -151,9 +179,9 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
 
       {/* Helper Text */}
       {!isSelectionComplete && (
-        <p className="text-[10px] sm:text-xs text-purple-300/70 mt-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-950/40 border border-purple-800/30">
+        <p className="text-[10px] sm:text-xs text-purple-300/80 mt-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-950/50 border border-purple-800/40 shadow-sm">
           <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-pulse" />
-          <span>แตะเลือกไพ่ ({selectedCards.length} / {targetCount} ใบ) • พัดสำรับไพ่เวทมนตร์ {numRows} แถวขลัง</span>
+          <span>แตะเลือกไพ่ที่ต้องการ ({selectedCards.length} / {targetCount} ใบ) • พัดสำรับไพ่เวทมนตร์ {numRows} แถวขลัง</span>
         </p>
       )}
     </div>

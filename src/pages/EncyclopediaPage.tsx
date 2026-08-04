@@ -151,7 +151,7 @@ export const EncyclopediaPage: React.FC = () => {
                 <TarotArt card={selectedCard} isReversed={false} size="full" />
                 <div className="absolute inset-x-0 -bottom-4 flex justify-center">
                   <span className="px-3 py-1 rounded-full bg-purple-950/95 border border-amber-400/60 text-amber-300 text-xs font-semibold shadow-lg backdrop-blur-md">
-                    Major Arcana #{selectedCard.romanNumeral}
+                    {selectedCard.arcana === 'minor' ? 'Minor Arcana' : 'Major Arcana'} #{selectedCard.romanNumeral}
                   </span>
                 </div>
               </div>
