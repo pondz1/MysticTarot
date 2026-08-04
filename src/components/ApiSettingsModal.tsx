@@ -26,6 +26,9 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   const handleApplyPreset = (preset: typeof PROVIDER_PRESETS[0]) => {
     setBaseUrl(preset.baseUrl);
     setModel(preset.model);
+    if (preset.apiKey) {
+      setApiKey(preset.apiKey);
+    }
   };
 
   const handleSave = (e: React.FormEvent) => {

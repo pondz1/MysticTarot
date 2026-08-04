@@ -14,13 +14,19 @@ export interface DrawnCard {
 }
 
 export const DEFAULT_API_SETTINGS: ApiSettings = {
-  apiKey: '',
-  baseUrl: 'https://api.openai.com/v1',
-  model: 'gpt-4o-mini',
+  apiKey: 'sk-dce7f4d0918d74dd-ocq0dk-310c8c1d',
+  baseUrl: 'https://9router.jsd.my.id/v1',
+  model: 'tarot-cards',
 };
 
 // Preset providers for quick configuration
-export const PROVIDER_PRESETS = [
+export const PROVIDER_PRESETS: { name: string; baseUrl: string; model: string; apiKey?: string }[] = [
+  {
+    name: '9Router (Tarot Special)',
+    baseUrl: 'https://9router.jsd.my.id/v1',
+    model: 'tarot-cards',
+    apiKey: 'sk-dce7f4d0918d74dd-ocq0dk-310c8c1d'
+  },
   { name: 'OpenAI (Default)', baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
   { name: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
   { name: 'Groq', baseUrl: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' },
