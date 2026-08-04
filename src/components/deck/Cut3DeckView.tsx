@@ -224,10 +224,10 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
 
       {/* Manual Card Selection Fan from Selected Pile */}
       {subMode === 'manual' && selectedPile !== null && (
-        <div className="w-full max-w-2xl px-2 my-2 flex flex-col items-center">
-          <div className="flex items-center justify-between w-full px-4 mb-2">
+        <div className="w-full max-w-3xl px-2 my-2 flex flex-col items-center select-none">
+          <div className="flex items-center justify-between w-full max-w-xl px-4 mb-2">
             <span className="text-xs font-bold text-amber-300">
-              ไพ่ใน {PILE_NAMES[selectedPile].title}
+              คลี่เลือกไพ่จาก {PILE_NAMES[selectedPile].title} ({selectedCards.length} / {targetCount} ใบ)
             </span>
             <button
               type="button"
@@ -238,26 +238,58 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
             </button>
           </div>
 
-          <div className="w-full overflow-x-auto py-4 px-2 scrollbar-none">
-            <div className="flex items-center justify-start sm:justify-center gap-2 min-w-max">
-              {getPileCards(selectedPile).map((card) => {
+          {/* Overlapping Arc Fan Ribbon for Selected Pile */}
+          <div className="w-full flex justify-center items-center py-6 px-1 my-1 overflow-hidden">
+            <div className="flex justify-center items-center w-full max-w-xl mx-auto">
+              {getPileCards(selectedPile).map((card, idx) => {
+                const pileCards = getPileCards(selectedPile);
+                const midIdx = (pileCards.length - 1) / 2;
                 const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
+
+                // Gentle arc fan angle (-10deg to +10deg)
+                const fanAngle = (idx - midIdx) * 3;
+                const arcY = Math.abs(idx - midIdx) * 1.6;
 
                 return (
                   <motion.div
                     key={card.id}
-                    whileHover={{ y: -8 }}
-                    onClick={() => handleManualPickFromPile(card)}
-                    className={`relative w-20 h-32 sm:w-24 sm:h-38 rounded-xl cursor-pointer shadow-lg border bg-slate-900 overflow-hidden transition-all duration-200 shrink-0 ${
+                    initial={{ y: arcY, rotate: fanAngle }}
+                    animate={
                       isPicked
-                        ? 'border-amber-400 ring-2 ring-amber-300 -translate-y-3 shadow-[0_0_20px_rgba(234,179,8,0.7)]'
-                        : 'border-amber-400/40 hover:border-amber-300'
+                        ? { y: -28, scale: 1.18, rotate: 0, zIndex: 50 }
+                        : { y: [arcY, arcY - 4, arcY], rotate: fanAngle, zIndex: idx + 1 }
+                    }
+                    whileHover={{ y: -22, scale: 1.15, rotate: 0, zIndex: 45 }}
+                    transition={{
+                      duration: 0.2,
+                      ease: 'easeOut',
+                      y: isPicked ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: idx * 0.08 },
+                    }}
+                    onClick={() => handleManualPickFromPile(card)}
+                    style={{
+                      transformOrigin: 'bottom center',
+                      marginLeft: idx > 0 ? '-3.8%' : '0px',
+                    }}
+                    className={`relative w-[12.5vw] max-w-[110px] min-w-[64px] h-[19vw] max-h-[168px] min-h-[98px] rounded-lg sm:rounded-xl cursor-pointer shadow-2xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none overflow-hidden shrink-0 transition-shadow duration-200 ${
+                      isPicked
+                        ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
+                        : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_24px_rgba(234,179,8,0.65)]'
                     }`}
                   >
-                    <img src="/cards/card_back.jpg" alt="Back" className="w-full h-full object-cover rounded-xl" />
+                    <img
+                      src="/cards/card_back.jpg"
+                      alt="Tarot Back"
+                      loading="eager"
+                      decoding="async"
+                      className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+
                     {isPicked && (
-                      <div className="absolute top-1.5 right-1.5 z-20 w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
-                        <CheckCircle2 className="w-4 h-4 fill-slate-950 text-amber-400" />
+                      <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 z-10 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
+                        <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 fill-slate-950 text-amber-400" />
                       </div>
                     )}
                   </motion.div>
