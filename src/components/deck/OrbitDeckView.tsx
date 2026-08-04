@@ -28,11 +28,11 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
     const updateRadius = () => {
       const w = window.innerWidth;
       if (w < 480) {
-        setRadius(115);
+        setRadius(100);
       } else if (w < 768) {
-        setRadius(145);
+        setRadius(130);
       } else {
-        setRadius(175);
+        setRadius(160);
       }
     };
     updateRadius();
@@ -62,9 +62,9 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
   const isSelectionComplete = selectedCards.length === targetCount;
 
   return (
-    <div className="w-full flex flex-col items-center py-3 select-none">
+    <div className="w-full flex flex-col items-center py-2 sm:py-4 px-2 select-none">
       {/* Title */}
-      <div className="text-center mb-2">
+      <div className="text-center mb-1.5 sm:mb-2">
         <span className="text-xs font-semibold text-amber-300 uppercase tracking-widest flex items-center justify-center gap-1.5">
           <Orbit className="w-3.5 h-3.5 text-amber-400 animate-spin-slow shrink-0" />
           <span>กงล้อดวงดาว 360° (Full Cosmic Wheel)</span>
@@ -75,11 +75,11 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
       </div>
 
       {/* Orbit Controls */}
-      <div className="flex items-center gap-3 my-1">
+      <div className="flex items-center gap-3 my-1 sm:my-2">
         <button
           type="button"
           onClick={() => setRotationDeg((prev) => prev + 30)}
-          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-2.5 py-1 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-all cursor-pointer"
+          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-2.5 py-1 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-all cursor-pointer shadow-sm"
         >
           <RotateCcw className="w-3 h-3 text-amber-300" />
           <span>หมุนซ้าย</span>
@@ -88,7 +88,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         <button
           type="button"
           onClick={() => setRotationDeg((prev) => prev - 30)}
-          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-2.5 py-1 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-all cursor-pointer"
+          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-2.5 py-1 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-all cursor-pointer shadow-sm"
         >
           <span>หมุนขวา</span>
           <RotateCw className="w-3 h-3 text-amber-300" />
@@ -101,12 +101,12 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
-        className="relative w-full max-w-2xl h-[330px] sm:h-[410px] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing touch-pan-y my-2"
+        className="relative w-full max-w-2xl h-[300px] sm:h-[370px] md:h-[410px] flex items-center justify-center overflow-visible cursor-grab active:cursor-grabbing touch-pan-y my-2 sm:my-4 px-2 sm:px-4"
       >
         {/* Central Cosmic Core Icon */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border border-amber-400/30 bg-purple-950/40 backdrop-blur-xs flex items-center justify-center shadow-[0_0_35px_rgba(234,179,8,0.25)]">
-            <Orbit className="w-8 h-8 sm:w-12 sm:h-12 text-amber-400/50 animate-spin-slow" />
+          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full border border-amber-400/30 bg-purple-950/40 backdrop-blur-xs flex items-center justify-center shadow-[0_0_35px_rgba(234,179,8,0.25)]">
+            <Orbit className="w-7 h-7 sm:w-10 sm:h-10 text-amber-400/50 animate-spin-slow" />
           </div>
         </div>
 
@@ -118,7 +118,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
             const angleDeg = (idx * angleStep + rotationDeg) % 360;
             const rad = (angleDeg * Math.PI) / 180;
 
-            const rCurr = radius + (isPicked ? 22 : 0);
+            const rCurr = radius + (isPicked ? 20 : 0);
             const x = Math.sin(rad) * rCurr;
             const y = -Math.cos(rad) * rCurr;
             const cardRotation = angleDeg; // Point card tops radially outward
@@ -135,7 +135,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                   transform: `translate3d(${x}px, ${y}px, 0px) rotate(${cardRotation}deg) ${isPicked ? 'scale(1.15)' : 'scale(1)'}`,
                   zIndex: isPicked ? 50 : 10,
                 }}
-                className={`w-14 h-22 sm:w-18 sm:h-28 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-all duration-200 ${
+                className={`w-12 h-18 xs:w-14 xs:h-22 sm:w-16 sm:h-26 md:w-18 md:h-28 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-all duration-200 ${
                   isPicked
                     ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.9)]'
                     : 'border-amber-400/40 hover:border-amber-300'
