@@ -3,7 +3,7 @@ import type { TarotCard } from '../../data/tarotCards';
 import { TAROT_CARDS } from '../../data/tarotCards';
 import type { DrawnCard, SpreadMode, SelectionMode } from '../../types/tarot';
 import { getSpreadConfig } from '../../data/tarotSpreads';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { Sparkles, RefreshCw, Layers, Crown, LayoutGrid } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { DeckModeSelector } from '../deck/DeckModeSelector';
@@ -211,34 +211,40 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             type="button"
             disabled={isShuffling || isAnalyzing}
             onClick={() => handleFilterChange('all')}
-            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${deckFilter === 'all'
-              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-              : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
-              }`}
+            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate flex items-center justify-center gap-1 sm:gap-1.5 ${
+              deckFilter === 'all'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+            }`}
           >
-            🔮 ทั้งสำรับ (78)
+            <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+            <span>ทั้งสำรับ (78)</span>
           </button>
           <button
             type="button"
             disabled={isShuffling || isAnalyzing}
             onClick={() => handleFilterChange('major')}
-            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${deckFilter === 'major'
-              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-              : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
-              }`}
+            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate flex items-center justify-center gap-1 sm:gap-1.5 ${
+              deckFilter === 'major'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+            }`}
           >
-            🌟 Major (22)
+            <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+            <span>Major (22)</span>
           </button>
           <button
             type="button"
             disabled={isShuffling || isAnalyzing}
             onClick={() => handleFilterChange('minor')}
-            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate text-center ${deckFilter === 'minor'
-              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-              : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
-              }`}
+            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate flex items-center justify-center gap-1 sm:gap-1.5 ${
+              deckFilter === 'minor'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
+                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+            }`}
           >
-            🃏 Minor (56)
+            <LayoutGrid className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+            <span>Minor (56)</span>
           </button>
         </div>
 
