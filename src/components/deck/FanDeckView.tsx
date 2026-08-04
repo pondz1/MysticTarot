@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import type { TarotCard } from '../../data/tarotCards';
 import type { DrawnCard } from '../../types/tarot';
-import { CheckCircle2, Touchpad } from 'lucide-react';
+import { CheckCircle2, Sparkles } from 'lucide-react';
 
 interface FanDeckViewProps {
   deck: TarotCard[];
@@ -36,6 +36,10 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
         const globalIdx = startIdxOffset + idx;
         const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
 
+        // Elegant gentle fan curve per 11-card row (-8deg to +8deg)
+        const fanAngle = (idx - 5) * 1.6;
+        const arcY = Math.abs(idx - 5) * 0.9;
+
         return (
           <motion.div
             key={card.id}
@@ -44,7 +48,7 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
                 cardRefs.current[globalIdx] = el;
               }
             }}
-            initial={{ y: 0, rotate: 0 }}
+            initial={{ y: arcY, rotate: fanAngle }}
             animate={
               isShuffling
                 ? {
@@ -53,19 +57,24 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
                     rotate: (Math.random() - 0.5) * 20,
                   }
                 : isPicked
-                ? { y: -24, scale: 1.15, rotate: 0, zIndex: 50 }
-                : { y: 0, scale: 1, rotate: 0, zIndex: idx + 1 }
+                ? { y: -26, scale: 1.18, rotate: 0, zIndex: 50 }
+                : { y: [arcY, arcY - 3, arcY], rotate: fanAngle, zIndex: idx + 1 }
             }
-            whileHover={{ y: -18, scale: 1.12, zIndex: 40 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            whileHover={{ y: -22, scale: 1.15, rotate: 0, zIndex: 45 }}
+            transition={{
+              duration: isShuffling ? 0.3 : 0.2,
+              ease: 'easeOut',
+              y: isPicked || isShuffling ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.8, delay: idx * 0.08 },
+            }}
             onClick={() => onPickCard(card)}
             style={{
-              marginLeft: idx > 0 ? 'calc(-2.2vw - 6px)' : '0px',
+              transformOrigin: 'bottom center',
+              marginLeft: idx > 0 ? 'calc(-2.1vw - 5px)' : '0px',
             }}
             className={`relative w-10 xs:w-12 sm:w-20 md:w-24 h-16 xs:h-20 sm:h-32 md:h-38 rounded-lg sm:rounded-xl cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none overflow-hidden shrink-0 transition-shadow duration-200 ${
               isPicked
                 ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.9)]'
-                : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_20px_rgba(234,179,8,0.5)]'
+                : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_22px_rgba(234,179,8,0.6)]'
             }`}
           >
             <img
@@ -92,7 +101,7 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center py-2 select-none">
-      {/* 2-Row Straight Overlapping Deck Display */}
+      {/* 2-Row Magical Gentle Fan Deck Display */}
       <div
         ref={deckContainerRef}
         className="relative w-full max-w-4xl flex flex-col items-center justify-center pt-8 pb-3 sm:pt-10 sm:pb-4 px-1 sm:px-4 my-2"
@@ -104,8 +113,8 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
       {/* Helper Text */}
       {!isSelectionComplete && (
         <p className="text-[10px] sm:text-xs text-purple-300/70 mt-1 flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/40 border border-purple-800/30">
-          <Touchpad className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span>แตะเลือกไพ่ ({selectedCards.length} / {targetCount} ใบ) • แสดงไพ่ซ้อน 2 แถวตั้งตรงเต็มหน้าจอ</span>
+          <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-pulse" />
+          <span>แตะเลือกไพ่ ({selectedCards.length} / {targetCount} ใบ) • พัดสำรับไพ่เวทมนตร์ 2 แถวขลัง</span>
         </p>
       )}
     </div>
