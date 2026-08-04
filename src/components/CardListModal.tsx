@@ -60,9 +60,18 @@ export const CardListModal: React.FC<CardListModalProps> = ({ isOpen, onClose, o
           {filteredCards.map((card) => (
             <div
               key={card.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`ดูรายละเอียดไพ่: ${card.nameTh}`}
               onClick={() => onSelectCard(card)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectCard(card);
+                }
+              }}
               style={{ contentVisibility: 'auto', containIntrinsicSize: '200px' }}
-              className="group cursor-pointer flex flex-col items-center p-2 rounded-xl glass-panel hover:glass-panel-gold border border-amber-500/20 hover:border-amber-400/60 transition-all hover:scale-105 will-change-transform"
+              className="group cursor-pointer flex flex-col items-center p-2 rounded-xl glass-panel hover:glass-panel-gold border border-amber-500/20 hover:border-amber-400/60 transition-all hover:scale-105 will-change-transform outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
               <div className="w-full h-44 mb-2 relative overflow-hidden rounded-lg">
                 <TarotArt card={card} size="sm" />

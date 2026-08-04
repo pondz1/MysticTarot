@@ -182,10 +182,19 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
             return (
               <motion.div
                 key={pile.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`เลือกตัดสำรับ ${pile.title} (${pile.subtitle})`}
                 whileHover={{ scale: 1.03, y: -4 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handleCutPile(pile.id)}
-                className={`relative flex flex-col items-center p-4 rounded-2xl border bg-gradient-to-b ${pile.color} cursor-pointer transition-all duration-300 shadow-lg ${
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleCutPile(pile.id);
+                  }
+                }}
+                className={`relative flex flex-col items-center p-4 rounded-2xl border bg-gradient-to-b ${pile.color} cursor-pointer transition-all duration-300 shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                   isThisPileChosen
                     ? 'border-2 border-amber-400 ring-2 ring-amber-300 shadow-[0_0_25px_rgba(234,179,8,0.5)]'
                     : 'hover:border-amber-400/60'
