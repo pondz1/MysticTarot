@@ -178,8 +178,8 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       )}
 
       {/* Fan Deck Display (Interactive Card Selection) */}
-      <div className="relative w-full max-w-4xl min-h-[260px] md:min-h-[300px] flex justify-center items-center overflow-x-auto py-8 px-4 scrollbar-none">
-        <div className="flex -space-x-12 sm:-space-x-10 md:-space-x-8 lg:-space-x-7 justify-center items-center">
+      <div className="relative w-full max-w-5xl min-h-[260px] md:min-h-[300px] flex justify-start md:justify-center items-center overflow-x-auto py-8 px-4 scrollbar-none touch-pan-x">
+        <div className="flex -space-x-12 sm:-space-x-10 md:-space-x-8 lg:-space-x-7 justify-start md:justify-center items-center min-w-max px-8 sm:px-12">
           {deck.slice(0, 15).map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
             // Slight fan rotation effect
@@ -245,9 +245,9 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
 
       {/* Instruction Helper Text */}
       {!isSelectionComplete && (
-        <p className="text-xs text-purple-300/70 mt-2 flex items-center gap-1">
-          <Eye className="w-3.5 h-3.5 text-amber-400" />
-          แตะคลิกที่ไพ่ใบที่สะดุดตาคุณมากที่สุดในสำรับ ({selectedCards.length} / {targetCount})
+        <p className="text-xs text-purple-300/70 mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/40 border border-purple-800/30">
+          <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>แตะคลิกเลือกไพ่ที่สะดุดตาที่สุด ({selectedCards.length} / {targetCount}) • เลื่อนซ้าย-ขวาเพื่อดูไพ่เพิ่มเติม</span>
         </p>
       )}
 
