@@ -52,34 +52,34 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
         <div className="relative glass-panel-gold rounded-2xl p-6 md:p-8 border border-amber-400/40 shadow-2xl overflow-hidden">
           
           {/* Scroll Header Decorative Frame */}
-          <div className="flex items-center justify-between border-b border-amber-400/30 pb-4 mb-6">
-            <div className="flex items-center gap-2">
-              <Feather className="w-5 h-5 text-amber-400" />
-              <h2 className="text-lg md:text-xl font-bold font-serif-mystic text-gold-gradient">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-400/30 pb-4 mb-6">
+            <div className="flex items-center gap-2 min-w-0">
+              <Feather className="w-5 h-5 text-amber-400 shrink-0" />
+              <h2 className="text-base sm:text-lg md:text-xl font-bold font-serif-mystic text-gold-gradient truncate">
                 บทวิเคราะห์คำทำนายไพ่ยิปซี
               </h2>
             </div>
 
             {/* Action Bar */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
               <button
                 type="button"
                 onClick={onSaveReading}
                 disabled={isSaved}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-900/60 hover:bg-purple-800 border border-purple-400/40 text-purple-100 disabled:opacity-50 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-medium bg-purple-900/60 hover:bg-purple-800 border border-purple-400/40 text-purple-100 disabled:opacity-50 transition-all cursor-pointer whitespace-nowrap shrink-0"
                 title="บันทึกคำทำนายลงเครื่อง"
               >
-                <Save className="w-3.5 h-3.5 text-amber-300" />
+                <Save className="w-3.5 h-3.5 text-amber-300 shrink-0" />
                 <span>{isSaved ? 'บันทึกแล้ว' : 'บันทึก'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-600/30 hover:bg-amber-600/60 border border-amber-400/40 text-amber-100 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-medium bg-amber-600/30 hover:bg-amber-600/60 border border-amber-400/40 text-amber-100 transition-all cursor-pointer whitespace-nowrap shrink-0"
                 title="คัดลอกคำทำนาย"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-amber-300" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className="w-3.5 h-3.5 text-amber-300 shrink-0" />}
                 <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอก'}</span>
               </button>
             </div>

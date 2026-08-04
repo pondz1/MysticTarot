@@ -16,7 +16,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, isRevers
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-2xl max-h-[90vh] glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-y-auto">
-        
+
         {/* Close / Back Header Buttons */}
         <div className="flex items-center justify-between mb-4 pb-2 border-b border-amber-500/20">
           {isFromList ? (
@@ -40,7 +40,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, isRevers
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
-          
+
           {/* Card Visual Artwork */}
           <div className="w-full md:w-56 h-80 shrink-0 mx-auto">
             <TarotArt card={card} isReversed={isReversed} size="full" />
@@ -48,7 +48,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, isRevers
 
           {/* Card Interpretations */}
           <div className="flex-1 flex flex-col gap-4 text-slate-100 font-prompt">
-            
+
             {/* Header */}
             <div>
               <div className="flex items-center gap-2">

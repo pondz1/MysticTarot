@@ -1,7 +1,7 @@
 import React from 'react';
 import type { TarotCard } from '../data/tarotCards';
-import { 
-  Sun, Moon, Compass, Crown, Shield, Heart, Sparkles, Feather, 
+import {
+  Sun, Moon, Compass, Crown, Shield, Heart, Sparkles, Feather,
   Wand2, BookOpen, Flame, Scale, Anchor, Eye, Skull, Star, Music, Award, HelpCircle
 } from 'lucide-react';
 
@@ -59,7 +59,7 @@ export const TarotArt: React.FC<TarotArtProps> = ({ card, isReversed = false }) 
         /* Mystical Pattern Overlay */
         <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] opacity-15 pointer-events-none" />
       )}
-      
+
       {/* Outer Gold Border Framing */}
       <div className="absolute inset-1 border border-amber-300/30 rounded-lg pointer-events-none z-10" />
       <div className="absolute inset-2 border border-amber-400/20 rounded-md pointer-events-none z-10" />
@@ -98,7 +98,7 @@ export const TarotArt: React.FC<TarotArtProps> = ({ card, isReversed = false }) 
       {/* Reversed Indicator Badge if reversed */}
       {isReversed && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-rose-950/90 text-rose-200 border border-rose-500/60 text-[9px] px-2 py-0.5 rounded-full font-bold shadow-lg z-20 rotate-180">
-          ไพ่กลับหัว (Reversed)
+          ไพ่กลับหัว
         </div>
       )}
     </div>
