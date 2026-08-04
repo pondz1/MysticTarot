@@ -1,3 +1,4 @@
+import OpenAI from 'openai';
 import type { TarotCard } from '../data/tarotCards';
 
 export interface ApiSettings {
@@ -71,79 +72,38 @@ ${cardsDescription}
 
   try {
     const cleanBaseUrl = settings.baseUrl.replace(/\/+$/, '');
-    const response = await fetch(`${cleanBaseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(settings.apiKey ? { Authorization: `Bearer ${settings.apiKey}` } : {}),
-      },
-      body: JSON.stringify({
-        model: settings.model || 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.7,
-        max_tokens: 1500,
-        stream: false,
-      }),
+    
+    // Initialize Official OpenAI Client with Browser Support
+    const client = new OpenAI({
+      apiKey: settings.apiKey || 'ollama',
+      baseURL: cleanBaseUrl,
+      dangerouslyAllowBrowser: true,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.warn('API Error, falling back to smart local reader:', errorText);
-      return generateFallbackReading(question, drawnCards, spreadMode, `⚠️ (ข้อความจาก API: ${response.statusText} - ระบบสลับมาใช้ Smart AI Reader อัตโนมัติ)\n\n`);
-    }
+    const completion = await client.chat.completions.create({
+      model: settings.model || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 1500,
+    });
 
-    const rawText = await response.text();
-    let data: any;
-
-    try {
-      // Standard JSON parse
-      data = JSON.parse(rawText.trim());
-    } catch {
-      // Robust fallback: Extract first valid JSON object if response has trailing text or concatenated JSON
-      const firstJsonMatch = rawText.match(/\{[\s\S]*?\}(?=\s*(\{|data:|\n|$))/);
-      if (firstJsonMatch) {
-        try {
-          data = JSON.parse(firstJsonMatch[0]);
-        } catch {
-          // ignore
-        }
-      }
-
-      // Robust fallback for SSE streaming responses (data: {...})
-      if (!data && rawText.includes('data:')) {
-        const lines = rawText.split('\n');
-        let accumulatedText = '';
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('data:') && !trimmed.includes('[DONE]')) {
-            try {
-              const jsonStr = trimmed.replace(/^data:\s*/, '');
-              const chunk = JSON.parse(jsonStr);
-              const content = chunk.choices?.[0]?.delta?.content || chunk.choices?.[0]?.message?.content || '';
-              accumulatedText += content;
-            } catch {
-              // ignore chunk parse error
-            }
-          }
-        }
-        if (accumulatedText.trim()) {
-          return accumulatedText;
-        }
-      }
-    }
-
-    const aiContent = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || data?.content;
-    if (aiContent && typeof aiContent === 'string' && aiContent.trim()) {
-      return aiContent;
+    const content = completion.choices[0]?.message?.content;
+    if (content && content.trim()) {
+      return content;
     }
 
     return generateFallbackReading(question, drawnCards, spreadMode);
   } catch (error) {
-    console.error('Failed to connect to OpenAI API:', error);
-    return generateFallbackReading(question, drawnCards, spreadMode, `⚠️ (ไม่สามารถเชื่อมต่อ API ได้: ${error instanceof Error ? error.message : 'Connection Error'} - ระบบใช้ Smart AI Reader อัตโนมัติ)\n\n`);
+    console.error('Failed to connect via OpenAI SDK:', error);
+    return generateFallbackReading(
+      question,
+      drawnCards,
+      spreadMode,
+      `⚠️ (ข้อความจาก OpenAI SDK: ${error instanceof Error ? error.message : 'API Error'} - ระบบใช้ Smart AI Reader อัตโนมัติ)\n\n`
+    );
   }
 }
 
@@ -204,11 +164,15 @@ ${d.card.advice}
 * **คีย์เวิร์ด:** ${c3.card.keywords.join(', ')}
 * **คำทำนาย:** ${c3.isReversed ? c3.card.reversedMeaning : c3.card.uprightMeaning}
 
-## 💡 สรุปวิเคราะห์ตอบคำถาม ${qText}
-จากอดีตของ **${c1.card.nameEn}** นำพาคุณมาพบกับสถานการณ์ในปัจจุบันของ **${c2.card.nameEn}** ปัญหาหรือความกังวลใจที่คุณมี จะสามารถคลี่คลายไปสู่ผลลัพธ์ของ **${c3.card.nameEn}** ได้อย่างงดงาม หากคุณเตรียมความพร้อมและปรับเปลี่ยนตามคำแนะนำ
+---
 
-## 🌟 คำแนะนำสัจธรรมจากจักรวาล
-* **ข้อคิดสำคัญ:** ${c3.card.advice}
-* **แนวทางปฏิบัติ:** ใช้สมาธิและความใจเย็น พิจารณาตามความจริง ปรับการกระทำตามไพ่ใบที่สามเพื่อผลลัพธ์ที่ดีที่สุด`;
+## 💡 สรุปการเชื่อมโยงคำตอบเรื่อง (${qText})
+พลังแห่งอดีตของ **${c1.card.nameTh}** ได้ส่งผลกระทบต่อเนื่องมาถึงปัจจุบันกับไพ่ **${c2.card.nameTh}** โดยมีไพ่ **${c3.card.nameTh}** ชี้แนะเส้นทางไปสู่อนาคต จงใช้ปัญญา ความใจเย็น และสติในการฟันฝ่าอุปสรรคตามคำแนะนำของไพ่
+
+## 🌟 คำแนะนำและข้อคิดจากจักรวาล
+* **คำแนะนำจากไพ่หลัก:** ${c2.card.advice}
+* **พลังบวกนำทาง:** ${c3.card.advice}
+
+*จงเชื่อมั่นในตนเอง ไพ่เป็นเพียงผู้เปิดเผยแสงสว่าง ส่วนคุณคือผู้กำหนดชะตาชีวิตของตนเอง*`;
   }
 }
