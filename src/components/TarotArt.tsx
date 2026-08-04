@@ -49,6 +49,8 @@ export const TarotArt: React.FC<TarotArtProps> = ({ card, isReversed = false }) 
           <img
             src={card.imageUrl}
             alt={card.nameEn}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover rounded-lg"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />

@@ -143,24 +143,26 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
                   animate={
                     isShuffling
                       ? {
-                          x: (Math.random() - 0.5) * 80,
-                          y: (Math.random() - 0.5) * 40,
-                          rotate: (Math.random() - 0.5) * 40,
+                          x: (Math.random() - 0.5) * 60,
+                          y: (Math.random() - 0.5) * 30,
+                          rotate: (Math.random() - 0.5) * 30,
                         }
                       : { y: 0, rotate: rotation }
                   }
-                  whileHover={{ y: -25, scale: 1.08, zIndex: 30 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  whileHover={{ y: -20, scale: 1.05, zIndex: 30 }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
                   onClick={() => handlePickCard(card)}
-                  className={`relative w-24 h-40 sm:w-28 sm:h-44 md:w-32 md:h-52 rounded-xl cursor-pointer shadow-xl border border-amber-400/50 bg-gradient-to-br from-purple-950 via-slate-900 to-indigo-950 flex flex-col items-center justify-center p-2 text-center select-none transform-gpu overflow-hidden ${
-                    isPicked ? 'opacity-30 pointer-events-none scale-95' : 'hover:shadow-[0_0_25px_rgba(234,179,8,0.5)]'
+                  className={`relative w-24 h-40 sm:w-28 sm:h-44 md:w-32 md:h-52 rounded-xl cursor-pointer shadow-lg border border-amber-400/50 bg-slate-900 flex flex-col items-center justify-center p-2 text-center select-none will-change-transform overflow-hidden ${
+                    isPicked ? 'opacity-30 pointer-events-none scale-95' : 'hover:shadow-[0_0_20px_rgba(234,179,8,0.4)]'
                   }`}
                 >
                   {/* Pure Card Back Image without icon overlay */}
                   <img
                     src="/cards/card_back.jpg"
                     alt="Tarot Back"
-                    className="absolute inset-0 w-full h-full object-cover z-0"
+                    loading="eager"
+                    decoding="async"
+                    className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
                     onError={(e) => {
                       // fallback if image not found
                       e.currentTarget.style.display = 'none';
