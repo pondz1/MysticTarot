@@ -55,7 +55,11 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
   };
 
   // Handle when cards are selected from TarotDeck
-  const handleCardsSelected = async (cards: DrawnCard[], useAi: boolean = true) => {
+  const handleCardsSelected = async (
+    cards: DrawnCard[],
+    useAi: boolean = true,
+    deckFilter: 'all' | 'major' | 'minor' = 'all'
+  ) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setDrawnCards(cards);
     setIsAnalyzing(true);
@@ -64,7 +68,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
 
     try {
       if (useAi) {
-        const analysis = await analyzeTarotReading(question, cards, spreadMode, apiSettings);
+        const analysis = await analyzeTarotReading(question, cards, spreadMode, apiSettings, deckFilter);
         setReadingResult(analysis);
       } else {
         // Direct classic offline interpretation (0ms instant response)

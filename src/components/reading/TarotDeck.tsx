@@ -16,7 +16,7 @@ import { DeckConfirmation } from '../deck/DeckConfirmation';
 
 interface TarotDeckProps {
   spreadMode: SpreadMode;
-  onCardsSelected: (cards: DrawnCard[], useAi: boolean) => void;
+  onCardsSelected: (cards: DrawnCard[], useAi: boolean, deckFilter?: 'all' | 'major' | 'minor') => void;
   isAnalyzing: boolean;
 }
 
@@ -180,7 +180,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       // ignore
     }
 
-    onCardsSelected(selectedCards, useAi);
+    onCardsSelected(selectedCards, useAi, deckFilter);
   };
 
   // Reset selection

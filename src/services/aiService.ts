@@ -27,7 +27,8 @@ export async function analyzeTarotReading(
   question: string,
   drawnCards: DrawnCard[],
   spreadMode: SpreadMode,
-  settings: ApiSettings
+  settings: ApiSettings,
+  deckFilter: 'all' | 'major' | 'minor' = 'all'
 ): Promise<string> {
   const isLocalHost = settings.baseUrl.includes('localhost') || settings.baseUrl.includes('127.0.0.1');
   if (!settings.apiKey && !isLocalHost) {
@@ -89,9 +90,24 @@ export async function analyzeTarotReading(
 - ธาตุประจำไพ่: ${d.card.element}`;
   }).join('\n\n');
 
+  const majorCount = drawnCards.filter((d) => d.card.arcana === 'major' || !d.card.arcana).length;
+  const minorCount = drawnCards.filter((d) => d.card.arcana === 'minor').length;
+  const totalDrawn = drawnCards.length;
+
+  const filterText =
+    deckFilter === 'major'
+      ? 'ผู้ใช้เลือกเปิดด้วยสำรับ Major Arcana (22 ใบ) เท่านั้น'
+      : deckFilter === 'minor'
+      ? 'ผู้ใช้เลือกเปิดด้วยสำรับ Minor Arcana (56 ใบ) เท่านั้น'
+      : 'ผู้ใช้เลือกเปิดด้วยสำรับใหญ่เต็มรูปแบบ (78 ใบ)';
+
+  const proportionNote = `🔮 โหมดสำรับไพ่ที่เลือก: ${filterText}
+📊 สัดส่วนไพ่ที่สุ่มจับได้จริงในรอบนี้: Major Arcana ${majorCount} ใบ / Minor Arcana ${minorCount} ใบ (จากไพ่ที่เปิดรวม ${totalDrawn} ใบ)`;
+
   const userPrompt = `คำถาม / สิ่งที่อยากรู้ของผู้ใช้: "${question || 'ดูดวงภาพรวมประจำวันและคำแนะนำชีวิต'}"
 รูปแบบสเปรด: ${spreadConfig.titleTh} (${spreadConfig.badge})
 จำนวนไพ่: ${drawnCards.length} ใบ
+${proportionNote}
 
 แนวทางการทำนายสเปรดนี้: ${spreadConfig.aiGuideline || 'วิเคราะห์เชื่อมโยงไพ่กับตำแหน่งอย่างละเอียด'}
 
