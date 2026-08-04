@@ -104,7 +104,7 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
             <div className="flex items-center gap-2">
               <Feather className="w-5 h-5 text-amber-400" />
               <h2 className="text-lg md:text-xl font-bold font-serif-mystic text-gold-gradient">
-                บทวิเคราะห์คำทำนาย (Mystic AI Oracle Reading)
+                บทวิเคราะห์คำทำนายไพ่ยิปซี
               </h2>
             </div>
 
