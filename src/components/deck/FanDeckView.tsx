@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import type { TarotCard } from '../../data/tarotCards';
 import type { DrawnCard } from '../../types/tarot';
-import { CheckCircle2, Eye } from 'lucide-react';
+import { CheckCircle2, Touchpad } from 'lucide-react';
 
 interface FanDeckViewProps {
   deck: TarotCard[];
@@ -27,12 +27,12 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center py-2 select-none">
-      {/* Straight Overlapping Deck Ribbon Display */}
+      {/* Straight Overlapping Deck Ribbon Display (Fits 100% - No Horizontal Scroll Needed) */}
       <div
         ref={deckContainerRef}
-        className="relative w-full max-w-5xl min-h-[220px] sm:min-h-[280px] md:min-h-[330px] overflow-x-auto pt-10 pb-4 sm:pt-14 sm:pb-6 md:pt-16 md:pb-8 scrollbar-none touch-pan-x"
+        className="relative w-full max-w-5xl min-h-[190px] sm:min-h-[260px] md:min-h-[320px] flex items-center justify-center overflow-visible pt-10 pb-4 sm:pt-14 sm:pb-6 md:pt-16 md:pb-8 px-1 sm:px-4 my-2"
       >
-        <div className="flex justify-start items-center min-w-max px-6 sm:px-12 md:px-16 -space-x-11 xs:-space-x-10 sm:-space-x-8 md:-space-x-6 lg:-space-x-5 mx-auto">
+        <div className="flex justify-center items-center w-full max-w-full mx-auto">
           {deck.map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
 
@@ -53,13 +53,16 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
                         rotate: (Math.random() - 0.5) * 20,
                       }
                     : isPicked
-                    ? { y: -28, scale: 1.12, rotate: 0, zIndex: 50 }
+                    ? { y: -30, scale: 1.18, rotate: 0, zIndex: 50 }
                     : { y: 0, scale: 1, rotate: 0, zIndex: idx + 1 }
                 }
-                whileHover={{ y: -20, scale: 1.08, zIndex: 40 }}
+                whileHover={{ y: -24, scale: 1.15, zIndex: 40 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
                 onClick={() => onPickCard(card)}
-                className={`relative w-[68px] h-[108px] xs:w-[78px] xs:h-[122px] sm:w-[96px] sm:h-[152px] md:w-[112px] md:h-[178px] rounded-lg sm:rounded-xl cursor-pointer shadow-lg border bg-slate-900 flex flex-col items-center justify-center p-0.5 sm:p-1 text-center select-none overflow-hidden shrink-0 transition-shadow duration-200 ${
+                style={{
+                  marginLeft: idx > 0 ? 'calc(-1.3vw - 4px)' : '0px',
+                }}
+                className={`relative w-8 xs:w-10 sm:w-16 md:w-20 lg:w-24 h-14 xs:h-18 sm:h-28 md:h-34 lg:h-42 rounded-md sm:rounded-xl cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none overflow-hidden shrink-0 transition-shadow duration-200 ${
                   isPicked
                     ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.9)]'
                     : 'border-amber-400/40 hover:border-amber-300 hover:shadow-[0_0_20px_rgba(234,179,8,0.5)]'
@@ -77,8 +80,8 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
                 />
 
                 {isPicked && (
-                  <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 z-10 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
-                    <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 fill-slate-950 text-amber-400" />
+                  <div className="absolute top-0.5 right-0.5 sm:top-1.5 sm:right-1.5 z-10 w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
+                    <CheckCircle2 className="w-2.5 h-2.5 sm:w-4 sm:h-4 fill-slate-950 text-amber-400" />
                   </div>
                 )}
               </motion.div>
@@ -90,8 +93,8 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
       {/* Helper Text */}
       {!isSelectionComplete && (
         <p className="text-[10px] sm:text-xs text-purple-300/70 mt-1 flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/40 border border-purple-800/30">
-          <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span>แตะเลือกไพ่ ({selectedCards.length} / {targetCount} ใบ) • เลื่อนแถบไพ่ซ้าย-ขวาเพื่อเลือกไพ่ที่ต้องการ</span>
+          <Touchpad className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>แตะเลือกไพ่ ({selectedCards.length} / {targetCount} ใบ) • แสดงไพ่ซ้อนกันตั้งตรงเต็มหน้าจอ</span>
         </p>
       )}
     </div>
