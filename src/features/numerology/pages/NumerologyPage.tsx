@@ -75,35 +75,35 @@ export const NumerologyPage: React.FC = () => {
 
       {/* Analysis Result */}
       {result && (
-        <div className="bg-slate-900/90 border border-amber-500/40 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6 animate-scale-up">
+        <div className={`rounded-2xl p-6 sm:p-8 backdrop-blur-xl space-y-6 animate-scale-up ${theme.cardBg}`}>
           {/* Top Grade Banner */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-gradient-to-r from-purple-950/60 to-amber-950/60 border border-amber-500/30">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-gradient-to-r from-cyan-950/60 to-teal-950/60 border border-cyan-500/30">
             <div className="space-y-1 text-center sm:text-left">
               <span className="text-xs text-slate-400 uppercase tracking-widest">ผลการวิเคราะห์เบอร์โทรศัพท์</span>
-              <div className="text-2xl sm:text-3xl font-mono font-bold text-amber-300">{result.cleanDigits}</div>
+              <div className="text-2xl sm:text-3xl font-mono font-bold text-cyan-300">{result.cleanDigits}</div>
             </div>
-            <div className="flex items-center gap-3 bg-slate-900/90 px-4 py-2 rounded-xl border border-amber-400/50">
+            <div className="flex items-center gap-3 bg-slate-900/90 px-4 py-2 rounded-xl border border-cyan-400/50">
               <span className="text-xs text-slate-400 font-medium">เกรดความมงคล:</span>
-              <span className="text-3xl font-black text-amber-400">{result.overallGrade}</span>
+              <span className="text-3xl font-black text-cyan-400">{result.overallGrade}</span>
             </div>
           </div>
 
           {/* Sum Value & Title */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-slate-950 border border-purple-500/20 text-center flex flex-col justify-center">
+            <div className="p-4 rounded-xl bg-slate-950 border border-cyan-500/30 text-center flex flex-col justify-center">
               <span className="text-xs text-slate-400">ผลรวมตัวเลข (Sum)</span>
-              <span className="text-4xl font-extrabold text-amber-300 font-mono my-1">{result.sumValue}</span>
-              <span className="text-xs font-semibold text-purple-300">{result.sumMeaning.title}</span>
+              <span className="text-4xl font-extrabold text-cyan-300 font-mono my-1">{result.sumValue}</span>
+              <span className="text-xs font-semibold text-cyan-300">{result.sumMeaning.title}</span>
             </div>
             <div className="md:col-span-2 p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-              <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
-                <ShieldCheck className="w-4 h-4" />
+              <div className={`flex items-center gap-2 ${theme.iconColor} font-semibold text-sm`}>
+                <ShieldCheck className={`w-4 h-4 ${theme.iconColor}`} />
                 <span>คำทำนายผลรวมมงคล</span>
               </div>
               <p className="text-sm text-slate-300 leading-relaxed">{result.sumMeaning.description}</p>
               <div className="flex flex-wrap gap-1.5 pt-2">
                 {result.sumMeaning.auspiciousFor.map((item, idx) => (
-                  <span key={idx} className="text-[11px] px-2 py-0.5 rounded bg-purple-950 text-purple-200 border border-purple-800/60">
+                  <span key={idx} className="text-[11px] px-2 py-0.5 rounded bg-cyan-950 text-cyan-200 border border-cyan-800/60">
                     👍 {item}
                   </span>
                 ))}
@@ -114,17 +114,17 @@ export const NumerologyPage: React.FC = () => {
           {/* Pair Analysis List */}
           <div className="space-y-3">
             <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-              <Award className="w-5 h-5 text-amber-400" />
+              <Award className={`w-5 h-5 ${theme.iconColor}`} />
               <span>ถอดรหัสคู่เลขในเบอร์โทร</span>
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {result.pairAnalyses.map((pairItem, index) => (
-                <div key={index} className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-amber-500/40 transition-all space-y-1">
+                <div key={index} className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    <span className={`text-lg font-mono font-bold ${theme.iconColor} bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20`}>
                       {pairItem.pair}
                     </span>
-                    <span className="text-xs text-amber-300 font-semibold">คะแนน {pairItem.score}/10</span>
+                    <span className="text-xs text-cyan-300 font-semibold">คะแนน {pairItem.score}/10</span>
                   </div>
                   <p className="text-xs text-slate-300">{pairItem.meaning}</p>
                 </div>
