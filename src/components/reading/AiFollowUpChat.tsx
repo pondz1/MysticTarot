@@ -46,9 +46,10 @@ export const AiFollowUpChat: React.FC<AiFollowUpChatProps> = ({
     await onSendMessage(text);
   };
 
-  const handleSelectPreset = (preset: string) => {
+  const handleSelectPreset = async (preset: string) => {
     if (isSending || isLimitReached) return;
-    setInputText(preset);
+    setInputText('');
+    await onSendMessage(preset);
   };
 
   return (
