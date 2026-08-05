@@ -23,9 +23,44 @@ import {
   Stethoscope,
   Hash,
   Palette,
+  Quote,
 } from 'lucide-react';
 import type { ApiSettings } from '../../tarot/types/tarot';
 import { analyzeZodiacHoroscope } from '../../../services/aiService';
+
+interface HoroscopeSections {
+  overall: string;
+  work: string;
+  finance: string;
+  love: string;
+  quote: string;
+}
+
+function parseHoroscopeSections(text: string): HoroscopeSections {
+  if (!text) return { overall: '', work: '', finance: '', love: '', quote: '' };
+
+  const sections: HoroscopeSections = {
+    overall: '',
+    work: '',
+    finance: '',
+    love: '',
+    quote: '',
+  };
+
+  const overallMatch = text.match(/(?:ภาพรวมพลังงานดวงชะตา|ภาพรวม)[*\s:]*([\s\S]*?)(?=\n\n|\*\*|การงาน|การเงิน|ความรัก|สาส์น|$)/i);
+  const workMatch = text.match(/(?:การงานและการเรียน|การงาน)[*\s:]*([\s\S]*?)(?=\n\n|\*\*|การเงิน|ความรัก|สาส์น|$)/i);
+  const financeMatch = text.match(/(?:การเงินและโชคลาภ|การเงิน)[*\s:]*([\s\S]*?)(?=\n\n|\*\*|ความรัก|สาส์น|$)/i);
+  const loveMatch = text.match(/(?:ความรักและความสัมพันธ์|ความรัก)[*\s:]*([\s\S]*?)(?=\n\n|\*\*|สาส์น|$)/i);
+  const quoteMatch = text.match(/(?:สาส์นเตือนใจ|สาส์น)[^\n]*[\n\s]*["'“]?([^"'”\n]+)["'”]?/i);
+
+  if (overallMatch) sections.overall = overallMatch[1].trim().replace(/^[:*\s]+/, '');
+  if (workMatch) sections.work = workMatch[1].trim().replace(/^[:*\s]+/, '');
+  if (financeMatch) sections.finance = financeMatch[1].trim().replace(/^[:*\s]+/, '');
+  if (loveMatch) sections.love = loveMatch[1].trim().replace(/^[:*\s]+/, '');
+  if (quoteMatch) sections.quote = quoteMatch[1].trim().replace(/^[:*\s]+/, '');
+
+  return sections;
+}
 
 interface HoroscopePageProps {
   apiSettings: ApiSettings;
@@ -437,9 +472,78 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
               <p className="text-sm">กำลังประมวลผลคำทำนาย...</p>
             </div>
           ) : prediction ? (
-            <div className="prose prose-invert max-w-none text-slate-200 text-sm sm:text-base leading-relaxed bg-slate-950/60 p-4 sm:p-6 rounded-xl border border-slate-800/80">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{prediction}</ReactMarkdown>
-            </div>
+            (() => {
+              const parsed = parseHoroscopeSections(prediction);
+              const hasStructured = parsed.overall || parsed.work || parsed.finance || parsed.love;
+
+              if (!hasStructured) {
+                return (
+                  <div className="prose prose-invert max-w-none text-slate-200 text-sm sm:text-base leading-relaxed bg-slate-950/60 p-4 sm:p-6 rounded-xl border border-slate-800/80">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{prediction}</ReactMarkdown>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-4 animate-fade-in">
+                  {/* Overall Energy Card */}
+                  {parsed.overall && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-900 to-purple-950/20 border-l-4 border-l-amber-400 border border-slate-800 shadow-md space-y-2">
+                      <div className="flex items-center gap-2 text-amber-300 font-bold text-sm sm:text-base">
+                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>ภาพรวมพลังงานดวงชะตา</span>
+                      </div>
+                      <p className="text-slate-200 text-sm sm:text-base leading-relaxed">{parsed.overall}</p>
+                    </div>
+                  )}
+
+                  {/* 4 Aspects Grid Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* Work */}
+                    {parsed.work && (
+                      <div className="p-4 rounded-2xl bg-slate-950/70 border-l-4 border-l-blue-400 border border-slate-800/80 space-y-1.5 shadow-sm">
+                        <div className="flex items-center gap-2 text-blue-300 font-bold text-xs sm:text-sm">
+                          <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />
+                          <span>การงานและการเรียน</span>
+                        </div>
+                        <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">{parsed.work}</p>
+                      </div>
+                    )}
+
+                    {/* Finance */}
+                    {parsed.finance && (
+                      <div className="p-4 rounded-2xl bg-slate-950/70 border-l-4 border-l-amber-400 border border-slate-800/80 space-y-1.5 shadow-sm">
+                        <div className="flex items-center gap-2 text-amber-300 font-bold text-xs sm:text-sm">
+                          <Coins className="w-4 h-4 text-amber-400 shrink-0" />
+                          <span>การเงินและโชคลาภ</span>
+                        </div>
+                        <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">{parsed.finance}</p>
+                      </div>
+                    )}
+
+                    {/* Love */}
+                    {parsed.love && (
+                      <div className="p-4 rounded-2xl bg-slate-950/70 border-l-4 border-l-pink-400 border border-slate-800/80 space-y-1.5 shadow-sm">
+                        <div className="flex items-center gap-2 text-pink-300 font-bold text-xs sm:text-sm">
+                          <Heart className="w-4 h-4 text-pink-400 shrink-0" />
+                          <span>ความรักและความสัมพันธ์</span>
+                        </div>
+                        <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">{parsed.love}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quote Callout Card */}
+                  {parsed.quote && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-purple-950/40 to-amber-500/10 border border-amber-400/40 text-center space-y-2 shadow-lg">
+                      <Quote className="w-5 h-5 text-amber-300 mx-auto" />
+                      <div className="text-xs font-semibold text-amber-300 uppercase tracking-wider">สาส์นเตือนใจประจำวัน</div>
+                      <p className="text-amber-100 text-sm sm:text-base italic font-medium">"{parsed.quote}"</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()
           ) : (
             <div className="text-center py-8 text-slate-400">
               กดเลือกราศีด้านบนเพื่ออ่านคำทำนายดวงชะตาเชิงลึก
