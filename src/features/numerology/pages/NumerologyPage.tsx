@@ -147,9 +147,10 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-16">
       {/* Header Banner */}
       <div className="text-center space-y-2.5">
-        <div className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full ${theme.badgeBg} text-xs sm:text-sm font-medium`}>
+        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full ${theme.badgeBg} text-xs sm:text-sm font-semibold shadow-xs`}>
           <Hash className={`w-3.5 h-3.5 ${theme.iconColor}`} />
           <span>ศาสตร์แห่งตัวเลข & มหาโชคลาภ</span>
+          <Sparkles className={`w-3.5 h-3.5 ${theme.secondaryIconColor}`} />
         </div>
         <h1 className={`text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent px-2`}>
           วิเคราะห์ตัวเลข & เบอร์มงคล <span className="block sm:inline text-base sm:text-2xl opacity-90">(Numerology Prophet)</span>
@@ -167,11 +168,11 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
                 key={idx}
                 type="button"
                 onClick={() => handleSelectSample(s.number, s.type)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 text-cyan-200 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-teal-400 text-cyan-200 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-xs hover:shadow-[0_0_12px_rgba(6,182,212,0.25)]"
               >
                 <IconComp className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                 <span>{s.label}</span>
-                <span className="font-mono text-cyan-400">({s.number})</span>
+                <span className="font-mono text-teal-300">({s.number})</span>
               </button>
             );
           })}
@@ -179,7 +180,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
       </div>
 
       {/* Mode Control Bar: AI vs Classic Mode */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg">
+      <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r ${theme.subtleGradient} border ${theme.borderGlow} shadow-lg`}>
         <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-300">
           <span className={`font-semibold ${theme.iconColor}`}>เลือกโหมดวิเคราะห์:</span>
           <span className="text-slate-400">
@@ -191,7 +192,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
           </span>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-2 bg-slate-950/90 p-1 rounded-xl border border-slate-800">
           <button
             type="button"
             disabled={isAnalyzing}
@@ -239,10 +240,10 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
           <button
             type="button"
             onClick={() => handleSelectCategory('phone')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               numberType === 'phone'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md'
-                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
+                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
             }`}
           >
             <Phone className="w-3.5 h-3.5" />
@@ -252,10 +253,10 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
           <button
             type="button"
             onClick={() => handleSelectCategory('car')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               numberType === 'car'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md'
-                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
+                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
             }`}
           >
             <Car className="w-3.5 h-3.5" />
@@ -265,10 +266,10 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
           <button
             type="button"
             onClick={() => handleSelectCategory('house')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               numberType === 'house'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md'
-                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
+                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
             }`}
           >
             <HomeIcon className="w-3.5 h-3.5" />
@@ -278,10 +279,10 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
           <button
             type="button"
             onClick={() => handleSelectCategory('card')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               numberType === 'card'
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md'
-                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
+                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
             }`}
           >
             <CreditCard className="w-3.5 h-3.5" />
@@ -303,7 +304,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="กรอกเบอร์โทรศัพท์ เช่น 0891234567 หรือ 9กข3654..."
-                className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-base sm:text-lg tracking-wider"
+                className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-base sm:text-lg tracking-wider transition-colors"
               />
             </div>
             <button
@@ -334,7 +335,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
           className={`rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-8 animate-scale-up ${theme.cardBg}`}
         >
           {/* Top Grade Banner */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-cyan-950/80 via-slate-900 to-teal-950/80 border border-cyan-500/40 shadow-xl">
+          <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r ${theme.subtleGradient} border ${theme.borderGlow} shadow-xl`}>
             <div className="space-y-1 text-center sm:text-left">
               <span className="text-xs text-cyan-300/80 font-semibold uppercase tracking-widest flex items-center gap-1.5 justify-center sm:justify-start">
                 <Hash className="w-3.5 h-3.5 text-cyan-400" />
@@ -343,7 +344,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
               <h2 className="text-xl sm:text-2xl font-bold text-slate-100">{result.sumMeaning.title}</h2>
             </div>
 
-            <div className="flex items-center gap-4 bg-slate-950/90 px-5 py-3 rounded-2xl border border-cyan-400/50 shadow-inner shrink-0">
+            <div className="flex items-center gap-4 bg-slate-950/90 px-5 py-3 rounded-2xl border border-teal-400/50 shadow-[0_0_15px_rgba(20,184,166,0.15)] shrink-0">
               <div className="text-center">
                 <span className="text-[10px] text-slate-400 block font-semibold">ผลรวม (Sum)</span>
                 <span className="text-2xl font-black text-cyan-300 font-mono">{result.sumValue}</span>
@@ -351,16 +352,19 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
               <div className="h-8 w-px bg-slate-800" />
               <div className="text-center">
                 <span className="text-[10px] text-slate-400 block font-semibold">เกรดมงคล</span>
-                <span className="text-3xl font-black text-cyan-400">{result.overallGrade}</span>
+                <span className="text-3xl font-black text-teal-400">{result.overallGrade}</span>
               </div>
             </div>
           </div>
 
           {/* Aspect Rating Bars (ดวง 4 ด้านประจำตัวเลข) */}
-          <div className="space-y-3 bg-slate-950/70 p-4 sm:p-6 rounded-xl border border-slate-800/80">
-            <div className={`flex items-center gap-2 text-xs sm:text-sm font-bold ${theme.iconColor}`}>
-              <TrendingUp className={`w-4 h-4 ${theme.iconColor}`} />
-              <span>ระดับคะแนนส่งเสริมดวงชะตา 4 ด้านประจำตัวเลข</span>
+          <div className="space-y-3 bg-slate-950/70 p-4 sm:p-6 rounded-xl border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+            <div className={`flex items-center justify-between text-xs sm:text-sm font-bold ${theme.iconColor}`}>
+              <div className="flex items-center gap-2">
+                <TrendingUp className={`w-4 h-4 ${theme.iconColor}`} />
+                <span>ระดับคะแนนส่งเสริมดวงชะตา 4 ด้านประจำตัวเลข</span>
+              </div>
+              <Sparkles className={`w-4 h-4 ${theme.secondaryIconColor}`} />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -424,34 +428,60 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
 
           {/* Pair Analysis Grid */}
           <div className="space-y-3">
-            <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-              <Award className={`w-5 h-5 ${theme.iconColor}`} />
-              <span>ถอดรหัสคู่เลขในตัวเลข ({result.pairAnalyses.length} คู่)</span>
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
+                <Award className={`w-5 h-5 ${theme.iconColor}`} />
+                <span>ถอดรหัสคู่เลขในตัวเลข ({result.pairAnalyses.length} คู่)</span>
+              </h3>
+              <span className={`text-xs px-2.5 py-0.5 rounded-full ${theme.tagBg} font-medium`}>
+                แยกตามหมวดพลังงาน
+              </span>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {result.pairAnalyses.map((pairItem, index) => (
-                <div key={index} className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-1.5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-lg font-mono font-extrabold ${theme.iconColor} bg-cyan-500/10 px-2.5 py-0.5 rounded border border-cyan-500/20`}>
-                      {pairItem.pair}
-                    </span>
-                    <span className="text-xs text-cyan-300 font-semibold">คะแนน {pairItem.score}/10</span>
+              {result.pairAnalyses.map((pairItem, index) => {
+                const getCategoryStyle = (cat: string) => {
+                  switch (cat) {
+                    case 'wealth':
+                      return { badge: 'bg-amber-500/15 text-amber-300 border-amber-500/30', card: 'hover:border-amber-400/50 hover:shadow-[0_0_12px_rgba(245,158,11,0.2)]', icon: Coins };
+                    case 'love':
+                      return { badge: 'bg-pink-500/15 text-pink-300 border-pink-500/30', card: 'hover:border-pink-400/50 hover:shadow-[0_0_12px_rgba(236,72,153,0.2)]', icon: Heart };
+                    case 'charm':
+                      return { badge: 'bg-purple-500/15 text-purple-300 border-purple-500/30', card: 'hover:border-purple-400/50 hover:shadow-[0_0_12px_rgba(168,85,247,0.2)]', icon: Sparkles };
+                    default:
+                      return { badge: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30', card: 'hover:border-cyan-400/50 hover:shadow-[0_0_12px_rgba(6,182,212,0.2)]', icon: Briefcase };
+                  }
+                };
+                const style = getCategoryStyle(pairItem.category);
+                const PairIcon = style.icon;
+
+                return (
+                  <div key={index} className={`p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/80 ${style.card} transition-all space-y-2 shadow-sm`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-lg font-mono font-extrabold ${style.badge} px-2.5 py-0.5 rounded border`}>
+                          {pairItem.pair}
+                        </span>
+                        <PairIcon className="w-3.5 h-3.5 text-slate-400" />
+                      </div>
+                      <span className="text-xs text-slate-400 font-semibold">คะแนน {pairItem.score}/10</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">{pairItem.meaning}</p>
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">{pairItem.meaning}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           {/* Markdown AI / Classic Prediction Section */}
           {predictionText && (
-            <div className="relative rounded-2xl p-5 sm:p-7 bg-slate-900/95 border border-cyan-500/40 shadow-2xl overflow-hidden space-y-4 animate-fade-in">
+            <div className="relative rounded-2xl p-6 sm:p-8 bg-slate-950/95 border border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.15)] overflow-hidden space-y-5 animate-fade-in backdrop-blur-xl ring-1 ring-cyan-500/20">
               {/* Header Action Bar */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-cyan-500/30 pb-4">
                 <div className="flex items-center gap-2 min-w-0">
                   <ShieldCheck className={`w-5 h-5 ${theme.iconColor} shrink-0`} />
-                  <h3 className="text-base sm:text-lg font-bold font-serif text-cyan-200 truncate">
-                    บทวิเคราะห์ศาสตร์แห่งตัวเลขประจำชุด {result.cleanDigits}
+                  <h3 className="text-base sm:text-lg font-bold font-serif text-white truncate">
+                    บทวิเคราะห์ศาสตร์แห่งตัวเลขประจำชุด <span className="text-cyan-300 font-mono font-extrabold">{result.cleanDigits}</span>
                   </h3>
                 </div>
 
@@ -467,25 +497,49 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
               </div>
 
               {/* Formatted Markdown Content via ReactMarkdown */}
-              <div className="prose prose-invert max-w-none font-prompt text-slate-200 text-sm sm:text-base leading-relaxed">
+              <div className="prose prose-invert max-w-none font-prompt text-slate-100 text-sm sm:text-base leading-relaxed">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
                     h1: ({ children }) => {
-                      const text = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : children;
+                      const textStr = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : String(children || '');
+                      let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
+                      let colorClass = 'text-cyan-300 border-cyan-500/30';
+                      if (textStr.includes('งาน')) {
+                        iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
+                        colorClass = 'text-blue-300 border-blue-500/30';
+                      } else if (textStr.includes('เงิน')) {
+                        iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
+                        colorClass = 'text-amber-300 border-amber-500/30';
+                      } else if (textStr.includes('รัก')) {
+                        iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
+                        colorClass = 'text-pink-300 border-pink-500/30';
+                      }
                       return (
-                        <h2 className="text-base sm:text-lg font-bold text-cyan-300 mt-5 mb-2.5 pb-1 border-b border-cyan-500/30 flex items-center gap-2">
-                          <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
-                          <span>{text}</span>
+                        <h2 className={`text-base sm:text-lg font-bold ${colorClass} mt-6 mb-3 pb-1.5 border-b flex items-center gap-2 tracking-wide`}>
+                          {iconComp}
+                          <span>{textStr}</span>
                         </h2>
                       );
                     },
                     h2: ({ children }) => {
-                      const text = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : children;
+                      const textStr = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : String(children || '');
+                      let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
+                      let colorClass = 'text-cyan-300 border-cyan-500/30';
+                      if (textStr.includes('งาน')) {
+                        iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
+                        colorClass = 'text-blue-300 border-blue-500/30';
+                      } else if (textStr.includes('เงิน')) {
+                        iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
+                        colorClass = 'text-amber-300 border-amber-500/30';
+                      } else if (textStr.includes('รัก')) {
+                        iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
+                        colorClass = 'text-pink-300 border-pink-500/30';
+                      }
                       return (
-                        <h2 className="text-base sm:text-lg font-bold text-cyan-300 mt-5 mb-2.5 pb-1 border-b border-cyan-500/30 flex items-center gap-2">
-                          <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
-                          <span>{text}</span>
+                        <h2 className={`text-base sm:text-lg font-bold ${colorClass} mt-6 mb-3 pb-1.5 border-b flex items-center gap-2 tracking-wide`}>
+                          {iconComp}
+                          <span>{textStr}</span>
                         </h2>
                       );
                     },
@@ -494,14 +548,14 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
                         {children}
                       </h3>
                     ),
-                    p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-200">{children}</p>,
-                    strong: ({ children }) => <strong className="font-semibold text-cyan-200">{children}</strong>,
+                    p: ({ children }) => <p className="mb-4 leading-relaxed text-slate-100 font-normal text-sm sm:text-base">{children}</p>,
+                    strong: ({ children }) => <strong className="font-bold text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{children}</strong>,
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-cyan-400 pl-4 py-3 italic my-4 text-cyan-100 bg-cyan-500/10 rounded-r-xl border border-cyan-400/20">
+                      <blockquote className="border-l-4 border-amber-400 pl-4 py-3.5 italic my-5 text-amber-200 bg-gradient-to-r from-amber-500/15 via-purple-500/10 to-cyan-500/15 rounded-r-2xl border border-amber-400/30 shadow-md">
                         {children}
                       </blockquote>
                     ),
-                    ul: ({ children }) => <ul className="list-disc pl-5 my-3 space-y-1 text-slate-200">{children}</ul>,
+                    ul: ({ children }) => <ul className="list-disc pl-5 my-3 space-y-1.5 text-slate-100">{children}</ul>,
                     li: ({ children }) => <li className="pl-1">{children}</li>,
                   }}
                 >
