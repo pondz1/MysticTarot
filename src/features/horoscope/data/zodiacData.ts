@@ -1,4 +1,53 @@
-import type { ZodiacSign } from '../types/horoscope';
+import type { ZodiacSign, ElementType } from '../types/horoscope';
+
+export interface ElementStyle {
+  bg: string;
+  activeBg: string;
+  border: string;
+  activeBorder: string;
+  text: string;
+  badgeBg: string;
+  glow: string;
+}
+
+export const ELEMENT_STYLE_MAP: Record<ElementType, ElementStyle> = {
+  fire: {
+    bg: 'bg-amber-950/30 hover:bg-amber-900/40',
+    activeBg: 'bg-gradient-to-b from-amber-500/30 to-red-950/60',
+    border: 'border-amber-500/40 hover:border-amber-400',
+    activeBorder: 'border-amber-400 shadow-amber-500/20',
+    text: 'text-amber-300',
+    badgeBg: 'bg-amber-500/20 text-amber-200 border-amber-500/40',
+    glow: 'shadow-amber-500/20',
+  },
+  water: {
+    bg: 'bg-cyan-950/30 hover:bg-cyan-900/40',
+    activeBg: 'bg-gradient-to-b from-cyan-500/30 to-blue-950/60',
+    border: 'border-cyan-500/40 hover:border-cyan-400',
+    activeBorder: 'border-cyan-400 shadow-cyan-500/20',
+    text: 'text-cyan-300',
+    badgeBg: 'bg-cyan-500/20 text-cyan-200 border-cyan-500/40',
+    glow: 'shadow-cyan-500/20',
+  },
+  air: {
+    bg: 'bg-purple-950/30 hover:bg-purple-900/40',
+    activeBg: 'bg-gradient-to-b from-purple-500/30 to-indigo-950/60',
+    border: 'border-purple-500/40 hover:border-purple-400',
+    activeBorder: 'border-purple-400 shadow-purple-500/20',
+    text: 'text-purple-300',
+    badgeBg: 'bg-purple-500/20 text-purple-200 border-purple-500/40',
+    glow: 'shadow-purple-500/20',
+  },
+  earth: {
+    bg: 'bg-emerald-950/30 hover:bg-emerald-900/40',
+    activeBg: 'bg-gradient-to-b from-emerald-500/30 to-teal-950/60',
+    border: 'border-emerald-500/40 hover:border-emerald-400',
+    activeBorder: 'border-emerald-400 shadow-emerald-500/20',
+    text: 'text-emerald-300',
+    badgeBg: 'bg-emerald-500/20 text-emerald-200 border-emerald-500/40',
+    glow: 'shadow-emerald-500/20',
+  },
+};
 
 export const ZODIAC_SIGNS: ZodiacSign[] = [
   {
@@ -189,4 +238,30 @@ ${sign.description} จังหวะชีวิตใน${isDaily ? 'วั�
 
 🌟 **สาส์นเตือนใจ:**
 "ยึดมั่นในสติและความดีงาม ก้าวเดินไปด้วยความมั่นใจ แล้วความสำเร็จจะปรากฏตรงหน้าคุณ"`;
+}
+
+export function getZodiacAspectScores(sign: ZodiacSign, timeframe: 'daily' | 'monthly') {
+  const seed = (sign.id.charCodeAt(0) + (timeframe === 'daily' ? 12 : 25)) % 25;
+  return {
+    love: Math.min(98, Math.max(72, 80 + (seed * 3) % 18)),
+    work: Math.min(99, Math.max(75, 82 + (seed * 5) % 17)),
+    finance: Math.min(96, Math.max(70, 78 + (seed * 7) % 19)),
+    health: Math.min(95, Math.max(74, 85 + (seed * 2) % 12)),
+  };
+}
+
+export function findZodiacSignByBirthdate(month: number, day: number): ZodiacSign {
+  // Month: 1-12, Day: 1-31
+  if ((month === 4 && day >= 13) || (month === 5 && day <= 13)) return ZODIAC_SIGNS[0]; // Aries
+  if ((month === 5 && day >= 14) || (month === 6 && day <= 13)) return ZODIAC_SIGNS[1]; // Taurus
+  if ((month === 6 && day >= 14) || (month === 7 && day <= 14)) return ZODIAC_SIGNS[2]; // Gemini
+  if ((month === 7 && day >= 15) || (month === 8 && day <= 16)) return ZODIAC_SIGNS[3]; // Cancer
+  if ((month === 8 && day >= 17) || (month === 9 && day <= 16)) return ZODIAC_SIGNS[4]; // Leo
+  if ((month === 9 && day >= 17) || (month === 10 && day <= 16)) return ZODIAC_SIGNS[5]; // Virgo
+  if ((month === 10 && day >= 17) || (month === 11 && day <= 15)) return ZODIAC_SIGNS[6]; // Libra
+  if ((month === 11 && day >= 16) || (month === 12 && day <= 15)) return ZODIAC_SIGNS[7]; // Scorpio
+  if ((month === 12 && day >= 16) || (month === 1 && day <= 14)) return ZODIAC_SIGNS[8]; // Sagittarius
+  if ((month === 1 && day >= 15) || (month === 2 && day <= 12)) return ZODIAC_SIGNS[9]; // Capricorn
+  if ((month === 2 && day >= 13) || (month === 3 && day <= 14)) return ZODIAC_SIGNS[10]; // Aquarius
+  return ZODIAC_SIGNS[11]; // Pisces
 }
