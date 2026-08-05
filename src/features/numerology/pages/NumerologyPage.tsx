@@ -549,7 +549,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
                       </h3>
                     ),
                     p: ({ children }) => <p className="mb-4 leading-relaxed text-slate-100 font-normal text-sm sm:text-base">{children}</p>,
-                    strong: ({ children }) => <strong className="font-bold text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{children}</strong>,
+                    strong: ({ children }) => <strong className="font-bold text-amber-300">{children}</strong>,
                     blockquote: ({ children }) => (
                       <blockquote className="border-l-4 border-amber-400 pl-4 py-3.5 italic my-5 text-amber-200 bg-gradient-to-r from-amber-500/15 via-purple-500/10 to-cyan-500/15 rounded-r-2xl border border-amber-400/30 shadow-md">
                         {children}

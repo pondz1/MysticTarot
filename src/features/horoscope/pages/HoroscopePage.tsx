@@ -220,13 +220,12 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             type="button"
             disabled={isLoading}
             onClick={() => setUseAi(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              isLoading
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isLoading
                 ? 'opacity-50 cursor-not-allowed text-slate-500'
                 : useAi
                   ? `${theme.secondaryBtn} cursor-pointer`
                   : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-            }`}
+              }`}
           >
             <Sparkles className={`w-3.5 h-3.5 ${theme.iconColor}`} />
             <span>โหมด AI</span>
@@ -239,13 +238,12 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
               setUseAi(false);
               setPrediction(getZodiacClassicPrediction(selectedSign, timeframe));
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              isLoading
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isLoading
                 ? 'opacity-50 cursor-not-allowed text-slate-500'
                 : !useAi
                   ? `${theme.secondaryBtn} cursor-pointer`
                   : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-            }`}
+              }`}
           >
             <BookOpen className={`w-3.5 h-3.5 ${theme.iconColor}`} />
             <span>โหมดคลาสสิก</span>
@@ -268,13 +266,12 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                   setPrediction(getZodiacClassicPrediction(sign, timeframe));
                 }
               }}
-              className={`p-3 sm:p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-1.5 group ${
-                isLoading
+              className={`p-3 sm:p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-1.5 group ${isLoading
                   ? 'opacity-60 cursor-not-allowed'
                   : isSelected
                     ? `${elementStyle.activeBg} ${elementStyle.activeBorder} ${elementStyle.glow} scale-105 shadow-xl cursor-pointer`
                     : `${elementStyle.bg} ${elementStyle.border} text-slate-300 cursor-pointer`
-              }`}
+                }`}
             >
               <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-purple-400/50 shadow-lg shadow-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 relative bg-slate-950">
                 <img
@@ -315,13 +312,12 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                 setPrediction(getZodiacClassicPrediction(selectedSign, 'daily'));
               }
             }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              isLoading
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${isLoading
                 ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
                 : timeframe === 'daily'
                   ? `${theme.activeToggleBtn} cursor-pointer`
                   : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
-            }`}
+              }`}
           >
             <Calendar className={`w-4 h-4 ${theme.iconColor}`} />
             <span>ดวงประจำวัน</span>
@@ -334,13 +330,12 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                 setPrediction(getZodiacClassicPrediction(selectedSign, 'monthly'));
               }
             }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              isLoading
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${isLoading
                 ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
                 : timeframe === 'monthly'
                   ? `${theme.activeToggleBtn} cursor-pointer`
                   : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
-            }`}
+              }`}
           >
             <Moon className={`w-4 h-4 ${theme.iconColor}`} />
             <span>ดวงรายเดือน</span>
@@ -352,9 +347,8 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             type="button"
             disabled={isLoading}
             onClick={() => handleFetchHoroscope(selectedSign, timeframe, true)}
-            className={`px-5 py-2.5 rounded-xl ${theme.primaryBtn} font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer hover:scale-105 ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            className={`px-5 py-2.5 rounded-xl ${theme.primaryBtn} font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer hover:scale-105 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
           >
             <Sparkles className="w-4 h-4 animate-pulse" />
             <span>เริ่มทำนายดวง{selectedSign.nameTh} ด้วย AI</span>
@@ -475,7 +469,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
               <span>คำทำนายดวงชะตา{timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'}</span>
             </div>
             <span className="text-xs font-medium text-slate-400">
-              {useAi ? 'ผลทำนาย AI' : 'โหมดคลาสสิก (ไม่ต้องใช้อินเทอร์เน็ต/AI)'}
+              {useAi ? 'ผลทำนาย AI' : 'โหมดคลาสสิก'}
             </span>
           </div>
 
@@ -567,7 +561,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                     ),
                     p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-100 font-normal">{children}</p>,
                     strong: ({ children }) => (
-                      <strong className="font-semibold text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                      <strong className="font-bold text-amber-300">
                         {children}
                       </strong>
                     ),
