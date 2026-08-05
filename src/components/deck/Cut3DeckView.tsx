@@ -89,6 +89,17 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
     return deck.slice(start, end);
   };
 
+  // Restack deck starting with the chosen pile on top, followed by remaining piles in order
+  const getRestackedDeckFromPile = (pileIdx: number): TarotCard[] => {
+    const pile0 = getPileCards(0);
+    const pile1 = getPileCards(1);
+    const pile2 = getPileCards(2);
+
+    if (pileIdx === 0) return [...pile0, ...pile1, ...pile2];
+    if (pileIdx === 1) return [...pile1, ...pile2, ...pile0];
+    return [...pile2, ...pile0, ...pile1];
+  };
+
   const handleCutPile = (pileIdx: number) => {
     if (isCutting || isAnalyzing || selectedCards.length > 0) return;
 
@@ -97,11 +108,8 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
     if (subMode === 'auto') {
       setIsCutting(true);
       setTimeout(() => {
-        const sliced = getPileCards(pileIdx).slice(0, targetCount);
-        const finalCards =
-          sliced.length < targetCount
-            ? [...sliced, ...deck.slice(0, targetCount - sliced.length)]
-            : sliced;
+        const restacked = getRestackedDeckFromPile(pileIdx);
+        const finalCards = restacked.slice(0, targetCount);
 
         const drawn: DrawnCard[] = finalCards.map((card, idx) => ({
           card,
