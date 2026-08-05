@@ -211,7 +211,15 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   // Reset selection
   const handleResetSelection = () => {
     setSelectedCards([]);
-    setDeck(shuffleArray([...TAROT_CARDS]));
+    setDeck(shuffleArray(getFilteredCards(deckFilter)));
+  };
+
+  // Handle selection mode change without losing deckFilter
+  const handleModeChange = (mode: SelectionMode) => {
+    if (isShuffling || isAnalyzing) return;
+    setSelectionMode(mode);
+    setSelectedCards([]);
+    setDeck(shuffleArray(getFilteredCards(deckFilter)));
   };
 
   const isSelectionComplete = selectedCards.length === targetCount;
@@ -226,7 +234,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           {/* Mode Dropdown */}
           <DeckModeSelector
             selectionMode={selectionMode}
-            onSelectMode={(mode) => setSelectionMode(mode)}
+            onSelectMode={handleModeChange}
             disabled={isShuffling || isAnalyzing}
           />
 
