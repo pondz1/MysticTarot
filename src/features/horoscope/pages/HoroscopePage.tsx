@@ -50,6 +50,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
     mode: 'daily' | 'monthly' = timeframe,
     withAi: boolean = useAi
   ) => {
+    if (isLoading) return; // Prevent spamming API requests while processing
     setSelectedSign(sign);
     if (!withAi) {
       // Classic Offline Interpretation (Instant 0ms response)
@@ -185,21 +186,28 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
         <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-300">
           <span className="font-semibold text-amber-300">เลือกโหมดทำนาย:</span>
           <span className="text-slate-400">
-            {useAi ? '(โหมด AI ประมวลผลลึกซึ้ง)' : '(โหมดคลาสสิก ทำนายทันที ไม่ใช้ AI)'}
+            {isLoading
+              ? '⏳ AI กำลังประมวลผลคำทำนาย... กรุณารอสักครู่'
+              : useAi
+              ? '(โหมด AI ประมวลผลลึกซึ้ง)'
+              : '(โหมดคลาสสิก ทำนายทันที ไม่ใช้ AI)'}
           </span>
         </div>
 
         <div className="flex items-center gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
           <button
             type="button"
+            disabled={isLoading}
             onClick={() => {
               setUseAi(true);
               handleFetchHoroscope(selectedSign, timeframe, true);
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              useAi
-                ? 'bg-amber-500/20 text-amber-200 border border-amber-400/60 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              isLoading
+                ? 'opacity-50 cursor-not-allowed text-slate-500'
+                : useAi
+                ? 'bg-amber-500/20 text-amber-200 border border-amber-400/60 shadow-sm cursor-pointer'
+                : 'text-slate-400 hover:text-slate-200 cursor-pointer'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -208,14 +216,17 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
 
           <button
             type="button"
+            disabled={isLoading}
             onClick={() => {
               setUseAi(false);
               handleFetchHoroscope(selectedSign, timeframe, false);
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              !useAi
-                ? 'bg-amber-500/20 text-amber-200 border border-amber-400/60 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              isLoading
+                ? 'opacity-50 cursor-not-allowed text-slate-500'
+                : !useAi
+                ? 'bg-amber-500/20 text-amber-200 border border-amber-400/60 shadow-sm cursor-pointer'
+                : 'text-slate-400 hover:text-slate-200 cursor-pointer'
             }`}
           >
             <BookOpen className="w-3.5 h-3.5 text-amber-400" />
@@ -232,11 +243,14 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
           return (
             <button
               key={sign.id}
+              disabled={isLoading}
               onClick={() => handleFetchHoroscope(sign, timeframe, useAi)}
-              className={`p-3 sm:p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-1.5 cursor-pointer group ${
-                isSelected
-                  ? `${elementStyle.activeBg} ${elementStyle.activeBorder} ${elementStyle.glow} scale-105 shadow-xl`
-                  : `${elementStyle.bg} ${elementStyle.border} text-slate-300`
+              className={`p-3 sm:p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-1.5 group ${
+                isLoading
+                  ? 'opacity-60 cursor-not-allowed'
+                  : isSelected
+                  ? `${elementStyle.activeBg} ${elementStyle.activeBorder} ${elementStyle.glow} scale-105 shadow-xl cursor-pointer`
+                  : `${elementStyle.bg} ${elementStyle.border} text-slate-300 cursor-pointer`
               }`}
             >
               <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-amber-400/50 shadow-lg shadow-amber-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 relative bg-slate-950">
@@ -270,28 +284,34 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
       {/* Timeframe Toggle Buttons */}
       <div className="flex justify-center gap-3">
         <button
+          disabled={isLoading}
           onClick={() => {
             setTimeframe('daily');
             handleFetchHoroscope(selectedSign, 'daily', useAi);
           }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-            timeframe === 'daily'
-              ? 'bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-md'
-              : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+            isLoading
+              ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
+              : timeframe === 'daily'
+              ? 'bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-md cursor-pointer'
+              : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
           }`}
         >
           <Calendar className="w-4 h-4 text-amber-300" />
           <span>ดวงประจำวัน</span>
         </button>
         <button
+          disabled={isLoading}
           onClick={() => {
             setTimeframe('monthly');
             handleFetchHoroscope(selectedSign, 'monthly', useAi);
           }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-            timeframe === 'monthly'
-              ? 'bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-md'
-              : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+            isLoading
+              ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
+              : timeframe === 'monthly'
+              ? 'bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-md cursor-pointer'
+              : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
           }`}
         >
           <Moon className="w-4 h-4 text-purple-300" />
