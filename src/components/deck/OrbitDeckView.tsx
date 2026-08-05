@@ -125,21 +125,8 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     setIsSpinningFast(true);
     const delta = direction === 'left' ? 45 : -45;
-    
-    let stepCount = 0;
-    const totalSteps = 15;
-    const stepDeg = delta / totalSteps;
-
-    const animateStep = () => {
-      if (stepCount < totalSteps) {
-        setRotationDeg((prev) => prev + stepDeg);
-        stepCount++;
-        animFrameRef.current = requestAnimationFrame(animateStep);
-      } else {
-        setIsSpinningFast(false);
-      }
-    };
-    animFrameRef.current = requestAnimationFrame(animateStep);
+    setRotationDeg((prev) => prev + delta);
+    setTimeout(() => setIsSpinningFast(false), 400);
   };
 
   const isSelectionComplete = selectedCards.length === targetCount;
@@ -158,12 +145,15 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         </p>
       </div>
 
-      {/* Orbit Controls */}
-      <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-2 mb-2 sm:mb-4">
+      {/* Orbit Controls - Elevated z-30 layer above wheel stage */}
+      <div className="relative z-30 pointer-events-auto flex items-center gap-2 sm:gap-3 mt-1 sm:mt-2 mb-3 sm:mb-5">
         <button
           type="button"
-          onClick={() => handleRotateButton('left')}
-          className="flex items-center gap-1.5 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-amber-400/40 text-amber-200 hover:text-amber-100 transition-all cursor-pointer shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.4)]"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleRotateButton('left');
+          }}
+          className="flex items-center gap-1.5 text-[10px] sm:text-[11px] px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 text-amber-200 hover:text-amber-100 transition-all cursor-pointer shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.4)]"
         >
           <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
           <span>หมุนซ้าย</span>
@@ -173,8 +163,11 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
           <button
             type="button"
             disabled={isShuffling || selectedCards.length > 0 || isAnalyzing}
-            onClick={onShuffle}
-            className="flex items-center gap-1.5 text-[10px] sm:text-[11px] px-3.5 py-1.5 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/50 text-amber-100 disabled:opacity-40 transition-all cursor-pointer shadow-md shadow-amber-500/20"
+            onClick={(e) => {
+              e.stopPropagation();
+              onShuffle();
+            }}
+            className="flex items-center gap-1.5 text-[10px] sm:text-[11px] px-3.5 py-1.5 rounded-xl bg-amber-600/40 hover:bg-amber-600/60 border border-amber-400/60 text-amber-100 disabled:opacity-40 transition-all cursor-pointer shadow-md shadow-amber-500/20"
           >
             <Sparkles className={`w-3.5 h-3.5 text-amber-300 ${isShuffling ? 'animate-spin' : ''}`} />
             <span>{isShuffling ? 'กำลังสับ...' : 'หมุนสับไพ่'}</span>
@@ -183,8 +176,11 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
 
         <button
           type="button"
-          onClick={() => handleRotateButton('right')}
-          className="flex items-center gap-1.5 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-amber-400/40 text-amber-200 hover:text-amber-100 transition-all cursor-pointer shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.4)]"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleRotateButton('right');
+          }}
+          className="flex items-center gap-1.5 text-[10px] sm:text-[11px] px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 text-amber-200 hover:text-amber-100 transition-all cursor-pointer shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.4)]"
         >
           <span>หมุนขวา</span>
           <RotateCw className="w-3.5 h-3.5 text-amber-300" />
