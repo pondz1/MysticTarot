@@ -11,6 +11,8 @@ interface Cut3DeckViewProps {
   selectedCards: DrawnCard[];
   targetCount: number;
   isAnalyzing: boolean;
+  isShuffling?: boolean;
+  onShuffle?: () => void;
   onPickCardsBatch: (cards: DrawnCard[]) => void;
   getPositionName: (index: number) => string;
   onReset: () => void;
@@ -49,6 +51,8 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
   selectedCards,
   targetCount,
   isAnalyzing,
+  isShuffling = false,
+  onShuffle,
   onPickCardsBatch,
   getPositionName,
   onReset,
@@ -251,11 +255,96 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
             ? 'แตะเลือก 1 กอง เพื่อแยกคลี่ไพ่ในกองนั้นออกมารับพลังงาน'
             : `แตะเลือกไพ่ให้ครบ ${targetCount} ใบ สำหรับการดูดวงรอบนี้`}
         </p>
+
+        {selectedPile === null && onShuffle && (
+          <button
+            type="button"
+            disabled={isShuffling || isCutting || isAnalyzing}
+            onClick={onShuffle}
+            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs font-medium transition-all cursor-pointer shadow-sm hover:scale-105"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${isShuffling ? 'animate-spin' : ''}`} />
+            <span>{isShuffling ? 'กำลังสับไพ่และจัดกองใหม่...' : 'สับไพ่ใหม่ (สุ่มกองใหม่)'}</span>
+          </button>
+        )}
       </div>
 
-      {/* 3D Piles Display */}
+      {/* 3D Piles Display with Flying Cards Ritual */}
       {(selectedPile === null || (subMode === 'auto' && !isSelectionComplete)) && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 max-w-3xl w-full px-4 my-2">
+        <div className="relative max-w-3xl w-full px-4 my-2">
+          {/* Flying Cards Arc Animations during isShuffling */}
+          {isShuffling && (
+            <div className="absolute inset-0 pointer-events-none z-40 overflow-visible flex items-center justify-center">
+              {/* Flying Card 1: Left to Right Parabolic Arc */}
+              <motion.div
+                initial={{ opacity: 0, x: -140, y: 0, scale: 0.8, rotate: -20 }}
+                animate={{
+                  opacity: [0, 1, 1, 1, 0],
+                  x: [-180, -90, 0, 90, 180],
+                  y: [10, -70, -110, -70, 10],
+                  rotate: [-30, -10, 90, 190, 210],
+                  scale: [0.8, 1.15, 1.3, 1.15, 0.8],
+                }}
+                transition={{
+                  duration: 0.75,
+                  ease: 'easeInOut',
+                  repeat: Infinity,
+                  repeatDelay: 0.05,
+                }}
+                className="absolute w-14 h-22 sm:w-18 sm:h-26 rounded-xl border border-amber-400/80 bg-slate-900 shadow-[0_0_25px_rgba(234,179,8,0.9)] overflow-hidden"
+              >
+                <img src="/cards/card_back.jpg" alt="Flying Card Left" className="w-full h-full object-cover rounded-xl" />
+                <div className="absolute inset-0 bg-amber-400/20 mix-blend-overlay animate-pulse" />
+              </motion.div>
+
+              {/* Flying Card 2: Right to Left Parabolic Arc */}
+              <motion.div
+                initial={{ opacity: 0, x: 140, y: 0, scale: 0.8, rotate: 20 }}
+                animate={{
+                  opacity: [0, 1, 1, 1, 0],
+                  x: [180, 90, 0, -90, -180],
+                  y: [10, -80, -120, -80, 10],
+                  rotate: [30, 10, -90, -190, -210],
+                  scale: [0.8, 1.15, 1.3, 1.15, 0.8],
+                }}
+                transition={{
+                  duration: 0.75,
+                  ease: 'easeInOut',
+                  repeat: Infinity,
+                  delay: 0.25,
+                  repeatDelay: 0.05,
+                }}
+                className="absolute w-14 h-22 sm:w-18 sm:h-26 rounded-xl border border-purple-400/80 bg-slate-900 shadow-[0_0_25px_rgba(168,85,247,0.9)] overflow-hidden"
+              >
+                <img src="/cards/card_back.jpg" alt="Flying Card Right" className="w-full h-full object-cover rounded-xl" />
+                <div className="absolute inset-0 bg-purple-400/20 mix-blend-overlay animate-pulse" />
+              </motion.div>
+
+              {/* Flying Card 3: Center Vertical Leap & Spin */}
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.9, rotate: 0 }}
+                animate={{
+                  opacity: [0, 1, 1, 0],
+                  y: [20, -130, 20],
+                  rotate: [0, 180, 360],
+                  scale: [0.9, 1.25, 0.9],
+                }}
+                transition={{
+                  duration: 0.65,
+                  ease: 'easeInOut',
+                  repeat: Infinity,
+                  delay: 0.4,
+                  repeatDelay: 0.1,
+                }}
+                className="absolute w-14 h-22 sm:w-18 sm:h-26 rounded-xl border border-amber-300 bg-slate-900 shadow-[0_0_30px_rgba(234,179,8,1)] overflow-hidden"
+              >
+                <img src="/cards/card_back.jpg" alt="Flying Card Center" className="w-full h-full object-cover rounded-xl" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/30 via-purple-500/30 to-amber-300/30 mix-blend-overlay animate-pulse" />
+              </motion.div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 w-full">
           {PILE_NAMES.map((pile) => {
             const isThisPileSelected = selectedPile === pile.id;
             const isCuttingThisPile = isCutting && isThisPileSelected;
@@ -266,8 +355,23 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
                 role="button"
                 tabIndex={0}
                 aria-label={`เลือกตัดสำรับ ${pile.title} (${pile.subtitle})`}
-                whileHover={{ y: -8, scale: 1.03 }}
-                whileTap={{ scale: 0.96 }}
+                whileHover={isShuffling ? {} : { y: -8, scale: 1.03 }}
+                whileTap={isShuffling ? {} : { scale: 0.96 }}
+                animate={
+                  isShuffling
+                    ? {
+                        x: pile.id === 0 ? [-18, 18, -10, 10, 0] : pile.id === 2 ? [18, -18, 10, -10, 0] : [0, -8, 8, 0],
+                        y: pile.id === 1 ? [-12, 12, -6, 6, 0] : [0, -6, 6, 0],
+                        rotate: pile.id === 0 ? [-6, 6, -3, 3, 0] : pile.id === 2 ? [6, -6, 3, -3, 0] : [-4, 4, -2, 2, 0],
+                        scale: [1, 1.05, 0.96, 1.03, 1],
+                      }
+                    : { x: 0, y: 0, rotate: 0, scale: 1 }
+                }
+                transition={
+                  isShuffling
+                    ? { duration: 0.8, ease: 'easeInOut', repeat: Infinity }
+                    : { duration: 0.4, ease: 'easeOut' }
+                }
                 onClick={() => handleCutPile(pile.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -297,31 +401,57 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
                 {/* 3D Layered Card Stack Effect */}
                 <div className="relative w-24 h-36 sm:w-28 sm:h-40 mb-4 flex items-center justify-center z-10 perspective-500">
                   {/* Card Layer 3 (Bottom) */}
-                  <div className="absolute inset-0 bg-slate-900 rounded-xl border border-amber-400/30 transform translate-x-3 translate-y-3 rotate-[5deg] opacity-50 shadow-md group-hover:translate-x-4 group-hover:translate-y-4 group-hover:rotate-[7deg] transition-transform duration-300">
+                  <motion.div
+                    animate={
+                      isShuffling
+                        ? { x: [12, -8, 12], rotate: [10, -5, 10] }
+                        : { x: 0, y: 0, rotate: 0 }
+                    }
+                    transition={
+                      isShuffling
+                        ? { duration: 0.6, repeat: Infinity, ease: 'easeInOut' }
+                        : { duration: 0.4, ease: 'easeOut' }
+                    }
+                    className="absolute inset-0 bg-slate-900 rounded-xl border border-amber-400/30 transform translate-x-3 translate-y-3 rotate-[5deg] opacity-50 shadow-md group-hover:translate-x-4 group-hover:translate-y-4 group-hover:rotate-[7deg] transition-transform duration-300"
+                  >
                     <img
                       src="/cards/card_back.jpg"
                       alt="Back Layer 3"
                       className="w-full h-full object-cover rounded-xl opacity-30"
                     />
-                  </div>
+                  </motion.div>
 
                   {/* Card Layer 2 (Middle) */}
-                  <div className="absolute inset-0 bg-slate-900 rounded-xl border border-amber-400/40 transform translate-x-1.5 translate-y-1.5 rotate-[-3deg] opacity-75 shadow-md group-hover:translate-x-2 group-hover:translate-y-2 group-hover:rotate-[-4deg] transition-transform duration-300">
+                  <motion.div
+                    animate={
+                      isShuffling
+                        ? { x: [-10, 10, -10], rotate: [-8, 6, -8] }
+                        : { x: 0, y: 0, rotate: 0 }
+                    }
+                    transition={
+                      isShuffling
+                        ? { duration: 0.6, repeat: Infinity, ease: 'easeInOut' }
+                        : { duration: 0.4, ease: 'easeOut' }
+                    }
+                    className="absolute inset-0 bg-slate-900 rounded-xl border border-amber-400/40 transform translate-x-1.5 translate-y-1.5 rotate-[-3deg] opacity-75 shadow-md group-hover:translate-x-2 group-hover:translate-y-2 group-hover:rotate-[-4deg] transition-transform duration-300"
+                  >
                     <img
                       src="/cards/card_back.jpg"
                       alt="Back Layer 2"
                       className="w-full h-full object-cover rounded-xl opacity-50"
                     />
-                  </div>
+                  </motion.div>
 
                   {/* Card Layer 1 (Top / Front) */}
                   <motion.div
                     animate={
                       isCuttingThisPile
                         ? { y: [-18, 0], scale: [1.15, 1], rotate: [0, -5, 0] }
-                        : {}
+                        : isShuffling
+                        ? { y: [-6, 6, -6], scale: [1.05, 0.95, 1.05] }
+                        : { x: 0, y: 0, rotate: 0, scale: 1 }
                     }
-                    transition={{ duration: 0.7, ease: 'easeOut' }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
                     className={`absolute inset-0 bg-slate-900 rounded-xl border shadow-2xl overflow-hidden transition-all duration-300 ${
                       isThisPileSelected
                         ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_30px_rgba(234,179,8,0.8)]'
@@ -337,6 +467,16 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
                     {/* Shimmer Overlay on Hover */}
                     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-amber-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   </motion.div>
+
+                  {/* Shuffling Aura Overlay */}
+                  {isShuffling && (
+                    <div className="absolute inset-0 z-30 bg-purple-950/85 backdrop-blur-xs rounded-xl flex flex-col items-center justify-center gap-1.5 p-2 border border-amber-400/60 shadow-[0_0_25px_rgba(234,179,8,0.6)] animate-pulse">
+                      <Sparkles className="w-6 h-6 text-amber-400 animate-spin" />
+                      <span className="text-[10px] font-bold text-amber-200 text-center leading-tight">
+                        กำลังสลับไพ่...
+                      </span>
+                    </div>
+                  )}
 
                   {/* Loading Spinner overlay during cutting ritual */}
                   {isCuttingThisPile && (
@@ -373,6 +513,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
             );
           })}
         </div>
+      </div>
       )}
 
       {/* Manual Card Selection Fan from Selected Pile */}

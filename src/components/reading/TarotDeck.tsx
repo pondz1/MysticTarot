@@ -247,10 +247,10 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             <ChevronDown className="w-3.5 h-3.5 text-amber-300 shrink-0" />
           </button>
 
-          {selectionMode === 'manual' && (
+          {!isSelectionActive && (
             <button
               type="button"
-              disabled={isShuffling || isSelectionActive || isAnalyzing}
+              disabled={isShuffling || isAnalyzing}
               onClick={handleShuffle}
               className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3.5 py-1.5 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-100 disabled:opacity-40 transition-all cursor-pointer shadow-sm"
             >
@@ -288,6 +288,8 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           selectedCards={selectedCards}
           targetCount={targetCount}
           isAnalyzing={isAnalyzing}
+          isShuffling={isShuffling}
+          onShuffle={handleShuffle}
           onPickCardsBatch={(cards) => setSelectedCards(cards)}
           getPositionName={getPositionName}
           onReset={handleResetSelection}
