@@ -32,9 +32,12 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('manual');
   const [deckFilter, setDeckFilter] = useState<'all' | 'major' | 'minor'>('major');
   const [selectedCards, setSelectedCards] = useState<DrawnCard[]>([]);
+  const [hasStartedSelection, setHasStartedSelection] = useState<boolean>(false);
   const [useAi, setUseAi] = useState<boolean>(true);
   const [isShuffling, setIsShuffling] = useState(false);
   const [activeModal, setActiveModal] = useState<'mode' | 'filter' | null>(null);
+
+  const isSelectionActive = selectedCards.length > 0 || hasStartedSelection;
 
   const getModeLabel = (mode: SelectionMode) => {
     switch (mode) {
@@ -71,6 +74,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   // Reset selection when spreadMode changes
   useEffect(() => {
     setSelectedCards([]);
+    setHasStartedSelection(false);
     cardRefs.current = [];
   }, [spreadMode]);
 
@@ -86,16 +90,17 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
 
   // Handle deck filter change
   const handleFilterChange = (filter: 'all' | 'major' | 'minor') => {
-    if (isShuffling || isAnalyzing) return;
+    if (isShuffling || isAnalyzing || isSelectionActive) return;
     setDeckFilter(filter);
     setSelectedCards([]);
+    setHasStartedSelection(false);
     cardRefs.current = [];
     setDeck(shuffleArray(getFilteredCards(filter)));
   };
 
   // Trigger shuffle animation
   const handleShuffle = () => {
-    if (isShuffling || selectedCards.length > 0) return;
+    if (isShuffling || isSelectionActive || isAnalyzing) return;
     setIsShuffling(true);
 
     setTimeout(() => {
@@ -192,15 +197,17 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   // Reset selection
   const handleResetSelection = () => {
     setSelectedCards([]);
+    setHasStartedSelection(false);
     cardRefs.current = [];
     setDeck(shuffleArray(getFilteredCards(deckFilter)));
   };
 
   // Handle selection mode change without losing deckFilter
   const handleModeChange = (mode: SelectionMode) => {
-    if (isShuffling || isAnalyzing) return;
+    if (isShuffling || isAnalyzing || isSelectionActive) return;
     setSelectionMode(mode);
     setSelectedCards([]);
+    setHasStartedSelection(false);
     cardRefs.current = [];
     setDeck(shuffleArray(getFilteredCards(deckFilter)));
   };
@@ -217,9 +224,10 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           {/* Mode Selector Modal Trigger Button */}
           <button
             type="button"
-            disabled={isShuffling || isAnalyzing}
+            disabled={isShuffling || isAnalyzing || isSelectionActive}
             onClick={() => setActiveModal('mode')}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 hover:border-amber-400/80 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-semibold shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all cursor-pointer disabled:opacity-50"
+            title={isSelectionActive ? 'หากต้องการเปลี่ยนโหมด ให้กดล้างเลือกใหม่ก่อน' : 'เลือกรูปแบบเปิดไพ่'}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 hover:border-amber-400/80 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-semibold shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Orbit className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>{getModeLabel(selectionMode)}</span>
@@ -229,9 +237,10 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           {/* Filter Selector Modal Trigger Button */}
           <button
             type="button"
-            disabled={isShuffling || isAnalyzing}
+            disabled={isShuffling || isAnalyzing || isSelectionActive}
             onClick={() => setActiveModal('filter')}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 hover:border-amber-400/80 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-semibold shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all cursor-pointer disabled:opacity-50"
+            title={isSelectionActive ? 'หากต้องการเปลี่ยนสำรับ ให้กดล้างเลือกใหม่ก่อน' : 'เลือกประเภทสำรับ'}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 hover:border-amber-400/80 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-semibold shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>{getFilterLabel(deckFilter)}</span>
@@ -241,7 +250,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           {selectionMode === 'manual' && (
             <button
               type="button"
-              disabled={isShuffling || selectedCards.length > 0 || isAnalyzing}
+              disabled={isShuffling || isSelectionActive || isAnalyzing}
               onClick={handleShuffle}
               className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3.5 py-1.5 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-100 disabled:opacity-40 transition-all cursor-pointer shadow-sm"
             >
@@ -250,7 +259,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
             </button>
           )}
 
-          {selectedCards.length > 0 && !isAnalyzing && (
+          {isSelectionActive && !isAnalyzing && (
             <button
               type="button"
               onClick={handleResetSelection}
@@ -282,6 +291,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           onPickCardsBatch={(cards) => setSelectedCards(cards)}
           getPositionName={getPositionName}
           onReset={handleResetSelection}
+          onSelectionActiveChange={setHasStartedSelection}
         />
       ) : selectionMode === 'orbit' ? (
         <OrbitDeckView

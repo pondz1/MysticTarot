@@ -14,6 +14,7 @@ interface Cut3DeckViewProps {
   onPickCardsBatch: (cards: DrawnCard[]) => void;
   getPositionName: (index: number) => string;
   onReset: () => void;
+  onSelectionActiveChange?: (active: boolean) => void;
 }
 
 const PILE_NAMES = [
@@ -51,6 +52,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
   onPickCardsBatch,
   getPositionName,
   onReset,
+  onSelectionActiveChange,
 }) => {
   const [subMode, setSubMode] = useState<'auto' | 'manual'>('auto');
   const [selectedPile, setSelectedPile] = useState<number | null>(null);
@@ -61,13 +63,19 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
 
   const isSelectionComplete = selectedCards.length === targetCount;
 
-  // Reset selected pile state when selected cards are cleared externally (e.g. changing deck filter or resetting)
+  // Notify parent of active selection state
+  React.useEffect(() => {
+    const active = selectedPile !== null || isCutting || selectedCards.length > 0;
+    onSelectionActiveChange?.(active);
+  }, [selectedPile, isCutting, selectedCards.length, onSelectionActiveChange]);
+
+  // Reset selected pile state when selected cards are cleared externally or deck is reset
   React.useEffect(() => {
     if (selectedCards.length === 0) {
       setSelectedPile(null);
       setIsCutting(false);
     }
-  }, [selectedCards.length]);
+  }, [deck, selectedCards.length]);
 
   // Get subset of deck for chosen pile
   const getPileCards = (pileIdx: number): TarotCard[] => {
