@@ -97,8 +97,12 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
 
     const isAlreadyPicked = selectedCards.some((sc) => sc.card.id === card.id);
     if (isAlreadyPicked) {
-      const updated = selectedCards.filter((sc) => sc.card.id !== card.id);
-      onPickCardsBatch(updated);
+      const remaining = selectedCards.filter((sc) => sc.card.id !== card.id);
+      const reindexed = remaining.map((sc, idx) => ({
+        ...sc,
+        position: getPositionName(idx)
+      }));
+      onPickCardsBatch(reindexed);
       return;
     }
 
@@ -108,7 +112,10 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
         isReversed: Math.random() < 0.25,
         position: getPositionName(selectedCards.length)
       };
-      const updated = [...selectedCards, newDrawn];
+      const updated = [...selectedCards, newDrawn].map((sc, idx) => ({
+        ...sc,
+        position: getPositionName(idx)
+      }));
       onPickCardsBatch(updated);
 
       if (updated.length === targetCount) {

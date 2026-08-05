@@ -140,7 +140,12 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     const isAlreadyPicked = selectedCards.some((sc) => sc.card.id === card.id);
 
     if (isAlreadyPicked) {
-      setSelectedCards((prev) => prev.filter((sc) => sc.card.id !== card.id));
+      const remaining = selectedCards.filter((sc) => sc.card.id !== card.id);
+      const reindexed = remaining.map((sc, idx) => ({
+        ...sc,
+        position: getPositionName(idx)
+      }));
+      setSelectedCards(reindexed);
       return;
     }
 
@@ -152,7 +157,11 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         isReversed,
         position: getPositionName(selectedCards.length)
       };
-      setSelectedCards((prev) => [...prev, newCardEntry]);
+      const updated = [...selectedCards, newCardEntry].map((sc, idx) => ({
+        ...sc,
+        position: getPositionName(idx)
+      }));
+      setSelectedCards(updated);
     } else {
       const updated = [...selectedCards];
       const replaceIndex = targetCount - 1;
@@ -161,13 +170,22 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         isReversed,
         position: getPositionName(replaceIndex)
       };
-      setSelectedCards(updated);
+      const reindexed = updated.map((sc, idx) => ({
+        ...sc,
+        position: getPositionName(idx)
+      }));
+      setSelectedCards(reindexed);
     }
   };
 
   // Confirm selection and trigger reading
   const handleConfirmSelection = () => {
     if (selectedCards.length !== targetCount || isAnalyzing) return;
+
+    const normalizedCards = selectedCards.map((sc, idx) => ({
+      ...sc,
+      position: getPositionName(idx)
+    }));
 
     try {
       confetti({
@@ -180,7 +198,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       // ignore
     }
 
-    onCardsSelected(selectedCards, useAi, deckFilter);
+    onCardsSelected(normalizedCards, useAi, deckFilter);
   };
 
   // Reset selection
