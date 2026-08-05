@@ -46,7 +46,7 @@ const MODE_ITEMS: ModeOptionInfo[] = [
     id: 'cut3',
     title: 'ตัดสำรับ 3 กอง',
     badge: 'แบ่งพลังงาน',
-    description: 'ตัดสำรับไพ่ออกเป็น 3 กอง (อดีต ปัจจุบัน อนาคต) แล้วเลือกกองไพ่ที่ดึงดูดใจ',
+    description: 'ตัดสำรับไพ่ออกเป็น 3 กองพลังงานจิตสัมผัส แล้วเลือกกองไพ่ที่ดึงดูดใจที่สุดเพื่อทำนาย',
     icon: Scissors,
     previewTag: '3 Energy Piles',
     previewBg: 'from-indigo-900/40 via-purple-900/30 to-slate-900',
