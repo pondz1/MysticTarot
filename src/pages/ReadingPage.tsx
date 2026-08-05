@@ -51,19 +51,20 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
         setSpreadMode(found.spreadMode);
         setReadingResult(found.resultText);
         setIsSavedCurrent(true);
-      } else {
+        setIsAnalyzing(false);
+      } else if (!isAnalyzing && drawnCards.length === 0) {
         navigate('/', { replace: true });
       }
     }
-  }, [id, savedReadings, navigate]);
+  }, [id, savedReadings, navigate, isAnalyzing, drawnCards.length]);
 
   // Save Current Reading to History
   const handleSaveCurrentReading = () => {
     if (!readingResult || drawnCards.length === 0 || isSavedCurrent) return;
 
-    const newId = Date.now().toString();
+    const currentId = id || Date.now().toString();
     const newEntry: SavedReading = {
-      id: newId,
+      id: currentId,
       timestamp: Date.now(),
       question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
       spreadMode,
@@ -74,7 +75,9 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
     const updated = storageService.saveReading(newEntry);
     setSavedReadings(updated);
     setIsSavedCurrent(true);
-    navigate(`/reading/${newId}`);
+    if (!id) {
+      navigate(`/reading/${currentId}`);
+    }
   };
 
   // Handle when cards are selected from TarotDeck
@@ -83,21 +86,37 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
     useAi: boolean = true,
     deckFilter: 'all' | 'major' | 'minor' = 'all'
   ) => {
+    const newId = Date.now().toString();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setDrawnCards(cards);
     setIsAnalyzing(true);
     setReadingResult('');
     setIsSavedCurrent(false);
+    navigate(`/reading/${newId}`);
 
     try {
+      let analysis = '';
       if (useAi) {
-        const analysis = await analyzeTarotReading(question, cards, spreadMode, apiSettings, deckFilter);
-        setReadingResult(analysis);
+        analysis = await analyzeTarotReading(question, cards, spreadMode, apiSettings, deckFilter);
       } else {
         // Direct classic offline interpretation (0ms instant response)
-        const classicReading = generateFallbackReading(question, cards, spreadMode);
-        setReadingResult(classicReading);
+        analysis = generateFallbackReading(question, cards, spreadMode);
       }
+      setReadingResult(analysis);
+
+      // Auto save reading so /reading/:id can be opened/reloaded anytime
+      const newEntry: SavedReading = {
+        id: newId,
+        timestamp: Date.now(),
+        question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
+        spreadMode,
+        drawnCards: cards,
+        resultText: analysis,
+      };
+
+      const updated = storageService.saveReading(newEntry);
+      setSavedReadings(updated);
+      setIsSavedCurrent(true);
     } catch (err) {
       console.error(err);
       setReadingResult('เกิดข้อผิดพลาดในการวิเคราะห์ไพ่ กรุณาลองใหม่อีกครั้ง');
