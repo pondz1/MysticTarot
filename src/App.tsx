@@ -123,10 +123,10 @@ export function App() {
             <Route path="/numerology" element={<NumerologyPage apiSettings={apiSettings} />} />
 
             {/* Thai Astrology Module Route */}
-            <Route path="/thai-astrology" element={<ThaiAstrologyPage />} />
+            <Route path="/thai-astrology" element={<ThaiAstrologyPage apiSettings={apiSettings} />} />
 
             {/* Feng Shui Module Route */}
-            <Route path="/feng-shui" element={<FengShuiPage />} />
+            <Route path="/feng-shui" element={<FengShuiPage apiSettings={apiSettings} />} />
 
             {/* Legacy Fallbacks */}
             <Route path="/reading/*" element={<Navigate to="/tarot" replace />} />

@@ -12,6 +12,7 @@ export interface AuspiciousDirection {
   angle: string;
   energyType: string;
   benefit: string;
+  category: 'work' | 'wealth' | 'love' | 'avoid';
 }
 
 export interface FengShuiTip {

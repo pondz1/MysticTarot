@@ -495,7 +495,197 @@ export function generateFallbackNumerology(inputNumber: string, sumValue: number
 ## ความรัก & เมตตามหานิยม
 มีเสน่ห์ดึงดูดผู้คน ได้รับความเอ็นดูและความเมตตาจากมิตรสหายและคนใกล้ชิด
 
-> *ตัวเลขคือพลังหนุนนำ สติและการลงมือทำคือคีย์สำคัญสู่ความสำเร็จอย่างยั่งยืน*`;
+> **คำแนะนำมงคล:** ตัวเลขคือพลังหนุนนำ สติและการลงมือทำคือคีย์สำคัญสู่ความสำเร็จอย่างยั่งยืน`;
+}
+
+// ==========================================
+// 🔮 Thai Life Graph AI Analysis
+// ==========================================
+
+export async function analyzeThaiLifeGraph(
+  birthDate: string,
+  dayOfWeekTh: string,
+  elementTh: string,
+  peakAgeRange: string,
+  summaryGuidance: string,
+  settings?: ApiSettings
+): Promise<string> {
+  if (!settings || !settings.baseUrl) {
+    return generateFallbackThaiLifeGraph(birthDate, dayOfWeekTh, peakAgeRange, summaryGuidance);
+  }
+
+  const systemPrompt = `คุณคือโหราจารย์ผู้เชี่ยวชาญศาสตร์โหราศาสตร์ไทยโบราณและคำนวณกราฟชีวิต 9 ช่วงอายุ โปรดวิเคราะห์ดวงชะตากราฟชีวิตอย่างลึกซึ้ง มีเสน่ห์ ทรงพลัง และให้สติปัญญาในการดำเนินชีวิต
+
+โครงสร้างคำทำนายในรูปแบบ Markdown:
+# ดวงชะตากราฟชีวิต: ผู้เกิด${dayOfWeekTh} (${elementTh})
+(เกริ่นนำลักษณะนิสัย พลังงานประจำวันเกิด และเส้นทางดวงชะตา)
+
+## จังหวะกราฟชีวิต & ช่วงพีคสูงสุด
+(วิเคราะห์ช่วงอายุ ${peakAgeRange} และการตักตักสร้างเนื้อสร้างตัว)
+
+## การงาน & เกียรติยศ
+(ทิศทางหน้าที่การงาน ธุรกิจ และผู้ใหญ่อุปถัมภ์)
+
+## การเงิน & ทรัพย์สิน
+(การหมุนเวียนเงินทอง การลงทุน และอสังหาริมทรัพย์)
+
+## ความรัก & ครอบครัว
+(ความสัมพันธ์ คู่ครอง และความสมบูรณ์ในครอบครัว)
+
+> **สารสั้นเตือนใจประจำชะตาชีวิต:** (ข้อคิดและแนวทางสร้างบารมี)`;
+
+  const userPrompt = `ข้อมูลชะตาชีวิต:
+- วันเกิด: ${birthDate} (ตรงกับ${dayOfWeekTh}, ธาตุประจำตัว: ${elementTh})
+- ช่วงอายุพุ่งสูงสุด: ${peakAgeRange}
+- คำแนะนำภาพรวม: ${summaryGuidance}`;
+
+  try {
+    const cleanBaseUrl = settings.baseUrl.replace(/\/+$/, '');
+    const client = new OpenAI({
+      apiKey: settings.apiKey || 'ollama',
+      baseURL: cleanBaseUrl,
+      dangerouslyAllowBrowser: true,
+    });
+
+    const completion = await client.chat.completions.create({
+      model: settings.model || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (content && content.trim()) {
+      return cleanAiResponse(content);
+    }
+    return generateFallbackThaiLifeGraph(birthDate, dayOfWeekTh, peakAgeRange, summaryGuidance);
+  } catch (error) {
+    console.error('Failed Thai Life Graph AI call:', error);
+    return generateFallbackThaiLifeGraph(birthDate, dayOfWeekTh, peakAgeRange, summaryGuidance);
+  }
+}
+
+export function generateFallbackThaiLifeGraph(
+  birthDate: string,
+  dayOfWeekTh: string,
+  peakAgeRange: string,
+  summaryGuidance: string
+): string {
+  return `## ภาพรวมดวงชะตากราฟชีวิตผู้เกิด${dayOfWeekTh} (วันเกิด ${birthDate})
+ผู้เกิด${dayOfWeekTh} มีพลังสถิตแข็งแกร่ง ${summaryGuidance} ดวงชะตามีจังหวะเติบโตอย่างมั่นคงตามลำดับ
+
+## จังหวะกราฟชีวิตช่วงพีคสูงสุด: ${peakAgeRange}
+ช่วงอายุ **${peakAgeRange}** นับเป็นช่วงเวลาทองแห่งการกอบโกยและสร้างอนาคต มีโอกาสใหญ่เข้ามาในชีวิต
+
+## การงาน & เกียรติยศ
+งานสร้างชื่อเสียง มีโอกาสได้รับความไว้วางใจจากผู้ใหญ่ ให้เน้นความซื่อสัตย์และความประณีตในการทำงาน
+
+## การเงิน & ทรัพย์สิน
+โชคลาภการเงินหมุนเวียนดี มีเกณฑ์ได้ทรัพย์สินก้อนโตหรืออสังหาริมทรัพย์เมื่อผ่านช่วงกลางคน
+
+## ความรัก & ครอบครัว
+คู่ครองช่วยส่งเสริมดวงชะตา มีความเข้าใจและเกื้อกูลกันในยามยุ่งยาก
+
+> **สารสั้นเตือนใจประจำชะตาชีวิต:** "ยึดมั่นในสติและความดี ความเพียรจะนำพาความสำเร็จและบารมีมาสู่ตัวคุณ"`;
+}
+
+// ==========================================
+// Feng Shui & Daily Energy AI Analysis
+// ==========================================
+
+export async function analyzeFengShui(
+  dayNameTh: string,
+  luckyWork: string,
+  luckyWealth: string,
+  luckyLove: string,
+  unluckyForbidden: string,
+  spaceType: string = 'ภาพรวมที่อยู่อาศัย & โต๊ะทำงาน',
+  settings?: ApiSettings
+): Promise<string> {
+  if (!settings || !settings.baseUrl) {
+    return generateFallbackFengShui(dayNameTh, luckyWork, luckyWealth, luckyLove, unluckyForbidden, spaceType);
+  }
+
+  const systemPrompt = `คุณคือซินแสผู้เชี่ยวชาญศาสตร์ฮวงจุ้ยและการปรับพลังงานเบญจธาตุระดับสูง โปรดให้คำแนะนำการแต่งกายสีมงคล ทิศรับทรัพย์ และการจัดวางพื้นที่ (${spaceType}) ในรูปแบบ Markdown (ห้ามใช้อิโมจิ)
+
+โครงสร้างคำทำนายในรูปแบบ Markdown:
+# วิเคราะห์ฮวงจุ้ย & พลังงานมงคลประจำ${dayNameTh}
+(เกริ่นนำพลังงานธาตุประจำวันและการเปิดรับโชคลาภ)
+
+## สีเสื้อมงคลเสริมพลังชีวิต
+(วิเคราะห์การเลือกแต่งกายด้วยสีมงคลในแต่ละด้าน)
+
+## การจัดฮวงจุ้ยพื้นที่ (${spaceType})
+(เคล็ดลับการจัดวางทิศทาง แสงสว่าง และวัตถุมงคลรับทรัพย์)
+
+## ข้อควรระวัง & สีต้องห้าม
+(เตือนสติเรื่องสีต้องห้าม ${unluckyForbidden} และจุดอับพลังงานที่ควรแก้ไข)
+
+> **เคล็ดลับซินแสประจำวัน:** (ข้อคิดปรับสมดุลชีวิตและจิตใจ)`;
+
+  const userPrompt = `ข้อมูลฮวงจุ้ยประจำ${dayNameTh}:
+- สีเสริมการงาน: ${luckyWork}
+- สีเสริมการเงินโชคลาภ: ${luckyWealth}
+- สีเสริมความรักเมตตา: ${luckyLove}
+- สีต้องห้าม/ฉุดดวง: ${unluckyForbidden}
+- พื้นที่ที่ต้องการจัดฮวงจุ้ย: ${spaceType}`;
+
+  try {
+    const cleanBaseUrl = settings.baseUrl.replace(/\/+$/, '');
+    const client = new OpenAI({
+      apiKey: settings.apiKey || 'ollama',
+      baseURL: cleanBaseUrl,
+      dangerouslyAllowBrowser: true,
+    });
+
+    const completion = await client.chat.completions.create({
+      model: settings.model || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (content && content.trim()) {
+      return cleanAiResponse(content);
+    }
+    return generateFallbackFengShui(dayNameTh, luckyWork, luckyWealth, luckyLove, unluckyForbidden, spaceType);
+  } catch (error) {
+    console.error('Failed Feng Shui AI call:', error);
+    return generateFallbackFengShui(dayNameTh, luckyWork, luckyWealth, luckyLove, unluckyForbidden, spaceType);
+  }
+}
+
+export function generateFallbackFengShui(
+  dayNameTh: string,
+  luckyWork: string,
+  luckyWealth: string,
+  luckyLove: string,
+  unluckyForbidden: string,
+  spaceType: string
+): string {
+  return `## เคล็ดลับฮวงจุ้ย & สีมงคลประจำ${dayNameTh}
+การเลือกสวมใส่เสื้อผ้าและจัดวางพลังงานในพื้นที่ **${spaceType}** ประจำ${dayNameTh} ช่วยดึงดูดพลังงานโชคลาภและสิริมงคล
+
+## สีเสื้อมงคลเสริมการงาน: ${luckyWork}
+ช่วยเพิ่มความน่าเชื่อถือ เสริมอำนาจบารมี และได้รับการสนับสนุนจากผู้ร่วมงาน
+
+## สีเสื้อมงคลเสริมการเงิน: ${luckyWealth}
+ดึงดูดเงินทองและโชคลาภทางการค้า เหมาะสำหรับการเจรจาธุรกิจและปิดการขาย
+
+## สีเสื้อมงคลเสริมความรัก: ${luckyLove}
+เสริมเสน่ห์เมตตามหานิยม ความสัมพันธ์ราบรื่น อ่อนโยนและได้รับความเอ็นดู
+
+## สีต้องห้ามประจำวัน: ${unluckyForbidden}
+ควรหลีกเลี่ยงการสวมใส่เสื้อผ้าสี **${unluckyForbidden}** ในวันนี้ เพื่อป้องกันพลังงานขัดข้อง
+
+> **เคล็ดลับซินแส:** "เปิดหน้าต่างรับแสงแดดยามเช้า จัดโต๊ะทำงานให้เป็นระเบียบ เพื่อเปิดทางให้พลังงานชี่ (Chi) ไหลเวียนรับทรัพย์อย่างสมบูรณ์"`;
 }
 
 
