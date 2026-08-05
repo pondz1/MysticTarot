@@ -220,66 +220,58 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
           </div>
         </div>
 
-        {/* Rotatable Wheel Container - GPU Hardware-Accelerated Single Compositing Layer */}
-        {(() => {
-          const wheelScale = isShuffling || isSpinningFast
-            ? 1.15
-            : isDragging
-              ? 1 + Math.min(0.12, Math.abs(velocityRef.current) * 0.12)
-              : 1;
+        {/* Rotatable Wheel Container - Clean 2D Axis GPU Compositing */}
+        <div
+          style={{
+            transform: `rotate(${rotationDeg}deg)`,
+            transformOrigin: 'center center',
+            willChange: 'transform',
+            transition: isDragging
+              ? 'none'
+              : isShuffling
+                ? 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)'
+                : 'transform 0.4s ease-out',
+          }}
+          className="relative w-full h-full flex items-center justify-center"
+        >
+          {deck.map((card, idx) => {
+            const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
+            const isLargeDeck = totalCards > 50;
+            const useInnerRing = isLargeDeck && idx % 2 === 1;
 
-          return (
-            <div
-              style={{
-                transform: `rotate(${rotationDeg}deg) scale(${wheelScale})`,
-                transformOrigin: 'center center',
-                willChange: 'transform',
-                transition: isDragging
-                  ? 'none'
-                  : isShuffling
-                    ? 'transform 0.65s cubic-bezier(0.22, 1, 0.36, 1)'
-                    : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-              }}
-              className="relative w-full h-full flex items-center justify-center"
-            >
-              {deck.map((card, idx) => {
-                const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
-                const isLargeDeck = totalCards > 50;
-                const useInnerRing = isLargeDeck && idx % 2 === 1;
+            const ringCount = isLargeDeck ? (useInnerRing ? Math.floor(totalCards / 2) : Math.ceil(totalCards / 2)) : totalCards;
+            const ringIdx = isLargeDeck ? Math.floor(idx / 2) : idx;
+            const ringAngleStep = 360 / ringCount;
 
-                const ringCount = isLargeDeck ? (useInnerRing ? Math.floor(totalCards / 2) : Math.ceil(totalCards / 2)) : totalCards;
-                const ringIdx = isLargeDeck ? Math.floor(idx / 2) : idx;
-                const ringAngleStep = 360 / ringCount;
+            const baseAngle = ringIdx * ringAngleStep;
+            const rad = (baseAngle * Math.PI) / 180;
 
-                const baseAngle = ringIdx * ringAngleStep;
-                const rad = (baseAngle * Math.PI) / 180;
+            const effectiveRadius = (useInnerRing ? radius * 0.65 : radius) + (isPicked ? 12 : 0);
+            const x = Math.sin(rad) * effectiveRadius;
+            const y = -Math.cos(rad) * effectiveRadius;
 
-                const effectiveRadius = (useInnerRing ? radius * 0.65 : radius) + (isPicked ? 12 : 0);
-                const x = Math.sin(rad) * effectiveRadius;
-                const y = -Math.cos(rad) * effectiveRadius;
-
-                return (
-                  <div
-                    key={card.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!isAnalyzing) onPickCard(card);
-                    }}
-                    style={{
-                      position: 'absolute',
-                      transform: `translate3d(${x}px, ${y}px, 0px) rotate(${baseAngle}deg) scale(${isPicked ? 1.15 : 1})`,
-                      transformOrigin: 'center center',
-                      zIndex: isPicked ? 50 : useInnerRing ? 20 : 10,
-                      willChange: 'transform',
-                    }}
-                    className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-transform duration-150 ${
-                      isPicked
-                        ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
-                        : isWheelActive
-                          ? 'border-amber-300/80 shadow-[0_0_20px_rgba(234,179,8,0.5)]'
-                          : 'border-amber-400/40 hover:border-amber-300 hover:scale-110 hover:shadow-[0_0_24px_rgba(234,179,8,0.6)]'
-                    }`}
-                  >
+            return (
+              <div
+                key={card.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isAnalyzing) onPickCard(card);
+                }}
+                style={{
+                  position: 'absolute',
+                  transform: `translate3d(${x}px, ${y}px, 0px) rotate(${baseAngle}deg) scale(${isPicked ? 1.15 : 1})`,
+                  transformOrigin: 'center center',
+                  zIndex: isPicked ? 50 : useInnerRing ? 20 : 10,
+                  willChange: 'transform',
+                }}
+                className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-all duration-200 ${
+                  isPicked
+                    ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
+                    : isWheelActive
+                      ? 'border-amber-300/80 shadow-[0_0_20px_rgba(234,179,8,0.5)]'
+                      : 'border-amber-400/40 hover:border-amber-300 hover:scale-110 hover:shadow-[0_0_24px_rgba(234,179,8,0.6)]'
+                }`}
+              >
                     <img
                       src="/cards/card_back.jpg"
                       alt="Tarot Back"
@@ -298,8 +290,6 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                 );
               })}
             </div>
-          );
-        })()}
       </div>
 
       {/* Touch Swipe Hint */}
