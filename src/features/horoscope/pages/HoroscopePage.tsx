@@ -23,44 +23,12 @@ import {
   Stethoscope,
   Hash,
   Palette,
-  Quote,
+  Feather,
+  Copy,
+  Check,
 } from 'lucide-react';
 import type { ApiSettings } from '../../tarot/types/tarot';
 import { analyzeZodiacHoroscope } from '../../../services/aiService';
-
-interface HoroscopeSections {
-  overall: string;
-  work: string;
-  finance: string;
-  love: string;
-  quote: string;
-}
-
-function parseHoroscopeSections(text: string): HoroscopeSections {
-  if (!text) return { overall: '', work: '', finance: '', love: '', quote: '' };
-
-  const sections: HoroscopeSections = {
-    overall: '',
-    work: '',
-    finance: '',
-    love: '',
-    quote: '',
-  };
-
-  const overallMatch = text.match(/(?:ภาพรวมพลังงานดวงชะตา|ภาพรวม)[*\s:]*([\s\S]*?)(?=\n\n|\*\*|การงาน|การเงิน|ความรัก|สาส์น|$)/i);
-  const workMatch = text.match(/(?:การงานและการเรียน|การงาน)[*\s:]*([\s\S]*?)(?=\n\n|\*\*|การเงิน|ความรัก|สาส์น|$)/i);
-  const financeMatch = text.match(/(?:การเงินและโชคลาภ|การเงิน)[*\s:]*([\s\S]*?)(?=\n\n|\*\*|ความรัก|สาส์น|$)/i);
-  const loveMatch = text.match(/(?:ความรักและความสัมพันธ์|ความรัก)[*\s:]*([\s\S]*?)(?=\n\n|\*\*|สาส์น|$)/i);
-  const quoteMatch = text.match(/(?:สาส์นเตือนใจ|สาส์น)[^\n]*[\n\s]*["'“]?([^"'”\n]+)["'”]?/i);
-
-  if (overallMatch) sections.overall = overallMatch[1].trim().replace(/^[:*\s]+/, '');
-  if (workMatch) sections.work = workMatch[1].trim().replace(/^[:*\s]+/, '');
-  if (financeMatch) sections.finance = financeMatch[1].trim().replace(/^[:*\s]+/, '');
-  if (loveMatch) sections.love = loveMatch[1].trim().replace(/^[:*\s]+/, '');
-  if (quoteMatch) sections.quote = quoteMatch[1].trim().replace(/^[:*\s]+/, '');
-
-  return sections;
-}
 
 interface HoroscopePageProps {
   apiSettings: ApiSettings;
@@ -77,6 +45,16 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
   const [birthMonth, setBirthMonth] = useState<number>(6);
   const [birthDay, setBirthDay] = useState<number>(15);
   const [showFinder, setShowFinder] = useState<boolean>(false);
+
+  // Copy prediction state
+  const [copied, setCopied] = useState<boolean>(false);
+
+  const handleCopyPrediction = () => {
+    if (!prediction) return;
+    navigator.clipboard.writeText(prediction);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const resultCardRef = useRef<HTMLDivElement>(null);
 
@@ -472,78 +450,64 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
               <p className="text-sm">กำลังประมวลผลคำทำนาย...</p>
             </div>
           ) : prediction ? (
-            (() => {
-              const parsed = parseHoroscopeSections(prediction);
-              const hasStructured = parsed.overall || parsed.work || parsed.finance || parsed.love;
-
-              if (!hasStructured) {
-                return (
-                  <div className="prose prose-invert max-w-none text-slate-200 text-sm sm:text-base leading-relaxed bg-slate-950/60 p-4 sm:p-6 rounded-xl border border-slate-800/80">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{prediction}</ReactMarkdown>
-                  </div>
-                );
-              }
-
-              return (
-                <div className="space-y-4 animate-fade-in">
-                  {/* Overall Energy Card */}
-                  {parsed.overall && (
-                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-900 to-purple-950/20 border-l-4 border-l-amber-400 border border-slate-800 shadow-md space-y-2">
-                      <div className="flex items-center gap-2 text-amber-300 font-bold text-sm sm:text-base">
-                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-                        <span>ภาพรวมพลังงานดวงชะตา</span>
-                      </div>
-                      <p className="text-slate-200 text-sm sm:text-base leading-relaxed">{parsed.overall}</p>
-                    </div>
-                  )}
-
-                  {/* 4 Aspects Grid Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {/* Work */}
-                    {parsed.work && (
-                      <div className="p-4 rounded-2xl bg-slate-950/70 border-l-4 border-l-blue-400 border border-slate-800/80 space-y-1.5 shadow-sm">
-                        <div className="flex items-center gap-2 text-blue-300 font-bold text-xs sm:text-sm">
-                          <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />
-                          <span>การงานและการเรียน</span>
-                        </div>
-                        <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">{parsed.work}</p>
-                      </div>
-                    )}
-
-                    {/* Finance */}
-                    {parsed.finance && (
-                      <div className="p-4 rounded-2xl bg-slate-950/70 border-l-4 border-l-amber-400 border border-slate-800/80 space-y-1.5 shadow-sm">
-                        <div className="flex items-center gap-2 text-amber-300 font-bold text-xs sm:text-sm">
-                          <Coins className="w-4 h-4 text-amber-400 shrink-0" />
-                          <span>การเงินและโชคลาภ</span>
-                        </div>
-                        <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">{parsed.finance}</p>
-                      </div>
-                    )}
-
-                    {/* Love */}
-                    {parsed.love && (
-                      <div className="p-4 rounded-2xl bg-slate-950/70 border-l-4 border-l-pink-400 border border-slate-800/80 space-y-1.5 shadow-sm">
-                        <div className="flex items-center gap-2 text-pink-300 font-bold text-xs sm:text-sm">
-                          <Heart className="w-4 h-4 text-pink-400 shrink-0" />
-                          <span>ความรักและความสัมพันธ์</span>
-                        </div>
-                        <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">{parsed.love}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Quote Callout Card */}
-                  {parsed.quote && (
-                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-purple-950/40 to-amber-500/10 border border-amber-400/40 text-center space-y-2 shadow-lg">
-                      <Quote className="w-5 h-5 text-amber-300 mx-auto" />
-                      <div className="text-xs font-semibold text-amber-300 uppercase tracking-wider">สาส์นเตือนใจประจำวัน</div>
-                      <p className="text-amber-100 text-sm sm:text-base italic font-medium">"{parsed.quote}"</p>
-                    </div>
-                  )}
+            <div className="relative glass-panel-gold rounded-2xl p-5 sm:p-7 border border-amber-400/40 shadow-2xl overflow-hidden space-y-4 animate-fade-in">
+              {/* Header Action Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-400/30 pb-4">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Feather className="w-5 h-5 text-amber-400 shrink-0" />
+                  <h3 className="text-base sm:text-lg font-bold font-serif text-amber-200 truncate">
+                    บทวิเคราะห์ดวงชะตา{selectedSign.nameTh} ({timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'})
+                  </h3>
                 </div>
-              );
-            })()
+
+                <button
+                  type="button"
+                  onClick={handleCopyPrediction}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-600/30 hover:bg-amber-600/60 border border-amber-400/40 text-amber-100 transition-all cursor-pointer whitespace-nowrap shrink-0 self-end sm:self-auto"
+                  title="คัดลอกคำทำนาย"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className="w-3.5 h-3.5 text-amber-300 shrink-0" />}
+                  <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอกคำทำนาย'}</span>
+                </button>
+              </div>
+
+              {/* Formatted Markdown Content via ReactMarkdown */}
+              <div className="prose prose-invert max-w-none font-prompt text-slate-200 text-sm sm:text-base leading-relaxed">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: ({ children }) => (
+                      <h2 className="text-base sm:text-lg font-bold text-amber-300 mt-5 mb-2.5 pb-1 border-b border-amber-500/30 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>{children}</span>
+                      </h2>
+                    ),
+                    h2: ({ children }) => (
+                      <h2 className="text-base sm:text-lg font-bold text-amber-300 mt-5 mb-2.5 pb-1 border-b border-amber-500/30 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>{children}</span>
+                      </h2>
+                    ),
+                    h3: ({ children }) => (
+                      <h3 className="text-sm sm:text-base font-semibold text-amber-200 mt-4 mb-2">
+                        {children}
+                      </h3>
+                    ),
+                    p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-200">{children}</p>,
+                    strong: ({ children }) => <strong className="font-semibold text-amber-200">{children}</strong>,
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-4 border-amber-400 pl-4 py-3 italic my-4 text-amber-100 bg-amber-500/10 rounded-r-xl border border-amber-400/20">
+                        {children}
+                      </blockquote>
+                    ),
+                    ul: ({ children }) => <ul className="list-disc pl-5 my-3 space-y-1 text-slate-200">{children}</ul>,
+                    li: ({ children }) => <li className="pl-1">{children}</li>,
+                  }}
+                >
+                  {prediction}
+                </ReactMarkdown>
+              </div>
+            </div>
           ) : (
             <div className="text-center py-8 text-slate-400">
               กดเลือกราศีด้านบนเพื่ออ่านคำทำนายดวงชะตาเชิงลึก
