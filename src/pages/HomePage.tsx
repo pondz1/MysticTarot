@@ -96,16 +96,16 @@ export const HomePage: React.FC = () => {
 
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-semibold tracking-wide">
           <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
-          <span>MysticVerse — ศูนย์รวมมูเทลู & โหราศาสตร์ AI ครบวงจร</span>
+          <span>MysticVerse — พื้นที่แห่งปัญญาจักรวาล & โหราศาสตร์ออราเคิล</span>
         </div>
 
         <h1 className="text-2xl sm:text-4xl md:text-6xl font-black bg-gradient-to-r from-amber-100 via-purple-200 to-amber-300 bg-clip-text text-transparent leading-tight px-1">
-          เปิดประตูแห่งโชคชะตา <br className="hidden sm:block" />
-          ผสานปัญญาจักรวาล & AI หยั่งรู้
+          เปิดประตูสู่ปัญญาแห่งโชคชะตา <br className="hidden sm:block" />
+          สัมผัสเข็มทิศชีวิตผ่านศาสตร์การทำนาย
         </h1>
 
         <p className="text-slate-300 text-sm sm:text-base md:text-lg max-w-3xl mx-auto leading-relaxed">
-          เลือกทำนายดวงชะตาด้วยศาสตร์ที่คุณเชื่อมั่น ไม่ว่าจะเป็น **ไพ่ยิปซี**, **ดวง 12 ราศี**, **เลขศาสตร์เบอร์มงคล**, **กราฟชีวิตดวงไทย** และ **ตารางสีมงคลฮวงจุ้ย**
+          ค้นหาคำตอบและพลังงานบวกในชีวิตผ่านศาสตร์ทำนายที่คุณไว้วางใจ ไม่ว่าจะเป็น **ไพ่ยิปซี**, **ดวง 12 ราศี**, **เลขศาสตร์เบอร์มงคล**, **กราฟชีวิตดวงไทย** และ **ฮวงจุ้ยประจำวัน**
         </p>
 
         {/* Daily Quick Oracle Interactive Drawer */}
@@ -114,13 +114,13 @@ export const HomePage: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
                 <Sun className="w-4 h-4 text-amber-400" />
-                <span>คำทำนายออราเคิลประจำวันสั้นๆ</span>
+                <span>สาส์นคำแนะนำประจำวัน</span>
               </span>
               <button
                 onClick={handleDrawOracle}
-                className="text-xs px-3 py-1 rounded-lg bg-amber-500/20 text-amber-200 hover:bg-amber-500/30 border border-amber-500/30 font-semibold transition-all cursor-pointer"
+                className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-200 hover:bg-amber-500/30 border border-amber-500/30 font-semibold transition-all cursor-pointer"
               >
-                🔮 สุ่มสาส์นวันนี้
+                🔮 เปิดสาส์นนำทางประจำวัน
               </button>
             </div>
             {randomOracle ? (
@@ -129,7 +129,7 @@ export const HomePage: React.FC = () => {
               </p>
             ) : (
               <p className="text-xs text-slate-400 text-left italic">
-                กดปุ่ม "สุ่มสาส์นวันนี้" เพื่อรับคำแนะนำด่วนประจำวันจากจักรวาล...
+                แตะปุ่ม "เปิดสาส์นนำทางประจำวัน" เพื่อรับข้อคิดและสาส์นนำทางชีวิตสั้นๆ ประจำวันนี้...
               </p>
             )}
           </div>

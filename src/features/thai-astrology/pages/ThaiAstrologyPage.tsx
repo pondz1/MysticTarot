@@ -24,10 +24,10 @@ export const ThaiAstrologyPage: React.FC = () => {
           <span>ดวงไทยโบราณ & กราฟชีวิต 9 ช่วงอายุ</span>
         </div>
         <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-emerald-200 via-amber-200 to-emerald-400 bg-clip-text text-transparent px-2">
-          คำนวณกราฟชีวิต & โหราศาสตร์ไทย <span className="block sm:inline text-base sm:text-2xl opacity-90">(Thai Life Chart)</span>
+          ถอดรหัสกราฟชีวิต & โหราศาสตร์ไทย <span className="block sm:inline text-base sm:text-2xl opacity-90">(Thai Life Chart)</span>
         </h1>
         <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
-          คำนวณกราฟเส้นทางชีวิต 8 ช่วงอายุ ถอดรหัสจังหวะชีวิตสูงสุดและข้อควรระวังตามวันเกิด
+          สำรวจจังหวะขึ้นลงของชีวิตทั้ง 8 ช่วงอายุ เพื่อวางแผนอนาคตและเสริมสร้างบารมีด้วยสติ
         </p>
       </div>
 

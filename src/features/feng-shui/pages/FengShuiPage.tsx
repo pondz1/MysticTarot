@@ -16,10 +16,10 @@ export const FengShuiPage: React.FC = () => {
           <span>ศาสตร์แห่งพลังงานฮวงจุ้ย & สีมงคล</span>
         </div>
         <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-rose-200 via-amber-200 to-rose-400 bg-clip-text text-transparent px-2">
-          ตารางสีเสื้อมงคล & ฮวงจุ้ยเสริมดวง <span className="block sm:inline text-base sm:text-2xl opacity-90">(Daily Feng Shui)</span>
+          ตารางสีเสื้อมงคล & พลังงานฮวงจุ้ย <span className="block sm:inline text-base sm:text-2xl opacity-90">(Daily Feng Shui)</span>
         </h1>
         <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
-          เช็กสีเสื้อมงคลประจำวัน ทิศนำโชคเสริมการเงินการงาน และเคล็ดลับการจัดฮวงจุ้ยบ้านรับทรัพย์
+          เสริมสิริมงคลให้ชีวิตในทุกวัน ด้วยตารางสีเสื้อมงคลประจำวัน ทิศนำโชค และเคล็ดลับฮวงจุ้ยรับทรัพย์
         </p>
       </div>
 

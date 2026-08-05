@@ -28,10 +28,10 @@ export const NumerologyPage: React.FC = () => {
           <span>ศาสตร์แห่งตัวเลข & มหาโชคลาภ</span>
         </div>
         <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-purple-200 via-amber-200 to-purple-400 bg-clip-text text-transparent px-2">
-          วิเคราะห์เบอร์มงคล & เลขศาสตร์ <span className="block sm:inline text-base sm:text-2xl opacity-90">(Numerology)</span>
+          วิเคราะห์ตัวเลข & เบอร์มงคล <span className="block sm:inline text-base sm:text-2xl opacity-90">(Numerology)</span>
         </h1>
         <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
-          ตรวจสอบพลังงานตัวเลข ผลรวมมงคล และถอดรหัสคู่เลขในเบอร์โทรศัพท์ ทะเบียนรถ หรือเลขที่บ้าน
+          ถอดรหัสพลังงานความมงคลและสติปัญญาที่แฝงอยู่ในเบอร์โทรศัพท์ ทะเบียนรถ หรือเลขบ้านของคุณ
         </p>
       </div>
 
@@ -39,7 +39,7 @@ export const NumerologyPage: React.FC = () => {
       <div className="bg-slate-900/80 border border-purple-500/30 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
         <form onSubmit={handleAnalyze} className="space-y-4">
           <label className="block text-sm font-semibold text-slate-200">
-            📱 กรอกเบอร์โทรศัพท์ หรือ ตัวเลขที่ต้องการวิเคราะห์:
+            📱 กรอกเบอร์โทรศัพท์ หรือ ชุดตัวเลขที่ต้องการวิเคราะห์:
           </label>
           <div className="flex flex-col sm:flex-row gap-3">
             <input

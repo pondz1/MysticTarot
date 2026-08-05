@@ -37,10 +37,10 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
           <span>ดวงชะตา 12 ราศีประจำวัน & รายเดือน</span>
         </div>
         <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-amber-200 via-purple-200 to-amber-400 bg-clip-text text-transparent px-2">
-          เช็กดวงชะตา 12 ราศี <span className="block sm:inline text-base sm:text-2xl opacity-90">(Zodiac Horoscope)</span>
+          ทำนายดวงชะตา 12 ราศี <span className="block sm:inline text-base sm:text-2xl opacity-90">(Zodiac Horoscope)</span>
         </h1>
         <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
-          คำนวณการเคลื่อนตัวของดวงดาวประจำราศี ผสานพลังงานธาตุ ดึงบทวิเคราะห์เชิงลึกด้วย AI ปรมาจารย์โหราศาสตร์
+          อ่านทิศทางพลังงานดวงดาวและธาตุประจำราศี เพื่อเตรียมรับมือกับโอกาสและสิ่งดีๆ ในชีวิต
         </p>
       </div>
 
