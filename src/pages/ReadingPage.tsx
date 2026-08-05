@@ -41,7 +41,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [isSavedCurrent, setIsSavedCurrent] = useState<boolean>(false);
 
-  // Load reading if URL has an id parameter
+  // Load reading if URL has an id parameter; reset state if at home route (/)
   useEffect(() => {
     if (id) {
       const found = savedReadings.find((r) => r.id === id) || storageService.getReadingById(id);
@@ -55,8 +55,13 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
       } else if (!isAnalyzing && drawnCards.length === 0) {
         navigate('/', { replace: true });
       }
+    } else {
+      setDrawnCards([]);
+      setReadingResult('');
+      setIsSavedCurrent(false);
+      setIsAnalyzing(false);
     }
-  }, [id, savedReadings, navigate, isAnalyzing, drawnCards.length]);
+  }, [id]);
 
   // Save Current Reading to History
   const handleSaveCurrentReading = () => {
