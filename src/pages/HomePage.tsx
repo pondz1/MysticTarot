@@ -99,7 +99,7 @@ export const HomePage: React.FC = () => {
           <span>MysticVerse — ศูนย์รวมมูเทลู & โหราศาสตร์ AI ครบวงจร</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black bg-gradient-to-r from-amber-100 via-purple-200 to-amber-300 bg-clip-text text-transparent leading-tight">
+        <h1 className="text-2xl sm:text-4xl md:text-6xl font-black bg-gradient-to-r from-amber-100 via-purple-200 to-amber-300 bg-clip-text text-transparent leading-tight px-1">
           เปิดประตูแห่งโชคชะตา <br className="hidden sm:block" />
           ผสานปัญญาจักรวาล & AI หยั่งรู้
         </h1>

@@ -22,15 +22,15 @@ export const NumerologyPage: React.FC = () => {
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 animate-fade-in pb-12">
       {/* Header */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs sm:text-sm font-medium">
-          <Phone className="w-4 h-4 text-purple-400" />
+      <div className="text-center space-y-2.5">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs sm:text-sm font-medium">
+          <Phone className="w-3.5 h-3.5 text-purple-400" />
           <span>ศาสตร์แห่งตัวเลข & มหาโชคลาภ</span>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-extrabold bg-gradient-to-r from-purple-200 via-amber-200 to-purple-400 bg-clip-text text-transparent">
-          วิเคราะห์เบอร์มงคล & เลขศาสตร์ (Numerology)
+        <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-purple-200 via-amber-200 to-purple-400 bg-clip-text text-transparent px-2">
+          วิเคราะห์เบอร์มงคล & เลขศาสตร์ <span className="block sm:inline text-base sm:text-2xl opacity-90">(Numerology)</span>
         </h1>
-        <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
+        <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
           ตรวจสอบพลังงานตัวเลข ผลรวมมงคล และถอดรหัสคู่เลขในเบอร์โทรศัพท์ ทะเบียนรถ หรือเลขที่บ้าน
         </p>
       </div>

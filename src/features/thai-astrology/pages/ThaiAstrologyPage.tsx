@@ -18,15 +18,15 @@ export const ThaiAstrologyPage: React.FC = () => {
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-12">
       {/* Header */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-medium">
-          <Calendar className="w-4 h-4 text-emerald-400" />
+      <div className="text-center space-y-2.5">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-medium">
+          <Calendar className="w-3.5 h-3.5 text-emerald-400" />
           <span>ดวงไทยโบราณ & กราฟชีวิต 9 ช่วงอายุ</span>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-extrabold bg-gradient-to-r from-emerald-200 via-amber-200 to-emerald-400 bg-clip-text text-transparent">
-          คำนวณกราฟชีวิต & โหราศาสตร์ไทย (Thai Life Chart)
+        <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-emerald-200 via-amber-200 to-emerald-400 bg-clip-text text-transparent px-2">
+          คำนวณกราฟชีวิต & โหราศาสตร์ไทย <span className="block sm:inline text-base sm:text-2xl opacity-90">(Thai Life Chart)</span>
         </h1>
-        <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
+        <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
           คำนวณกราฟเส้นทางชีวิต 8 ช่วงอายุ ถอดรหัสจังหวะชีวิตสูงสุดและข้อควรระวังตามวันเกิด
         </p>
       </div>
