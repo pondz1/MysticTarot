@@ -204,7 +204,7 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
                     );
                   }
                 }}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
                   selectedDayIndex === idx
                     ? `${theme.activeToggleBtn} scale-105 shadow-lg`
                     : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white'
@@ -405,9 +405,11 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
       {/* Dynamic Auspicious Directions */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-          <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
-            <Compass className={`w-5 h-5 ${theme.iconColor}`} />
-            <span>ทิศมงคลประจำ{currentDayInfo.dayNameTh} (Auspicious Directions)</span>
+          <h2 className="text-base sm:text-xl font-bold text-slate-200 flex items-start sm:items-center gap-2">
+            <Compass className={`w-5 h-5 ${theme.iconColor} shrink-0 mt-0.5 sm:mt-0`} />
+            <span className="leading-snug">
+              ทิศมงคลประจำ{currentDayInfo.dayNameTh} <span className="text-xs sm:text-sm font-normal text-slate-400 block sm:inline">(Auspicious Directions)</span>
+            </span>
           </h2>
           <span className="text-xs text-slate-400 font-medium">
             อัปเดตทิศมงคลและทิศกาลกิณีตามวันประจำสัปดาห์
@@ -447,7 +449,7 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
                     {isAvoid && <Stethoscope className="w-4 h-4 text-rose-400 shrink-0" />}
                     <span>{dir.directionTh}</span>
                   </span>
-                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${isAvoid ? 'bg-rose-950 text-rose-300 border-rose-800' : 'bg-slate-950 text-emerald-300 border-slate-700'}`}>
+                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 ${isAvoid ? 'bg-rose-950 text-rose-300 border-rose-800' : 'bg-slate-950 text-emerald-300 border-slate-700'}`}>
                     {dir.angle}
                   </span>
                 </div>
@@ -462,9 +464,9 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
       {/* Dynamic Feng Shui Tips per Day & Space */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-          <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
-            <Home className={`w-5 h-5 ${theme.iconColor}`} />
-            <span>เคล็ดลับจัดฮวงจุ้ย ({selectedSpace}) ประจำ{currentDayInfo.dayNameTh}</span>
+          <h2 className="text-base sm:text-xl font-bold text-slate-200 flex items-start sm:items-center gap-2">
+            <Home className={`w-5 h-5 ${theme.iconColor} shrink-0 mt-0.5 sm:mt-0`} />
+            <span className="leading-snug">เคล็ดลับจัดฮวงจุ้ย ({selectedSpace}) ประจำ{currentDayInfo.dayNameTh}</span>
           </h2>
           <span className="text-xs text-slate-400 font-medium">
             แนะนำวิธีปรับพลังงานชี่รับทรัพย์ตามตำแหน่งพื้นที่และวันเกิด

@@ -266,14 +266,14 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                   setPrediction(getZodiacClassicPrediction(sign, timeframe));
                 }
               }}
-              className={`p-3 sm:p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-1.5 group ${isLoading
+              className={`p-2 sm:p-3.5 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-1 sm:gap-1.5 group ${isLoading
                   ? 'opacity-60 cursor-not-allowed'
                   : isSelected
                     ? `${elementStyle.activeBg} ${elementStyle.activeBorder} ${elementStyle.glow} scale-105 shadow-xl cursor-pointer`
                     : `${elementStyle.bg} ${elementStyle.border} text-slate-300 cursor-pointer`
                 }`}
             >
-              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-purple-400/50 shadow-lg shadow-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 relative bg-slate-950">
+              <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-purple-400/50 shadow-lg shadow-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 relative bg-slate-950">
                 <img
                   src={`/zodiac/${sign.id}.png`}
                   alt={sign.nameTh}

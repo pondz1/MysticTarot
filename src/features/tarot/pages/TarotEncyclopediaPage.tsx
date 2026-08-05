@@ -129,19 +129,19 @@ export const TarotEncyclopediaPage: React.FC = () => {
 
   const handlePrevCard = () => {
     if (currentCardIndex > 0) {
-      navigate(`/encyclopedia/${TAROT_CARDS[currentCardIndex - 1].id}`);
+      navigate(`/tarot/encyclopedia/${TAROT_CARDS[currentCardIndex - 1].id}`);
     } else {
       // Loop to last card
-      navigate(`/encyclopedia/${TAROT_CARDS[TAROT_CARDS.length - 1].id}`);
+      navigate(`/tarot/encyclopedia/${TAROT_CARDS[TAROT_CARDS.length - 1].id}`);
     }
   };
 
   const handleNextCard = () => {
     if (currentCardIndex >= 0 && currentCardIndex < TAROT_CARDS.length - 1) {
-      navigate(`/encyclopedia/${TAROT_CARDS[currentCardIndex + 1].id}`);
+      navigate(`/tarot/encyclopedia/${TAROT_CARDS[currentCardIndex + 1].id}`);
     } else {
       // Loop to first card
-      navigate(`/encyclopedia/${TAROT_CARDS[0].id}`);
+      navigate(`/tarot/encyclopedia/${TAROT_CARDS[0].id}`);
     }
   };
 
@@ -157,7 +157,7 @@ export const TarotEncyclopediaPage: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl glass-panel border border-amber-400/30">
             <button
               type="button"
-              onClick={() => navigate('/encyclopedia')}
+              onClick={() => navigate('/tarot/encyclopedia')}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-amber-200 hover:text-amber-100 border border-amber-400/30 text-xs sm:text-sm font-medium transition-all shadow-sm cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -326,7 +326,7 @@ export const TarotEncyclopediaPage: React.FC = () => {
               <div className="pt-4 flex justify-end">
                 <button
                   type="button"
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate('/tarot')}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm shadow-lg hover:shadow-amber-500/30 transition-all cursor-pointer"
                 >
                   <ReadingIcon className="w-4 h-4" />
@@ -369,7 +369,7 @@ export const TarotEncyclopediaPage: React.FC = () => {
               }`}
             >
               <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-              <span>ทั้งสำรับ ({TAROT_CARDS.length})</span>
+              <span className="whitespace-nowrap">ทั้งสำรับ ({TAROT_CARDS.length})</span>
             </button>
             <button
               type="button"
@@ -384,7 +384,7 @@ export const TarotEncyclopediaPage: React.FC = () => {
               }`}
             >
               <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-              <span>Major ({majorCount})</span>
+              <span className="whitespace-nowrap">Major ({majorCount})</span>
             </button>
             <button
               type="button"
@@ -398,7 +398,7 @@ export const TarotEncyclopediaPage: React.FC = () => {
               }`}
             >
               <LayoutGrid className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-              <span>Minor ({minorCount})</span>
+              <span className="whitespace-nowrap">Minor ({minorCount})</span>
             </button>
           </div>
 
@@ -534,11 +534,11 @@ export const TarotEncyclopediaPage: React.FC = () => {
                   role="button"
                   tabIndex={0}
                   aria-label={`อ่านรายละเอียดไพ่ ${card.nameTh}`}
-                  onClick={() => navigate(`/encyclopedia/${card.id}`)}
+                  onClick={() => navigate(`/tarot/encyclopedia/${card.id}`)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      navigate(`/encyclopedia/${card.id}`);
+                      navigate(`/tarot/encyclopedia/${card.id}`);
                     }
                   }}
                   className="group cursor-pointer flex flex-col items-center p-3 rounded-2xl glass-panel hover:glass-panel-gold border border-amber-500/20 hover:border-amber-400/70 transition-all hover:-translate-y-1.5 hover:shadow-[0_10px_25px_rgba(234,179,8,0.2)] will-change-transform outline-none focus-visible:ring-2 focus-visible:ring-amber-400 relative overflow-hidden"

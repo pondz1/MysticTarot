@@ -232,57 +232,57 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
       {/* Input Form Card */}
       <div className={`${theme.cardBg} rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6`}>
         {/* Category selector pills */}
-        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-1.5 scrollbar-none max-w-full">
           <button
             type="button"
             onClick={() => handleSelectCategory('phone')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               numberType === 'phone'
                 ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
                 : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
             }`}
           >
-            <Phone className="w-3.5 h-3.5" />
-            <span>เบอร์โทรศัพท์</span>
+            <Phone className="w-3.5 h-3.5 shrink-0" />
+            <span className="whitespace-nowrap">เบอร์โทรศัพท์</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSelectCategory('car')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               numberType === 'car'
                 ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
                 : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
             }`}
           >
-            <Car className="w-3.5 h-3.5" />
-            <span>ทะเบียนรถ</span>
+            <Car className="w-3.5 h-3.5 shrink-0" />
+            <span className="whitespace-nowrap">ทะเบียนรถ</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSelectCategory('house')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               numberType === 'house'
                 ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
                 : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
             }`}
           >
-            <HomeIcon className="w-3.5 h-3.5" />
-            <span>บ้านเลขที่</span>
+            <HomeIcon className="w-3.5 h-3.5 shrink-0" />
+            <span className="whitespace-nowrap">บ้านเลขที่</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSelectCategory('card')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               numberType === 'card'
                 ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
                 : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
             }`}
           >
-            <CreditCard className="w-3.5 h-3.5" />
-            <span>เลขบัตร/บัญชี</span>
+            <CreditCard className="w-3.5 h-3.5 shrink-0" />
+            <span className="whitespace-nowrap">เลขบัตร/บัญชี</span>
           </button>
         </div>
 
@@ -340,7 +340,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
               <h2 className="text-xl sm:text-2xl font-bold text-slate-100">{result.sumMeaning.title}</h2>
             </div>
 
-            <div className="flex items-center gap-4 bg-slate-950/90 px-5 py-3 rounded-2xl border border-teal-400/50 shadow-[0_0_15px_rgba(20,184,166,0.15)] shrink-0">
+            <div className="flex items-center justify-center sm:justify-start gap-3 sm:gap-4 bg-slate-950/90 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-teal-400/50 shadow-[0_0_15px_rgba(20,184,166,0.15)] shrink-0 w-full sm:w-auto">
               <div className="text-center">
                 <span className="text-[10px] text-slate-400 block font-semibold">ผลรวม (Sum)</span>
                 <span className="text-2xl font-black text-cyan-300 font-mono">{result.sumValue}</span>
@@ -355,12 +355,12 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
 
           {/* Aspect Rating Bars (ดวง 4 ด้านประจำตัวเลข) */}
           <div className="space-y-3 bg-slate-950/70 p-4 sm:p-6 rounded-xl border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
-            <div className={`flex items-center justify-between text-xs sm:text-sm font-bold ${theme.iconColor}`}>
-              <div className="flex items-center gap-2">
-                <TrendingUp className={`w-4 h-4 ${theme.iconColor}`} />
+            <div className={`flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-bold ${theme.iconColor}`}>
+              <div className="flex items-center gap-2 min-w-0">
+                <TrendingUp className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
                 <span>ระดับคะแนนส่งเสริมดวงชะตา 4 ด้านประจำตัวเลข</span>
               </div>
-              <Sparkles className={`w-4 h-4 ${theme.secondaryIconColor}`} />
+              <Sparkles className={`w-4 h-4 ${theme.secondaryIconColor} shrink-0 hidden sm:block`} />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -424,12 +424,12 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
 
           {/* Pair Analysis Grid */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-                <Award className={`w-5 h-5 ${theme.iconColor}`} />
-                <span>ถอดรหัสคู่เลขในตัวเลข ({result.pairAnalyses.length} คู่)</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-500/20 pb-3">
+              <h3 className="text-base sm:text-lg font-bold text-slate-200 flex items-center gap-2 min-w-0">
+                <Award className={`w-5 h-5 ${theme.iconColor} shrink-0`} />
+                <span className="truncate">ถอดรหัสคู่เลขในตัวเลข ({result.pairAnalyses.length} คู่)</span>
               </h3>
-              <span className={`text-xs px-2.5 py-0.5 rounded-full ${theme.tagBg} font-medium`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full ${theme.tagBg} font-semibold whitespace-nowrap shrink-0 self-start sm:self-auto`}>
                 แยกตามหมวดพลังงาน
               </span>
             </div>

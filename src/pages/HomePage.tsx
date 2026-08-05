@@ -119,15 +119,15 @@ export const HomePage: React.FC = () => {
         {/* Daily Quick Oracle Interactive Drawer */}
         <div className="pt-4 max-w-xl mx-auto">
           <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/90 border border-amber-500/30 backdrop-blur-md space-y-3 shadow-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                <Sun className={`w-4 h-4 ${homeTheme.iconColor}`} />
-                <span>สาส์นคำแนะนำประจำวัน</span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5 min-w-0">
+                <Sun className={`w-4 h-4 ${homeTheme.iconColor} shrink-0`} />
+                <span className="whitespace-nowrap">สาส์นคำแนะนำประจำวัน</span>
               </span>
               <button
                 type="button"
                 onClick={handleDrawOracle}
-                className={`text-xs px-3 py-1.5 rounded-lg ${homeTheme.secondaryBtn} font-semibold transition-all cursor-pointer flex items-center gap-1.5`}
+                className={`text-xs px-3 py-1.5 rounded-lg ${homeTheme.secondaryBtn} font-semibold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                 <span>เปิดสาส์นนำทางประจำวัน</span>

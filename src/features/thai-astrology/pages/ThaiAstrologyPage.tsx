@@ -210,19 +210,21 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({ apiSetting
               <span className="text-xs text-slate-400">ดวงชะตาผู้เกิด{result.dayOfWeekTh} ({result.elementTh})</span>
               <h3 className="text-lg font-bold text-rose-300">{result.summaryGuidance}</h3>
             </div>
-            <div className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 font-bold text-sm text-center shadow-xs">
+            <div className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 font-bold text-xs sm:text-sm text-center shadow-xs whitespace-nowrap shrink-0">
               ช่วงพุ่งสูงสุด: {result.peakAgeRange}
             </div>
           </div>
 
           {/* Interactive Life Graph Visualizer */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-              <TrendingUp className={`w-5 h-5 ${theme.iconColor}`} />
-              <span>ระดับดวงชะตามุมมองกราฟชีวิต (Life Graph Curve)</span>
+            <h3 className="text-base sm:text-lg font-bold text-slate-200 flex items-start sm:items-center gap-2">
+              <TrendingUp className={`w-5 h-5 ${theme.iconColor} shrink-0 mt-0.5 sm:mt-0`} />
+              <span className="leading-snug">
+                ระดับดวงชะตามุมมองกราฟชีวิต <span className="text-xs sm:text-sm font-normal text-slate-400 block sm:inline">(Life Graph Curve)</span>
+              </span>
             </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2 pt-4">
+            <div className="grid grid-cols-4 md:grid-cols-8 gap-1.5 sm:gap-2 pt-4">
               {result.lifeGraphPoints.map((stage, idx) => (
                 <div key={idx} className="flex flex-col items-center gap-2 group">
                   <span className="text-xs font-bold text-amber-300 font-mono">{stage.score}%</span>
@@ -253,9 +255,9 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({ apiSetting
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {result.lifeGraphPoints.map((stage, idx) => (
                 <div key={idx} className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-rose-500/40 transition-all space-y-2 shadow-xs">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span className="font-bold text-rose-300 text-sm">{stage.ageRange}: {stage.stageName}</span>
-                    <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800">
+                  <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1.5 sm:gap-2 border-b border-slate-800 pb-2">
+                    <span className="font-bold text-rose-300 text-xs sm:text-sm leading-snug">{stage.ageRange}: {stage.stageName}</span>
+                    <span className="text-[11px] sm:text-xs font-mono font-semibold px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800/80 whitespace-nowrap shrink-0 self-start xs:self-auto">
                       คะแนนดวง {stage.score}/100
                     </span>
                   </div>
