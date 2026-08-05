@@ -143,7 +143,7 @@ export const TarotEncyclopediaPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 min-h-[80vh] flex flex-col">
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 min-h-[80vh] flex flex-col animate-fade-in">
       {/* If Detail View mode is active via URL cardId */}
       {selectedCard ? (
         <div className="animate-fade-in flex flex-col gap-6">
