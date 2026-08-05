@@ -3,16 +3,15 @@ import type { TarotCard } from '../../data/tarotCards';
 import { TAROT_CARDS } from '../../data/tarotCards';
 import type { DrawnCard, SpreadMode, SelectionMode } from '../../types/tarot';
 import { getSpreadConfig } from '../../data/tarotSpreads';
-import { Sparkles, RefreshCw, Crown, LayoutGrid, Layers } from 'lucide-react';
+import { Sparkles, RefreshCw, Crown, ChevronDown, Orbit } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { CustomSelect, type CustomSelectOption } from '../common/CustomSelect';
 
-import { DeckModeSelector } from '../deck/DeckModeSelector';
 import { FanDeckView } from '../deck/FanDeckView';
 import { Cut3DeckView } from '../deck/Cut3DeckView';
 import { OrbitDeckView } from '../deck/OrbitDeckView';
 import { MindfulHoldView } from '../deck/MindfulHoldView';
 import { DeckConfirmation } from '../deck/DeckConfirmation';
+import { DeckSelectionModal } from '../modals/DeckSelectionModal';
 
 interface TarotDeckProps {
   spreadMode: SpreadMode;
@@ -20,11 +19,7 @@ interface TarotDeckProps {
   isAnalyzing: boolean;
 }
 
-const DECK_FILTER_OPTIONS: CustomSelectOption<'all' | 'major' | 'minor'>[] = [
-  { value: 'major', label: 'สำรับ Major (22 ใบ)', icon: Crown },
-  { value: 'minor', label: 'สำรับ Minor (56 ใบ)', icon: LayoutGrid },
-  { value: 'all', label: 'ทั้งสำรับ (78 ใบ)', icon: Layers },
-];
+
 
 export const TarotDeck: React.FC<TarotDeckProps> = ({
   spreadMode,
@@ -39,6 +34,24 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const [selectedCards, setSelectedCards] = useState<DrawnCard[]>([]);
   const [useAi, setUseAi] = useState<boolean>(true);
   const [isShuffling, setIsShuffling] = useState(false);
+  const [activeModal, setActiveModal] = useState<'mode' | 'filter' | null>(null);
+
+  const getModeLabel = (mode: SelectionMode) => {
+    switch (mode) {
+      case 'manual': return 'คลี่ไพ่เลือกเอง';
+      case 'cut3': return 'ตัดสำรับ 3 กอง';
+      case 'orbit': return 'กงล้อดวงดาว 3D';
+      case 'hold': return 'ตั้งจิตอธิษฐาน';
+    }
+  };
+
+  const getFilterLabel = (filter: 'all' | 'major' | 'minor') => {
+    switch (filter) {
+      case 'major': return 'สำรับ Major (22 ใบ)';
+      case 'minor': return 'สำรับ Minor (56 ใบ)';
+      case 'all': return 'ทั้งสำรับ (78 ใบ)';
+    }
+  };
 
   const getFilteredCards = (filter: 'all' | 'major' | 'minor'): TarotCard[] => {
     if (filter === 'major') {
@@ -199,23 +212,31 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
 
       {/* Header Controls & Status Badge Container */}
       <div className="w-full max-w-full px-3 flex flex-col items-center gap-3 sm:gap-4 mb-4 sm:mb-5 text-center">
-        {/* Action Controls & Clean Dropdowns Row */}
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-3.5 relative z-40">
-          {/* Mode Dropdown */}
-          <DeckModeSelector
-            selectionMode={selectionMode}
-            onSelectMode={handleModeChange}
+        {/* Action Controls & Modal Trigger Buttons Row */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3.5 relative z-20">
+          {/* Mode Selector Modal Trigger Button */}
+          <button
+            type="button"
             disabled={isShuffling || isAnalyzing}
-          />
+            onClick={() => setActiveModal('mode')}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 hover:border-amber-400/80 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-semibold shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all cursor-pointer disabled:opacity-50"
+          >
+            <Orbit className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>{getModeLabel(selectionMode)}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+          </button>
 
-          {/* Deck Filter Custom Select */}
-          <CustomSelect
-            options={DECK_FILTER_OPTIONS}
-            value={deckFilter}
-            onChange={(val) => handleFilterChange(val)}
+          {/* Filter Selector Modal Trigger Button */}
+          <button
+            type="button"
             disabled={isShuffling || isAnalyzing}
-            ariaLabel="เลือกประเภทสำรับไพ่"
-          />
+            onClick={() => setActiveModal('filter')}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 hover:border-amber-400/80 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-semibold shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all cursor-pointer disabled:opacity-50"
+          >
+            <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>{getFilterLabel(deckFilter)}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+          </button>
 
           {selectionMode === 'manual' && (
             <button
@@ -302,6 +323,17 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         setUseAi={setUseAi}
         onConfirm={handleConfirmSelection}
         isAnalyzing={isAnalyzing}
+      />
+
+      {/* Mode & Deck Filter Selection Modal */}
+      <DeckSelectionModal
+        isOpen={activeModal !== null}
+        type={activeModal || 'mode'}
+        currentMode={selectionMode}
+        currentFilter={deckFilter}
+        onSelectMode={(mode) => handleModeChange(mode)}
+        onSelectFilter={(filter) => handleFilterChange(filter)}
+        onClose={() => setActiveModal(null)}
       />
     </div>
   );
