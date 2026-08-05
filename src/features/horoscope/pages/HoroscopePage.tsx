@@ -334,10 +334,10 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
       {/* Selected Sign Detail & Prediction Card */}
       <div
         ref={resultCardRef}
-        className="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6"
+        className={`rounded-2xl p-4 sm:p-8 backdrop-blur-xl space-y-6 ${theme.cardBg}`}
       >
         <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-slate-800 pb-6">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-500/20 to-purple-600/30 border border-amber-400/40 flex items-center justify-center overflow-hidden shadow-xl shrink-0 relative">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-600/30 border border-purple-400/40 flex items-center justify-center overflow-hidden shadow-xl shrink-0 relative">
             <img
               src={`/zodiac/${selectedSign.id}.png`}
               alt={selectedSign.nameTh}
@@ -353,7 +353,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
           </div>
           <div className="text-center sm:text-left space-y-1">
             <div className="flex items-center justify-center sm:justify-start gap-2">
-              <h2 className="text-2xl font-bold text-amber-200">{selectedSign.nameTh} ({selectedSign.nameEn})</h2>
+              <h2 className="text-2xl font-bold text-purple-200">{selectedSign.nameTh} ({selectedSign.nameEn})</h2>
               <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${activeElementStyle.badgeBg}`}>
                 {selectedSign.elementTh}
               </span>
@@ -362,7 +362,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 pt-1">
               {selectedSign.traits.map((trait, idx) => (
                 <span key={idx} className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+                  <Sparkles className={`w-3 h-3 ${theme.iconColor} shrink-0`} />
                   <span>{trait}</span>
                 </span>
               ))}
@@ -372,8 +372,8 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
 
         {/* Aspect Rating Bars (คะแนนดวงมงคล 4 ด้าน) */}
         <div className="space-y-3 bg-slate-950/70 p-4 sm:p-6 rounded-xl border border-slate-800/80">
-          <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-300">
-            <TrendingUp className="w-4 h-4 text-amber-400" />
+          <div className={`flex items-center gap-2 text-xs sm:text-sm font-bold ${theme.iconColor}`}>
+            <TrendingUp className={`w-4 h-4 ${theme.iconColor}`} />
             <span>ระดับคะแนนดวงชะตามงคล 4 ด้าน ({timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'})</span>
           </div>
 
@@ -439,8 +439,8 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
         {/* Prediction Content */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-amber-400 font-semibold text-lg">
-              <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
+            <div className={`flex items-center gap-2 ${theme.iconColor} font-semibold text-lg`}>
+              <Sparkles className={`w-5 h-5 ${theme.iconColor} animate-pulse`} />
               <span>คำทำนายดวงชะตา{timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'}</span>
             </div>
             <span className="text-xs font-medium text-slate-400">
@@ -450,16 +450,16 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
 
           {isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <Sparkles className="w-8 h-8 text-amber-400 animate-spin" />
+              <Sparkles className={`w-8 h-8 ${theme.iconColor} animate-spin`} />
               <p className="text-sm">กำลังประมวลผลคำทำนาย...</p>
             </div>
           ) : prediction ? (
-            <div className="relative glass-panel-gold rounded-2xl p-5 sm:p-7 border border-amber-400/40 shadow-2xl overflow-hidden space-y-4 animate-fade-in">
+            <div className="relative rounded-2xl p-5 sm:p-7 bg-slate-900/95 border border-purple-500/40 shadow-2xl shadow-purple-900/20 overflow-hidden space-y-4 animate-fade-in">
               {/* Header Action Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-400/30 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-500/30 pb-4">
                 <div className="flex items-center gap-2 min-w-0">
-                  <Feather className="w-5 h-5 text-amber-400 shrink-0" />
-                  <h3 className="text-base sm:text-lg font-bold font-serif text-amber-200 truncate">
+                  <Feather className={`w-5 h-5 ${theme.iconColor} shrink-0`} />
+                  <h3 className="text-base sm:text-lg font-bold font-serif text-purple-200 truncate">
                     บทวิเคราะห์ดวงชะตา{selectedSign.nameTh} ({timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'})
                   </h3>
                 </div>
@@ -467,10 +467,10 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                 <button
                   type="button"
                   onClick={handleCopyPrediction}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-600/30 hover:bg-amber-600/60 border border-amber-400/40 text-amber-100 transition-all cursor-pointer whitespace-nowrap shrink-0 self-end sm:self-auto"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${theme.secondaryBtn} transition-all cursor-pointer whitespace-nowrap shrink-0 self-end sm:self-auto`}
                   title="คัดลอกคำทำนาย"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className="w-3.5 h-3.5 text-amber-300 shrink-0" />}
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className={`w-3.5 h-3.5 ${theme.iconColor} shrink-0`} />}
                   <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอกคำทำนาย'}</span>
                 </button>
               </div>
@@ -481,26 +481,26 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                   remarkPlugins={[remarkGfm]}
                   components={{
                     h1: ({ children }) => (
-                      <h2 className="text-base sm:text-lg font-bold text-amber-300 mt-5 mb-2.5 pb-1 border-b border-amber-500/30 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                      <h2 className="text-base sm:text-lg font-bold text-purple-300 mt-5 mb-2.5 pb-1 border-b border-purple-500/30 flex items-center gap-2">
+                        <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
                         <span>{children}</span>
                       </h2>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-base sm:text-lg font-bold text-amber-300 mt-5 mb-2.5 pb-1 border-b border-amber-500/30 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                      <h2 className="text-base sm:text-lg font-bold text-purple-300 mt-5 mb-2.5 pb-1 border-b border-purple-500/30 flex items-center gap-2">
+                        <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
                         <span>{children}</span>
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-sm sm:text-base font-semibold text-amber-200 mt-4 mb-2">
+                      <h3 className="text-sm sm:text-base font-semibold text-purple-200 mt-4 mb-2">
                         {children}
                       </h3>
                     ),
                     p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-200">{children}</p>,
-                    strong: ({ children }) => <strong className="font-semibold text-amber-200">{children}</strong>,
+                    strong: ({ children }) => <strong className="font-semibold text-purple-200">{children}</strong>,
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-amber-400 pl-4 py-3 italic my-4 text-amber-100 bg-amber-500/10 rounded-r-xl border border-amber-400/20">
+                      <blockquote className="border-l-4 border-purple-400 pl-4 py-3 italic my-4 text-purple-100 bg-purple-500/10 rounded-r-xl border border-purple-400/20">
                         {children}
                       </blockquote>
                     ),
@@ -522,17 +522,17 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
             <div className="p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex items-center justify-between">
               <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-                <Hash className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <Hash className={`w-3.5 h-3.5 ${theme.iconColor} shrink-0`} />
                 <span>เลขนำโชคประจำราศี:</span>
               </span>
-              <span className="text-sm font-bold text-amber-300">{selectedSign.luckyNumber.join(', ')}</span>
+              <span className="text-sm font-bold text-purple-300">{selectedSign.luckyNumber.join(', ')}</span>
             </div>
             <div className="p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex items-center justify-between">
               <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-                <Palette className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <Palette className={`w-3.5 h-3.5 ${theme.iconColor} shrink-0`} />
                 <span>สีมงคลเสริมโชค:</span>
               </span>
-              <span className="text-sm font-bold text-amber-300">{selectedSign.luckyColor.join(' / ')}</span>
+              <span className="text-sm font-bold text-purple-300">{selectedSign.luckyColor.join(' / ')}</span>
             </div>
           </div>
         </div>
