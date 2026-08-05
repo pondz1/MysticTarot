@@ -1,7 +1,7 @@
 export interface PairNumberAnalysis {
   pair: string; // e.g. "36"
   meaning: string;
-  category: 'wealth' | 'love' | 'work' | 'charm' | 'caution';
+  category: 'wealth' | 'love' | 'work' | 'charm' | 'caution' | 'karma';
   score: number; // 1 - 10
 }
 

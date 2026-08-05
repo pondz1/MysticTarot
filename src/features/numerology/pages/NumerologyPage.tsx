@@ -448,6 +448,10 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
                       return { badge: 'bg-pink-500/15 text-pink-300 border-pink-500/30', card: 'hover:border-pink-400/50 hover:shadow-[0_0_12px_rgba(236,72,153,0.2)]', icon: Heart };
                     case 'charm':
                       return { badge: 'bg-purple-500/15 text-purple-300 border-purple-500/30', card: 'hover:border-purple-400/50 hover:shadow-[0_0_12px_rgba(168,85,247,0.2)]', icon: Sparkles };
+                    case 'karma':
+                      return { badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', card: 'hover:border-emerald-400/50 hover:shadow-[0_0_12px_rgba(16,185,129,0.2)]', icon: ShieldCheck };
+                    case 'caution':
+                      return { badge: 'bg-orange-500/15 text-orange-300 border-orange-500/30', card: 'hover:border-orange-400/50 hover:shadow-[0_0_12px_rgba(249,115,22,0.2)]', icon: ShieldCheck };
                     default:
                       return { badge: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30', card: 'hover:border-cyan-400/50 hover:shadow-[0_0_12px_rgba(6,182,212,0.2)]', icon: Briefcase };
                   }
