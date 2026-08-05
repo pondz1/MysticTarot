@@ -224,8 +224,8 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
         </div>
       </div>
 
-      {/* Zodiac Grid Selection (With Element Color Accents) */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3">
+      {/* Zodiac Grid Selection */}
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-3.5">
         {ZODIAC_SIGNS.map((sign) => {
           const isSelected = selectedSign.id === sign.id;
           const elementStyle = ELEMENT_STYLE_MAP[sign.element];
@@ -233,31 +233,20 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             <button
               key={sign.id}
               onClick={() => handleFetchHoroscope(sign, timeframe, useAi)}
-              className={`p-3 sm:p-4 rounded-xl border text-center transition-all duration-300 flex flex-col items-center gap-1 sm:gap-1.5 cursor-pointer ${
+              className={`p-3 sm:p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-1.5 cursor-pointer group ${
                 isSelected
                   ? `${elementStyle.activeBg} ${elementStyle.activeBorder} ${elementStyle.glow} scale-105 shadow-xl`
                   : `${elementStyle.bg} ${elementStyle.border} text-slate-300`
               }`}
             >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex items-center justify-center relative">
-                <img
-                  src={`/zodiac/${sign.id}.png`}
-                  alt={sign.nameTh}
-                  className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-300"
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    target.style.display = 'none';
-                    const sibling = target.nextElementSibling as HTMLElement;
-                    if (sibling) sibling.style.display = 'block';
-                  }}
-                />
-                <span className="hidden text-2xl sm:text-3xl">{sign.symbol}</span>
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-500/20 to-purple-600/30 border border-amber-400/40 flex items-center justify-center text-2xl sm:text-3xl text-amber-300 font-serif shadow-md transform group-hover:scale-110 transition-transform duration-300">
+                {sign.symbol}
               </div>
-              <div className={`font-bold text-xs sm:text-sm ${isSelected ? elementStyle.text : 'text-slate-200'}`}>
+              <div className={`font-bold text-xs sm:text-sm ${isSelected ? elementStyle.text : 'text-slate-100'}`}>
                 {sign.nameTh}
               </div>
               <div className="text-[10px] text-slate-400">{sign.dateRange}</div>
-              <span className={`text-[9px] px-1.5 py-0.5 rounded border mt-1 font-medium ${elementStyle.badgeBg}`}>
+              <span className={`text-[9px] px-2 py-0.5 rounded-full border mt-0.5 font-medium ${elementStyle.badgeBg}`}>
                 {sign.elementTh}
               </span>
             </button>
