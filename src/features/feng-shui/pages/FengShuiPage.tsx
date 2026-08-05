@@ -31,9 +31,9 @@ export const FengShuiPage: React.FC = () => {
           <button
             key={idx}
             onClick={() => setSelectedDayIndex(idx)}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               selectedDayIndex === idx
-                ? 'bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-500/20 scale-105'
+                ? `${theme.activeToggleBtn} scale-105`
                 : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
             }`}
           >
@@ -43,10 +43,10 @@ export const FengShuiPage: React.FC = () => {
       </div>
 
       {/* Daily Color Grid Card */}
-      <div className="bg-slate-900/80 border border-rose-500/30 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+      <div className={`${theme.cardBg} rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6`}>
         <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
-          <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-300">
-            <Palette className="w-5 h-5" />
+          <div className={`w-10 h-10 rounded-xl ${theme.badgeBg} flex items-center justify-center`}>
+            <Palette className={`w-5 h-5 ${theme.iconColor}`} />
           </div>
           <div>
             <h2 className="text-xl font-bold text-rose-200">ตารางสีมงคลประจำ{currentDayInfo.dayNameTh}</h2>

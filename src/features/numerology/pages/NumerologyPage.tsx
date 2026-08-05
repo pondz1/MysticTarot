@@ -38,7 +38,7 @@ export const NumerologyPage: React.FC = () => {
       </div>
 
       {/* Input Form */}
-      <div className="bg-slate-900/80 border border-purple-500/30 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+      <div className={`${theme.cardBg} rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6`}>
         <form onSubmit={handleAnalyze} className="space-y-4">
           <label className="block text-sm font-semibold text-slate-200">
             📱 กรอกเบอร์โทรศัพท์ หรือ ชุดตัวเลขที่ต้องการวิเคราะห์:
@@ -49,13 +49,13 @@ export const NumerologyPage: React.FC = () => {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="เช่น 0891234567 หรือ 3654"
-              className="flex-1 px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-mono text-lg tracking-wider"
+              className="flex-1 px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-lg tracking-wider"
               maxLength={15}
             />
             <button
               type="submit"
               disabled={isAnalyzing || !phoneNumber.trim()}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-amber-500 to-purple-600 hover:from-purple-500 hover:to-amber-400 text-white font-bold transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              className={`px-6 py-3 rounded-xl ${theme.primaryBtn} font-bold transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer`}
             >
               {isAnalyzing ? (
                 <>

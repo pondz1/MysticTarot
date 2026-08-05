@@ -10,6 +10,9 @@ export interface ModuleTheme {
   iconColor: string;
   badgeBg: string;
   cardBg: string;
+  primaryBtn: string;
+  secondaryBtn: string;
+  activeToggleBtn: string;
 }
 
 export const MODULE_THEMES: Record<string, ModuleTheme> = {
@@ -25,6 +28,9 @@ export const MODULE_THEMES: Record<string, ModuleTheme> = {
     iconColor: 'text-amber-400',
     badgeBg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
     cardBg: 'bg-slate-900/80 border-amber-500/30',
+    primaryBtn: 'bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-white shadow-amber-500/20',
+    secondaryBtn: 'bg-amber-500/20 text-amber-200 border-amber-400/60 shadow-sm',
+    activeToggleBtn: 'bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-md',
   },
   tarot: {
     id: 'tarot',
@@ -38,6 +44,9 @@ export const MODULE_THEMES: Record<string, ModuleTheme> = {
     iconColor: 'text-amber-400',
     badgeBg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
     cardBg: 'glass-panel-gold border-amber-400/40',
+    primaryBtn: 'bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-white shadow-amber-500/20',
+    secondaryBtn: 'bg-amber-500/20 text-amber-200 border-amber-400/60 shadow-sm',
+    activeToggleBtn: 'bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-md',
   },
   horoscope: {
     id: 'horoscope',
@@ -51,6 +60,9 @@ export const MODULE_THEMES: Record<string, ModuleTheme> = {
     iconColor: 'text-purple-400',
     badgeBg: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
     cardBg: 'bg-slate-900/90 border-purple-500/40 shadow-purple-900/20',
+    primaryBtn: 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/20',
+    secondaryBtn: 'bg-purple-500/20 text-purple-200 border-purple-400/60 shadow-sm',
+    activeToggleBtn: 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md',
   },
   numerology: {
     id: 'numerology',
@@ -64,6 +76,9 @@ export const MODULE_THEMES: Record<string, ModuleTheme> = {
     iconColor: 'text-cyan-400',
     badgeBg: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',
     cardBg: 'bg-slate-900/90 border-cyan-500/40 shadow-cyan-900/20',
+    primaryBtn: 'bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white shadow-cyan-500/20',
+    secondaryBtn: 'bg-cyan-500/20 text-cyan-200 border-cyan-400/60 shadow-sm',
+    activeToggleBtn: 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-md',
   },
   'thai-astrology': {
     id: 'thai-astrology',
@@ -77,6 +92,9 @@ export const MODULE_THEMES: Record<string, ModuleTheme> = {
     iconColor: 'text-rose-400',
     badgeBg: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
     cardBg: 'bg-slate-900/90 border-rose-500/40 shadow-rose-900/20',
+    primaryBtn: 'bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white shadow-rose-500/20',
+    secondaryBtn: 'bg-rose-500/20 text-rose-200 border-rose-400/60 shadow-sm',
+    activeToggleBtn: 'bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md',
   },
   'feng-shui': {
     id: 'feng-shui',
@@ -90,5 +108,8 @@ export const MODULE_THEMES: Record<string, ModuleTheme> = {
     iconColor: 'text-emerald-400',
     badgeBg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
     cardBg: 'bg-slate-900/90 border-emerald-500/40 shadow-emerald-900/20',
+    primaryBtn: 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/20',
+    secondaryBtn: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/60 shadow-sm',
+    activeToggleBtn: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md',
   },
 };

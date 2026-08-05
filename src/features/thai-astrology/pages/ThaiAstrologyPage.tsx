@@ -34,7 +34,7 @@ export const ThaiAstrologyPage: React.FC = () => {
       </div>
 
       {/* Birth Input Form */}
-      <div className="bg-slate-900/80 border border-emerald-500/30 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+      <div className={`${theme.cardBg} rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6`}>
         <form onSubmit={handleCalculate} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
           <div className="space-y-2">
             <label className="block text-xs font-semibold text-slate-300">📅 วัน/เดือน/ปี เกิด (ค.ศ.):</label>
@@ -42,7 +42,7 @@ export const ThaiAstrologyPage: React.FC = () => {
               type="date"
               value={birthDate}
               onChange={(e) => setBirthDate(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-emerald-500"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-400"
             />
           </div>
           <div className="space-y-2">
@@ -50,7 +50,7 @@ export const ThaiAstrologyPage: React.FC = () => {
             <select
               value={dayIndex}
               onChange={(e) => setDayIndex(Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-emerald-500"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-400"
             >
               {DAYS_OF_WEEK.map((d, idx) => (
                 <option key={d.id} value={idx}>
@@ -61,7 +61,7 @@ export const ThaiAstrologyPage: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="w-full px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 hover:from-emerald-500 text-white font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            className={`w-full px-6 py-2.5 rounded-xl ${theme.primaryBtn} font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer`}
           >
             <Sparkles className="w-5 h-5" />
             <span>คำนวณกราฟชีวิต</span>

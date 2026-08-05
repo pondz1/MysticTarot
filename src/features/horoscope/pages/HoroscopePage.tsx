@@ -189,7 +189,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
 
             <button
               type="submit"
-              className="sm:mt-5 p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-white font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+              className={`sm:mt-5 p-2.5 rounded-xl ${theme.primaryBtn} font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer`}
             >
               <Search className="w-4 h-4" />
               <span>ค้นหาราศีทันที</span>
@@ -201,7 +201,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
       {/* Mode Control Bar: AI vs Classic Offline Mode */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg">
         <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-300">
-          <span className="font-semibold text-amber-300">เลือกโหมดทำนาย:</span>
+          <span className={`font-semibold ${theme.iconColor}`}>เลือกโหมดทำนาย:</span>
           <span className="text-slate-400">
             {isLoading
               ? 'AI กำลังประมวลผลคำทำนาย... กรุณารอสักครู่'
@@ -222,11 +222,11 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isLoading
                 ? 'opacity-50 cursor-not-allowed text-slate-500'
                 : useAi
-                  ? 'bg-amber-500/20 text-amber-200 border border-amber-400/60 shadow-sm cursor-pointer'
+                  ? `${theme.secondaryBtn} cursor-pointer`
                   : 'text-slate-400 hover:text-slate-200 cursor-pointer'
               }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <Sparkles className={`w-3.5 h-3.5 ${theme.iconColor}`} />
             <span>โหมด AI</span>
           </button>
 
@@ -240,11 +240,11 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isLoading
                 ? 'opacity-50 cursor-not-allowed text-slate-500'
                 : !useAi
-                  ? 'bg-amber-500/20 text-amber-200 border border-amber-400/60 shadow-sm cursor-pointer'
+                  ? `${theme.secondaryBtn} cursor-pointer`
                   : 'text-slate-400 hover:text-slate-200 cursor-pointer'
               }`}
           >
-            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+            <BookOpen className={`w-3.5 h-3.5 ${theme.iconColor}`} />
             <span>โหมดคลาสสิก</span>
           </button>
         </div>
@@ -267,7 +267,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                     : `${elementStyle.bg} ${elementStyle.border} text-slate-300 cursor-pointer`
                 }`}
             >
-              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-amber-400/50 shadow-lg shadow-amber-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 relative bg-slate-950">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-purple-400/50 shadow-lg shadow-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 relative bg-slate-950">
                 <img
                   src={`/zodiac/${sign.id}.png`}
                   alt={sign.nameTh}
@@ -279,7 +279,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                     if (sibling) sibling.style.display = 'flex';
                   }}
                 />
-                <div className="hidden w-full h-full bg-gradient-to-br from-amber-500/20 to-purple-600/30 text-amber-300 font-serif text-2xl items-center justify-center">
+                <div className="hidden w-full h-full bg-gradient-to-br from-purple-500/20 to-indigo-600/30 text-purple-300 font-serif text-2xl items-center justify-center">
                   {sign.symbol}
                 </div>
               </div>
@@ -306,11 +306,11 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${isLoading
               ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
               : timeframe === 'daily'
-                ? 'bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-md cursor-pointer'
+                ? `${theme.activeToggleBtn} cursor-pointer`
                 : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
             }`}
         >
-          <Calendar className="w-4 h-4 text-amber-300" />
+          <Calendar className={`w-4 h-4 ${theme.iconColor}`} />
           <span>ดวงประจำวัน</span>
         </button>
         <button
@@ -322,11 +322,11 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${isLoading
               ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
               : timeframe === 'monthly'
-                ? 'bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-md cursor-pointer'
+                ? `${theme.activeToggleBtn} cursor-pointer`
                 : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
             }`}
         >
-          <Moon className="w-4 h-4 text-purple-300" />
+          <Moon className={`w-4 h-4 ${theme.iconColor}`} />
           <span>ดวงรายเดือน</span>
         </button>
       </div>
