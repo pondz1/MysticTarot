@@ -1,22 +1,43 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { ApiSettingsModal } from './components/modals/ApiSettingsModal';
 import { CardDetailModal } from './components/modals/CardDetailModal';
 import { HistoryModal } from './components/modals/HistoryModal';
+import { Sparkles } from 'lucide-react';
 
 import { HomePage } from './pages/HomePage';
-import { TarotReadingPage } from './features/tarot/pages/TarotReadingPage';
-import { TarotEncyclopediaPage } from './features/tarot/pages/TarotEncyclopediaPage';
-import { HoroscopePage } from './features/horoscope/pages/HoroscopePage';
-import { NumerologyPage } from './features/numerology/pages/NumerologyPage';
-import { ThaiAstrologyPage } from './features/thai-astrology/pages/ThaiAstrologyPage';
-import { FengShuiPage } from './features/feng-shui/pages/FengShuiPage';
-
 import type { ApiSettings, SavedReading } from './features/tarot/types/tarot';
 import { storageService } from './services/storageService';
 import type { TarotCard } from './features/tarot/data/tarotCards';
+
+// Code Splitting with React.lazy
+const TarotReadingPage = lazy(() =>
+  import('./features/tarot/pages/TarotReadingPage').then((m) => ({ default: m.TarotReadingPage }))
+);
+const TarotEncyclopediaPage = lazy(() =>
+  import('./features/tarot/pages/TarotEncyclopediaPage').then((m) => ({ default: m.TarotEncyclopediaPage }))
+);
+const HoroscopePage = lazy(() =>
+  import('./features/horoscope/pages/HoroscopePage').then((m) => ({ default: m.HoroscopePage }))
+);
+const NumerologyPage = lazy(() =>
+  import('./features/numerology/pages/NumerologyPage').then((m) => ({ default: m.NumerologyPage }))
+);
+const ThaiAstrologyPage = lazy(() =>
+  import('./features/thai-astrology/pages/ThaiAstrologyPage').then((m) => ({ default: m.ThaiAstrologyPage }))
+);
+const FengShuiPage = lazy(() =>
+  import('./features/feng-shui/pages/FengShuiPage').then((m) => ({ default: m.FengShuiPage }))
+);
+
+const PageLoadingFallback = () => (
+  <div className="py-20 flex flex-col items-center justify-center gap-3 text-amber-300">
+    <Sparkles className="w-8 h-8 animate-spin text-amber-400" />
+    <p className="text-xs sm:text-sm font-medium tracking-wide">กำลังเชื่อมต่อและโหลดข้อมูลศาสตร์ทำนาย...</p>
+  </div>
+);
 
 export function App() {
   const navigate = useNavigate();
@@ -64,63 +85,65 @@ export function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 flex flex-col items-center">
-        <Routes>
-          {/* Platform Portal Home Route */}
-          <Route path="/" element={<HomePage />} />
+        <Suspense fallback={<PageLoadingFallback />}>
+          <Routes>
+            {/* Platform Portal Home Route */}
+            <Route path="/" element={<HomePage />} />
 
-          {/* Tarot Module Routes */}
-          <Route
-            path="/tarot"
-            element={
-              <TarotReadingPage
-                apiSettings={apiSettings}
-                onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
-                savedReadings={savedReadings}
-                setSavedReadings={setSavedReadings}
-              />
-            }
-          />
-          <Route
-            path="/tarot/reading/:id"
-            element={
-              <TarotReadingPage
-                apiSettings={apiSettings}
-                onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
-                savedReadings={savedReadings}
-                setSavedReadings={setSavedReadings}
-              />
-            }
-          />
-          <Route path="/tarot/encyclopedia" element={<TarotEncyclopediaPage />} />
-          <Route path="/tarot/encyclopedia/:cardId" element={<TarotEncyclopediaPage />} />
+            {/* Tarot Module Routes */}
+            <Route
+              path="/tarot"
+              element={
+                <TarotReadingPage
+                  apiSettings={apiSettings}
+                  onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
+                  savedReadings={savedReadings}
+                  setSavedReadings={setSavedReadings}
+                />
+              }
+            />
+            <Route
+              path="/tarot/reading/:id"
+              element={
+                <TarotReadingPage
+                  apiSettings={apiSettings}
+                  onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
+                  savedReadings={savedReadings}
+                  setSavedReadings={setSavedReadings}
+                />
+              }
+            />
+            <Route path="/tarot/encyclopedia" element={<TarotEncyclopediaPage />} />
+            <Route path="/tarot/encyclopedia/:cardId" element={<TarotEncyclopediaPage />} />
 
-          {/* Horoscope Module Route */}
-          <Route path="/horoscope" element={<HoroscopePage apiSettings={apiSettings} />} />
+            {/* Horoscope Module Route */}
+            <Route path="/horoscope" element={<HoroscopePage apiSettings={apiSettings} />} />
 
-          {/* Numerology Module Route */}
-          <Route path="/numerology" element={<NumerologyPage />} />
+            {/* Numerology Module Route */}
+            <Route path="/numerology" element={<NumerologyPage />} />
 
-          {/* Thai Astrology Module Route */}
-          <Route path="/thai-astrology" element={<ThaiAstrologyPage />} />
+            {/* Thai Astrology Module Route */}
+            <Route path="/thai-astrology" element={<ThaiAstrologyPage />} />
 
-          {/* Feng Shui Module Route */}
-          <Route path="/feng-shui" element={<FengShuiPage />} />
+            {/* Feng Shui Module Route */}
+            <Route path="/feng-shui" element={<FengShuiPage />} />
 
-          {/* Legacy Fallbacks */}
-          <Route
-            path="/reading/:id"
-            element={
-              <TarotReadingPage
-                apiSettings={apiSettings}
-                onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
-                savedReadings={savedReadings}
-                setSavedReadings={setSavedReadings}
-              />
-            }
-          />
-          <Route path="/encyclopedia/*" element={<Navigate to="/tarot/encyclopedia" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Legacy Fallbacks */}
+            <Route
+              path="/reading/:id"
+              element={
+                <TarotReadingPage
+                  apiSettings={apiSettings}
+                  onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
+                  savedReadings={savedReadings}
+                  setSavedReadings={setSavedReadings}
+                />
+              }
+            />
+            <Route path="/encyclopedia/*" element={<Navigate to="/tarot/encyclopedia" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </main>
 
       {/* Footer */}
