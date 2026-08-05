@@ -76,6 +76,8 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
   const totalCards = deck.length;
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+
     setIsDragging(true);
     setDragStartX(e.clientX);
     lastXRef.current = e.clientX;
@@ -156,8 +158,8 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         </p>
       </div>
 
-      {/* Orbit Controls - Highest Z-50 Layer */}
-      <div className="relative z-50 pointer-events-auto flex items-center gap-2 sm:gap-3 mt-1 sm:mt-2 mb-3 sm:mb-5">
+      {/* Orbit Controls */}
+      <div className="relative z-30 pointer-events-auto flex items-center gap-2 sm:gap-3 mt-1 sm:mt-2 mb-3 sm:mb-5">
         <button
           type="button"
           onClick={(e) => {

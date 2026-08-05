@@ -12,7 +12,6 @@ import { FanDeckView } from '../deck/FanDeckView';
 import { Cut3DeckView } from '../deck/Cut3DeckView';
 import { OrbitDeckView } from '../deck/OrbitDeckView';
 import { MindfulHoldView } from '../deck/MindfulHoldView';
-import { AutoDeckView } from '../deck/AutoDeckView';
 import { DeckConfirmation } from '../deck/DeckConfirmation';
 
 interface TarotDeckProps {
@@ -105,54 +104,6 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   // Helper to get position name from spread config
   const getPositionName = (index: number) => {
     return spreadConfig.positions[index] || `ตำแหน่งที่ ${index + 1}`;
-  };
-
-  // Auto-pick mode ("ให้จักรวาลเลือกให้")
-  const handleAutoPick = () => {
-    if (isShuffling || isAnalyzing) return;
-
-    setIsShuffling(true);
-    setTimeout(() => {
-      const indices: number[] = [];
-      while (indices.length < targetCount && indices.length < deck.length) {
-        const r = Math.floor(Math.random() * deck.length);
-        if (!indices.includes(r)) {
-          indices.push(r);
-        }
-      }
-
-      const picked: DrawnCard[] = indices
-        .filter((idx) => deck[idx] !== undefined)
-        .map((idx, posIdx) => ({
-          card: deck[idx],
-          isReversed: Math.random() < 0.25,
-          position: getPositionName(posIdx)
-        }));
-
-      setSelectedCards(picked);
-      setIsShuffling(false);
-
-      if (indices.length > 0) {
-        const targetIdx = indices[0];
-        setTimeout(() => {
-          const targetEl = cardRefs.current[targetIdx];
-          if (targetEl) {
-            targetEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-          }
-        }, 100);
-      }
-
-      try {
-        confetti({
-          particleCount: 50,
-          spread: 60,
-          origin: { y: 0.6 },
-          colors: ['#EAB308', '#A855F7', '#38BDF8']
-        });
-      } catch (e) {
-        // ignore
-      }
-    }, 700);
   };
 
   // Seamless Pick / Swap / Deselect card handler for manual fan deck & orbit view
@@ -249,7 +200,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       {/* Header Controls & Status Badge Container */}
       <div className="w-full max-w-full px-3 flex flex-col items-center gap-3 sm:gap-4 mb-4 sm:mb-5 text-center">
         {/* Action Controls & Clean Dropdowns Row */}
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-3.5">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-3.5 relative z-40">
           {/* Mode Dropdown */}
           <DeckModeSelector
             selectionMode={selectionMode}
@@ -301,17 +252,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       </div>
 
       {/* Render Selected View Strategy */}
-      {selectionMode === 'auto' ? (
-        <AutoDeckView
-          deck={deck}
-          selectedCards={selectedCards}
-          targetCount={targetCount}
-          isAnalyzing={isAnalyzing}
-          isShuffling={isShuffling}
-          onAutoPick={handleAutoPick}
-          onReset={handleResetSelection}
-        />
-      ) : selectionMode === 'cut3' ? (
+      {selectionMode === 'cut3' ? (
         <Cut3DeckView
           deck={deck}
           selectedCards={selectedCards}

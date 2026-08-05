@@ -42,7 +42,7 @@ export function CustomSelect<T extends string>({
   }, []);
 
   return (
-    <div ref={containerRef} className="relative inline-block text-left select-none">
+    <div ref={containerRef} className={`relative inline-block text-left select-none ${isOpen ? 'z-[100]' : 'z-20'}`}>
       {/* Dropdown Trigger Button */}
       <button
         type="button"
@@ -76,7 +76,7 @@ export function CustomSelect<T extends string>({
             animate={{ opacity: 1, y: 4, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.96 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute left-0 top-full z-50 min-w-[180px] w-max max-w-[240px] p-1.5 rounded-2xl bg-[#09081a]/95 backdrop-blur-xl border border-amber-400/50 shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden"
+            className="absolute left-0 top-full z-[100] min-w-[180px] w-max max-w-[240px] p-1.5 rounded-2xl bg-[#09081a]/95 backdrop-blur-xl border border-amber-400/50 shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden"
           >
             <div className="space-y-0.5 max-h-60 overflow-y-auto scrollbar-none">
               {options.map((opt) => {
