@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { analyzePhoneNumber } from '../data/numerologyData';
+import { analyzePhoneNumber, analyzeNumerologyInput } from '../data/numerologyData';
 import type { PhoneAnalysisResult } from '../types/numerology';
 import {
   Sparkles,
@@ -117,7 +117,8 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
       setNumberType(catType);
     }
     setPhoneNumber(sampleNum);
-    handleAnalyze(sampleNum, useAi);
+    const mathRes = analyzeNumerologyInput(sampleNum);
+    setResult(mathRes);
   };
 
   const handleSelectCategory = (cat: 'phone' | 'car' | 'house' | 'card') => {
@@ -127,7 +128,8 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
     if (cat === 'house') sample = '88/45';
     if (cat === 'card') sample = '456987123';
     setPhoneNumber(sample);
-    handleAnalyze(sample, useAi);
+    const mathRes = analyzeNumerologyInput(sample);
+    setResult(mathRes);
   };
 
   // Derive aspects scores from numerology sum & pair calculations
@@ -196,10 +198,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
           <button
             type="button"
             disabled={isAnalyzing}
-            onClick={() => {
-              setUseAi(true);
-              handleAnalyze(phoneNumber, true);
-            }}
+            onClick={() => setUseAi(true)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               isAnalyzing
                 ? 'opacity-50 cursor-not-allowed text-slate-500'
@@ -215,10 +214,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
           <button
             type="button"
             disabled={isAnalyzing}
-            onClick={() => {
-              setUseAi(false);
-              handleAnalyze(phoneNumber, false);
-            }}
+            onClick={() => setUseAi(false)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               isAnalyzing
                 ? 'opacity-50 cursor-not-allowed text-slate-500'
