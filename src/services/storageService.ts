@@ -56,7 +56,14 @@ export const storageService = {
 
   saveReading(reading: SavedReading): SavedReading[] {
     const current = this.getSavedReadings();
-    const updated = [reading, ...current];
+    const existingIndex = current.findIndex((r) => r.id === reading.id);
+    let updated: SavedReading[];
+    if (existingIndex >= 0) {
+      updated = [...current];
+      updated[existingIndex] = reading;
+    } else {
+      updated = [reading, ...current];
+    }
     localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
     return updated;
   },

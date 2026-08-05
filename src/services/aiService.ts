@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import type { ApiSettings, DrawnCard, SpreadMode } from '../types/tarot';
+import type { ApiSettings, ChatMessage, DrawnCard, SpreadMode } from '../types/tarot';
 import { getSpreadConfig } from '../data/tarotSpreads';
 
 export const DEFAULT_API_SETTINGS: ApiSettings = {
@@ -77,44 +77,7 @@ export async function analyzeTarotReading(
 
 > 🌌 *คำคม/Affirmation ประจำการเปิดไพ่ครั้งนี้*`;
 
-  const cardsDescription = drawnCards.map((d, index) => {
-    const orientation = d.isReversed ? 'ไพ่กลับหัว (Reversed - พลังงานติดขัด/สะท้อนมุมมองภายใน)' : 'ไพ่ตั้งหัว (Upright - พลังงานสมบูรณ์/แสดงผลชัดเจน)';
-    const meaning = d.isReversed ? d.card.reversedMeaning : d.card.uprightMeaning;
-    const arcanaType = d.card.arcana === 'minor' ? `Minor Arcana - ชุด${d.card.suit === 'wands' ? 'ไม้เท้า (Wands)' : d.card.suit === 'cups' ? 'ถ้วย (Cups)' : d.card.suit === 'swords' ? 'ดาบ (Swords)' : d.card.suit === 'pentacles' ? 'เหรียญ (Pentacles)' : ''}` : 'Major Arcana (ชุดใหญ่)';
-    return `[ใบที่ ${index + 1}] ตำแหน่ง: ${d.position}
-- ชื่อไพ่: ${d.card.nameTh} (${d.card.nameEn})
-- หมวดหมู่ไพ่: ${arcanaType}
-- สถานะ: ${orientation}
-- คีย์เวิร์ด: ${d.card.keywords.join(', ')}
-- ความหมายไพ่: ${meaning}
-- ธาตุประจำไพ่: ${d.card.element}`;
-  }).join('\n\n');
-
-  const majorCount = drawnCards.filter((d) => d.card.arcana === 'major' || !d.card.arcana).length;
-  const minorCount = drawnCards.filter((d) => d.card.arcana === 'minor').length;
-  const totalDrawn = drawnCards.length;
-
-  const filterText =
-    deckFilter === 'major'
-      ? 'ผู้ใช้เลือกเปิดด้วยสำรับ Major Arcana (22 ใบ) เท่านั้น'
-      : deckFilter === 'minor'
-      ? 'ผู้ใช้เลือกเปิดด้วยสำรับ Minor Arcana (56 ใบ) เท่านั้น'
-      : 'ผู้ใช้เลือกเปิดด้วยสำรับใหญ่เต็มรูปแบบ (78 ใบ)';
-
-  const proportionNote = `🔮 โหมดสำรับไพ่ที่เลือก: ${filterText}
-📊 สัดส่วนไพ่ที่สุ่มจับได้จริงในรอบนี้: Major Arcana ${majorCount} ใบ / Minor Arcana ${minorCount} ใบ (จากไพ่ที่เปิดรวม ${totalDrawn} ใบ)`;
-
-  const userPrompt = `คำถาม / สิ่งที่อยากรู้ของผู้ใช้: "${question || 'ดูดวงภาพรวมประจำวันและคำแนะนำชีวิต'}"
-รูปแบบสเปรด: ${spreadConfig.titleTh} (${spreadConfig.badge})
-จำนวนไพ่: ${drawnCards.length} ใบ
-${proportionNote}
-
-แนวทางการทำนายสเปรดนี้: ${spreadConfig.aiGuideline || 'วิเคราะห์เชื่อมโยงไพ่กับตำแหน่งอย่างละเอียด'}
-
-ไพ่ที่จับได้ทั้งหมดตามตำแหน่ง:
-${cardsDescription}
-
-โปรดทำนายอย่างละเอียด ลึกซึ้ง เชื่อมโยงความหมายไพ่กับตำแหน่งในสเปรด วิเคราะห์พลังงานสัดส่วน Major/Minor Arcana และตอบตรงประเด็นคำถามของผู้ใช้`;
+  const userPrompt = buildInitialUserPrompt(question, drawnCards, spreadMode, deckFilter);
 
   try {
     const cleanBaseUrl = settings.baseUrl.replace(/\/+$/, '');
@@ -216,5 +179,185 @@ ${cardsSection}
 * **คำแนะนำหลัก:** ${mainCard.advice}
 * **พลังบวกนำทาง:** ${outcomeCard.advice}
 
-*จำไว้ว่า ไพ่ยิปซีคือเข็มทิศชี้ทาง แต่อนาคตที่แท้จริงขึ้นอยู่กับสติและการตัดสินใจในปัจจุบันของคุณเอง*`;
+*จำไว้ว่า ไพ่ยิปซีคือเข็มทิศชี้ทาง แ่อยู่นในมือของคุณเอง*`;
 }
+
+// Helper to construct the full detailed initial user prompt
+export function buildInitialUserPrompt(
+  question: string,
+  drawnCards: DrawnCard[],
+  spreadMode: SpreadMode,
+  deckFilter: 'all' | 'major' | 'minor' = 'all'
+): string {
+  const spreadConfig = getSpreadConfig(spreadMode);
+
+  const cardsDescription = drawnCards
+    .map((d, index) => {
+      const orientation = d.isReversed
+        ? 'ไพ่กลับหัว (Reversed - พลังงานติดขัด/สะท้อนมุมมองภายใน)'
+        : 'ไพ่ตั้งหัว (Upright - พลังงานสมบูรณ์/แสดงผลชัดเจน)';
+      const meaning = d.isReversed ? d.card.reversedMeaning : d.card.uprightMeaning;
+      const arcanaType =
+        d.card.arcana === 'minor'
+          ? `Minor Arcana - ชุด${
+              d.card.suit === 'wands'
+                ? 'ไม้เท้า (Wands)'
+                : d.card.suit === 'cups'
+                ? 'ถ้วย (Cups)'
+                : d.card.suit === 'swords'
+                ? 'ดาบ (Swords)'
+                : d.card.suit === 'pentacles'
+                ? 'เหรียญ (Pentacles)'
+                : ''
+            }`
+          : 'Major Arcana (ชุดใหญ่)';
+      return `[ใบที่ ${index + 1}] ตำแหน่ง: ${d.position}
+- ชื่อไพ่: ${d.card.nameTh} (${d.card.nameEn})
+- หมวดหมู่ไพ่: ${arcanaType}
+- สถานะ: ${orientation}
+- คีย์เวิร์ด: ${d.card.keywords.join(', ')}
+- ความหมายไพ่: ${meaning}
+- ธาตุประจำไพ่: ${d.card.element}`;
+    })
+    .join('\n\n');
+
+  const majorCount = drawnCards.filter((d) => d.card.arcana === 'major' || !d.card.arcana).length;
+  const minorCount = drawnCards.filter((d) => d.card.arcana === 'minor').length;
+  const totalDrawn = drawnCards.length;
+
+  const filterText =
+    deckFilter === 'major'
+      ? 'ผู้ใช้เลือกเปิดด้วยสำรับ Major Arcana (22 ใบ) เท่านั้น'
+      : deckFilter === 'minor'
+      ? 'ผู้ใช้เลือกเปิดด้วยสำรับ Minor Arcana (56 ใบ) เท่านั้น'
+      : 'ผู้ใช้เลือกเปิดด้วยสำรับใหญ่เต็มรูปแบบ (78 ใบ)';
+
+  const proportionNote = `🔮 โหมดสำรับไพ่ที่เลือก: ${filterText}
+📊 สัดส่วนไพ่ที่สุ่มจับได้จริงในรอบนี้: Major Arcana ${majorCount} ใบ / Minor Arcana ${minorCount} ใบ (จากไพ่ที่เปิดรวม ${totalDrawn} ใบ)`;
+
+  return `คำถาม / สิ่งที่อยากรู้ของผู้ใช้: "${question || 'ดูดวงภาพรวมประจำวันและคำแนะนำชีวิต'}"
+รูปแบบสเปรด: ${spreadConfig.titleTh} (${spreadConfig.badge})
+จำนวนไพ่: ${drawnCards.length} ใบ
+${proportionNote}
+
+แนวทางการทำนายสเปรดนี้: ${spreadConfig.aiGuideline || 'วิเคราะห์เชื่อมโยงไพ่กับตำแหน่งอย่างละเอียด'}
+
+ไพ่ที่จับได้ทั้งหมดตามตำแหน่ง:
+${cardsDescription}
+
+โปรดทำนายอย่างละเอียด ลึกซึ้ง เชื่อมโยงความหมายไพ่กับตำแหน่งในสเปรด วิเคราะห์พลังงานสัดส่วน Major/Minor Arcana และตอบตรงประเด็นคำถามของผู้ใช้`;
+}
+
+// Follow-up Q&A Analyzer function with full context & zero duplication
+export async function analyzeTarotFollowUp(params: {
+  question: string;
+  drawnCards: DrawnCard[];
+  spreadMode: SpreadMode;
+  initialResult: string;
+  chatHistory: ChatMessage[];
+  newQuestion: string;
+  settings: ApiSettings;
+}): Promise<string> {
+  const { question, drawnCards, spreadMode, initialResult, chatHistory, newQuestion, settings } = params;
+
+  const isLocalHost = settings.baseUrl.includes('localhost') || settings.baseUrl.includes('127.0.0.1');
+  if (!settings.apiKey && !isLocalHost) {
+    return generateFollowUpFallback(newQuestion, drawnCards);
+  }
+
+  const spreadConfig = getSpreadConfig(spreadMode);
+
+  const spreadGuidelineSection = spreadConfig.aiGuideline
+    ? `\n\n🎯 **วัตถุประสงค์และแนวทางวิเคราะห์เฉพาะสำหรับสเปรดนี้ (${spreadConfig.titleTh})**:\n👉 ${spreadConfig.aiGuideline}`
+    : '';
+
+  const systemPrompt = `คุณคือ "หมอดูไพ่ยิปซี AI ระดับปรมาจารย์ (Celestial Master Tarot Prophet)" ผู้หยั่งรู้ดวงชะตา อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
+
+📜 **กฎและข้อบังคับในการตอบคำถามถามตอบเจาะลึก (Follow-up Question Directives)**:
+1. **ภาษาไทยสละสลวย 100% (High-Quality Thai Only)**:
+   - ใช้ภาษาไทยระดับสละสลวย งดงาม นุ่มนวล มีพลังน่าเลื่อมใส ไม่พูดทื่อๆ หรือใช้คำแปลหุ่นยนต์
+   - สะท้อนความเข้าใจในอารมณ์ความรู้สึกของผู้ถามอย่างเมตตา (Empathetic & Insightful)
+
+2. **ตอบตรงประเด็นคำถามเจาะลึกของผู้ใช้ (Direct & Clear Answer)**:
+   - ไขข้อข้องใจในคำถามเพิ่มเติมของผู้ใช้อย่างชัดเจน กระชับ ไม่ยืดเยื้อเกินจำเป็น
+
+3. **วิเคราะห์เชื่อมโยงไพ่ที่เปิดได้และบทวิเคราะห์เดิมเสมอ (Contextual & Card-Grounded)**:
+   - ให้คำตอบโดยอ้างอิงไพ่ที่ผู้ใช้จับได้ในรอบนี้และบทวิเคราะห์เดิมที่เคยทำนายไว้ ห้ามตอบแบบเลื่อนลอยโดยไม่เกี่ยวกับไพ่${spreadGuidelineSection}
+
+4. **การจัดรูปแบบ**:
+   - ใช้ Markdown เช่น ข้อความตัวหนา (**Bold**), Bullet points (-), หรือ Blockquote (>) เพื่อให้อ่านง่ายและสวยงามน่าเลื่อมใส`;
+
+  const initialUserPrompt = buildInitialUserPrompt(question, drawnCards, spreadMode);
+
+  try {
+    const cleanBaseUrl = settings.baseUrl.replace(/\/+$/, '');
+    const client = new OpenAI({
+      apiKey: settings.apiKey || 'ollama',
+      baseURL: cleanBaseUrl,
+      dangerouslyAllowBrowser: true,
+    });
+
+    const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: initialUserPrompt },
+      { role: 'assistant', content: initialResult },
+    ];
+
+    // Include prior chat history
+    chatHistory.forEach((msg) => {
+      messages.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content,
+      });
+    });
+
+    // Add newQuestion ONLY if it is not already the last message in chatHistory
+    const lastMsg = chatHistory[chatHistory.length - 1];
+    if (!lastMsg || lastMsg.role !== 'user' || lastMsg.content !== newQuestion) {
+      messages.push({
+        role: 'user',
+        content: newQuestion,
+      });
+    }
+
+    const completion = await client.chat.completions.create({
+      model: settings.model || 'gpt-4o-mini',
+      messages,
+      temperature: 0.7,
+      max_tokens: 2000,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (content && content.trim()) {
+      return cleanAiResponse(content);
+    }
+
+    return generateFollowUpFallback(newQuestion, drawnCards);
+  } catch (error) {
+    console.error('Failed follow-up AI call:', error);
+    return generateFollowUpFallback(
+      newQuestion,
+      drawnCards,
+      `⚠️ (ระบบใช้ Smart AI Reader สำหรับตอบคำถามเพิ่มเติม)\n\n`
+    );
+  }
+}
+
+export function generateFollowUpFallback(
+  newQuestion: string,
+  drawnCards: DrawnCard[],
+  noticePrefix: string = ''
+): string {
+  const mainCard = drawnCards[0]?.card;
+  const outcomeCard = drawnCards[drawnCards.length - 1]?.card;
+
+  return `${noticePrefix}🔮 **คำตอบเจาะลึกจากไพ่เกี่ยวกับ: "${newQuestion}"**
+
+จากพลังแห่งไพ่ **${mainCard ? mainCard.nameTh : 'ไพ่ยิปซีประจำดวง'}** และ **${outcomeCard ? outcomeCard.nameTh : 'ไพ่ทิศทางผลลัพธ์'}** ในสเปรดของคุณ:
+
+* **มุมมองและคำแนะนำ:** ${mainCard?.advice || 'จงมีสติและยึดมั่นในความดีงามของตัวคุณเอง'}
+* **พลังบวกนำทาง:** ${outcomeCard?.advice || 'ก้าวเดินไปด้วยความมั่นใจ แล้วความสำเร็จจะตามมา'}
+
+> ✨ *สติและการตัดสินใจในปัจจุบันคือสิ่งที่เปลี่ยนชะตาชีวิต จงใช้พลังของไพ่เป็นเข็มทิศชี้นำทางด้วยปัญญา*`;
+}
+

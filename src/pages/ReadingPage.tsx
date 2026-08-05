@@ -5,8 +5,8 @@ import { QuestionInput } from '../components/reading/QuestionInput';
 import { TarotDeck } from '../components/reading/TarotDeck';
 import { CardDisplay } from '../components/reading/CardDisplay';
 import { ReadingResult } from '../components/reading/ReadingResult';
-import type { ApiSettings, DrawnCard, SavedReading, SpreadMode } from '../types/tarot';
-import { analyzeTarotReading, generateFallbackReading } from '../services/aiService';
+import type { ApiSettings, ChatMessage, DrawnCard, SavedReading, SpreadMode } from '../types/tarot';
+import { analyzeTarotReading, analyzeTarotFollowUp, generateFallbackReading } from '../services/aiService';
 import { storageService } from '../services/storageService';
 import type { TarotCard } from '../data/tarotCards';
 import { Sparkles } from 'lucide-react';
@@ -48,6 +48,10 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [isSavedCurrent, setIsSavedCurrent] = useState<boolean>(false);
 
+  // AI Follow-up Chat History & Sending state
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [isSendingFollowUp, setIsSendingFollowUp] = useState<boolean>(false);
+
   // Load reading if URL has an id parameter; reset state if at home route (/)
   useEffect(() => {
     if (id) {
@@ -57,6 +61,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
         setQuestion(found.question);
         setSpreadMode(found.spreadMode);
         setReadingResult(found.resultText);
+        setChatHistory(found.chatHistory || []);
         setIsSavedCurrent(true);
         setIsAnalyzing(false);
       } else if (!isAnalyzing && drawnCards.length === 0) {
@@ -65,6 +70,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
     } else {
       setDrawnCards([]);
       setReadingResult('');
+      setChatHistory([]);
       setIsSavedCurrent(false);
       setIsAnalyzing(false);
     }
@@ -82,6 +88,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
       spreadMode,
       drawnCards,
       resultText: readingResult,
+      chatHistory,
     };
 
     const updated = storageService.saveReading(newEntry);
@@ -103,6 +110,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
     setDrawnCards(cards);
     setIsAnalyzing(true);
     setReadingResult('');
+    setChatHistory([]);
     setIsSavedCurrent(false);
     navigate(`/reading/${newId}`);
 
@@ -124,6 +132,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
         spreadMode,
         drawnCards: cards,
         resultText: analysis,
+        chatHistory: [],
       };
 
       const updated = storageService.saveReading(newEntry);
@@ -137,10 +146,70 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
     }
   };
 
+  // Send AI Follow-up Question
+  const handleSendFollowUp = async (userQuestion: string) => {
+    if (!userQuestion || isSendingFollowUp) return;
+
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: userQuestion,
+      timestamp: Date.now(),
+    };
+
+    const updatedHistoryWithUser = [...chatHistory, userMsg];
+    setChatHistory(updatedHistoryWithUser);
+    setIsSendingFollowUp(true);
+
+    try {
+      const aiResponseText = await analyzeTarotFollowUp({
+        question,
+        drawnCards,
+        spreadMode,
+        initialResult: readingResult,
+        chatHistory: updatedHistoryWithUser,
+        newQuestion: userQuestion,
+        settings: apiSettings,
+      });
+
+      const aiMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: aiResponseText,
+        timestamp: Date.now(),
+      };
+
+      const finalChatHistory = [...updatedHistoryWithUser, aiMsg];
+      setChatHistory(finalChatHistory);
+
+      // Save updated reading with chat history
+      if (readingResult && drawnCards.length > 0) {
+        const currentId = id || Date.now().toString();
+        const updatedReading: SavedReading = {
+          id: currentId,
+          timestamp: Date.now(),
+          question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
+          spreadMode,
+          drawnCards,
+          resultText: readingResult,
+          chatHistory: finalChatHistory,
+        };
+        const updatedList = storageService.saveReading(updatedReading);
+        setSavedReadings(updatedList);
+        setIsSavedCurrent(true);
+      }
+    } catch (err) {
+      console.error('Failed follow-up Q&A:', err);
+    } finally {
+      setIsSendingFollowUp(false);
+    }
+  };
+
   // Reset all for a new reading
   const handleResetNewReading = () => {
     setDrawnCards([]);
     setReadingResult('');
+    setChatHistory([]);
     setIsSavedCurrent(false);
     setQuestion('');
     navigate('/');
@@ -209,6 +278,9 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
           onNewReading={handleResetNewReading}
           onSaveReading={handleSaveCurrentReading}
           isSaved={isSavedCurrent}
+          chatHistory={chatHistory}
+          onSendFollowUp={handleSendFollowUp}
+          isSendingFollowUp={isSendingFollowUp}
         />
       )}
     </div>

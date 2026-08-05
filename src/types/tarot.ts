@@ -28,6 +28,13 @@ export interface ApiSettings {
   model: string;
 }
 
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp?: number;
+}
+
 export interface SavedReading {
   id: string;
   timestamp: number | string;
@@ -35,4 +42,6 @@ export interface SavedReading {
   spreadMode: SpreadMode;
   drawnCards: DrawnCard[];
   resultText: string;
+  chatHistory?: ChatMessage[];
 }
+

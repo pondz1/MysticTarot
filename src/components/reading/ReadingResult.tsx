@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Sparkles, Copy, Check, RefreshCw, Save, Feather, Moon } from 'lucide-react';
+import type { ChatMessage } from '../../types/tarot';
+import { AiFollowUpChat } from './AiFollowUpChat';
 
 interface ReadingResultProps {
   resultText: string;
@@ -9,6 +11,9 @@ interface ReadingResultProps {
   onNewReading: () => void;
   onSaveReading: () => void;
   isSaved?: boolean;
+  chatHistory?: ChatMessage[];
+  onSendFollowUp?: (text: string) => Promise<void>;
+  isSendingFollowUp?: boolean;
 }
 
 export const ReadingResult: React.FC<ReadingResultProps> = ({
@@ -16,7 +21,10 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
   isAnalyzing,
   onNewReading,
   onSaveReading,
-  isSaved = false
+  isSaved = false,
+  chatHistory = [],
+  onSendFollowUp,
+  isSendingFollowUp = false,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -170,6 +178,16 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
               {resultText}
             </ReactMarkdown>
           </div>
+
+          {/* AI Follow-up Chat Section */}
+          {onSendFollowUp && (
+            <AiFollowUpChat
+              chatHistory={chatHistory}
+              onSendMessage={onSendFollowUp}
+              isSending={isSendingFollowUp}
+              maxMessages={5}
+            />
+          )}
 
           {/* Footer Action to start new reading */}
           <div className="mt-8 pt-6 border-t border-amber-400/30 flex flex-col sm:flex-row justify-between items-center gap-4">
