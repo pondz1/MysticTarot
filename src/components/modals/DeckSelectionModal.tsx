@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Layers, Scissors, Orbit, Sparkles, Crown, LayoutGrid, Check } from 'lucide-react';
+import { X, Layers, Scissors, Orbit, Sparkles, Crown, LayoutGrid, Check, Flame, Compass } from 'lucide-react';
 import type { SelectionMode } from '../../types/tarot';
 
 export interface ModeOptionInfo {
@@ -59,6 +59,24 @@ const MODE_ITEMS: ModeOptionInfo[] = [
     icon: Sparkles,
     previewTag: 'Mindful Energy Burst',
     previewBg: 'from-amber-600/30 via-indigo-900/40 to-slate-900',
+  },
+  {
+    id: 'jump',
+    title: 'เสี่ยงทายไพ่กระโดด',
+    badge: 'สายขลังศักดิ์สิทธิ์',
+    description: 'สลับเขย่าสำรับไพ่ให้ไพ่ประจำชะตากระโดดพุ่งออกมาเอง ตามหลักพิธีกรรม Jumping Card',
+    icon: Flame,
+    previewTag: 'Spirit Jump Card',
+    previewBg: 'from-amber-600/30 via-red-950/40 to-slate-900',
+  },
+  {
+    id: 'compass',
+    title: 'เข็มทิศดวงดาวชี้ชะตา',
+    badge: '12 ราศีโหราศาสตร์',
+    description: 'หมุนกงล้อเข็มทิศ 12 ราศี สแกนตำแหน่งเรือนชะตาเปิดไพ่ที่เชื่อมโยงกับคุณ',
+    icon: Compass,
+    previewTag: 'Astral Compass Wheel',
+    previewBg: 'from-indigo-900/40 via-amber-500/20 to-slate-900',
   },
 ];
 

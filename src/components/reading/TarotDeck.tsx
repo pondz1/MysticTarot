@@ -10,6 +10,8 @@ import { FanDeckView } from '../deck/FanDeckView';
 import { Cut3DeckView } from '../deck/Cut3DeckView';
 import { OrbitDeckView } from '../deck/OrbitDeckView';
 import { MindfulHoldView } from '../deck/MindfulHoldView';
+import { JumpingCardView } from '../deck/JumpingCardView';
+import { CompassDeckView } from '../deck/CompassDeckView';
 import { DeckConfirmation } from '../deck/DeckConfirmation';
 import { DeckSelectionModal } from '../modals/DeckSelectionModal';
 
@@ -45,6 +47,8 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       case 'cut3': return 'ตัดสำรับ 3 กอง';
       case 'orbit': return 'กงล้อดวงดาว 3D';
       case 'hold': return 'ตั้งจิตอธิษฐาน';
+      case 'jump': return 'เสี่ยงทายไพ่กระโดด';
+      case 'compass': return 'เข็มทิศดวงดาว';
     }
   };
 
@@ -307,6 +311,26 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         />
       ) : selectionMode === 'hold' ? (
         <MindfulHoldView
+          deck={deck}
+          selectedCards={selectedCards}
+          targetCount={targetCount}
+          isAnalyzing={isAnalyzing}
+          onPickCardsBatch={(cards) => setSelectedCards(cards)}
+          getPositionName={getPositionName}
+          onReset={handleResetSelection}
+        />
+      ) : selectionMode === 'jump' ? (
+        <JumpingCardView
+          deck={deck}
+          selectedCards={selectedCards}
+          targetCount={targetCount}
+          isAnalyzing={isAnalyzing}
+          onPickCardsBatch={(cards) => setSelectedCards(cards)}
+          getPositionName={getPositionName}
+          onReset={handleResetSelection}
+        />
+      ) : selectionMode === 'compass' ? (
+        <CompassDeckView
           deck={deck}
           selectedCards={selectedCards}
           targetCount={targetCount}

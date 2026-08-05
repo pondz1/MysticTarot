@@ -2,7 +2,7 @@ import type { TarotCard } from '../data/tarotCards';
 
 export type SpreadMode = 'single' | 'three' | 'four' | 'five' | 'celtic';
 
-export type SelectionMode = 'manual' | 'cut3' | 'orbit' | 'hold';
+export type SelectionMode = 'manual' | 'cut3' | 'orbit' | 'hold' | 'jump' | 'compass';
 
 export interface TarotSpread {
   id: SpreadMode;
