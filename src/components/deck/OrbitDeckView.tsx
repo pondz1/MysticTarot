@@ -82,6 +82,11 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
     lastTimeRef.current = performance.now();
     velocityRef.current = 0;
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch (err) {
+      // ignore
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -100,9 +105,15 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
     lastTimeRef.current = now;
   };
 
-  const handlePointerUp = () => {
-    if (!isDragging) return;
+  const handlePointerUp = (e?: React.PointerEvent) => {
     setIsDragging(false);
+    if (e) {
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch (err) {
+        // ignore
+      }
+    }
 
     // Inertia spin momentum
     let currentVel = velocityRef.current * 14;
@@ -145,8 +156,8 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         </p>
       </div>
 
-      {/* Orbit Controls - Elevated z-30 layer above wheel stage */}
-      <div className="relative z-30 pointer-events-auto flex items-center gap-2 sm:gap-3 mt-1 sm:mt-2 mb-3 sm:mb-5">
+      {/* Orbit Controls - Highest Z-50 Layer */}
+      <div className="relative z-50 pointer-events-auto flex items-center gap-2 sm:gap-3 mt-1 sm:mt-2 mb-3 sm:mb-5">
         <button
           type="button"
           onClick={(e) => {
@@ -193,7 +204,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
-        className="relative w-full max-w-4xl sm:max-w-5xl h-[340px] xs:h-[380px] sm:h-[460px] md:h-[530px] flex items-center justify-center overflow-visible cursor-grab active:cursor-grabbing touch-pan-y my-2 sm:my-4 px-4 py-4"
+        className="relative w-full max-w-4xl sm:max-w-5xl h-[340px] xs:h-[380px] sm:h-[460px] md:h-[530px] flex items-center justify-center overflow-visible touch-pan-y my-2 sm:my-4 px-4 py-4 z-10"
       >
         {/* Central Cosmic Core Icon & Multi-layer Glowing Aura Rings */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
@@ -232,7 +243,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                 ? 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)'
                 : 'transform 0.4s ease-out',
           }}
-          className="relative w-full h-full flex items-center justify-center"
+          className={`relative w-full h-full flex items-center justify-center ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {deck.map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
