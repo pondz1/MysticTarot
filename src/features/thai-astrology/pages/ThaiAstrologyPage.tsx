@@ -19,6 +19,7 @@ import {
 import type { ApiSettings } from '../../tarot/types/tarot';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { analyzeThaiLifeGraph, generateFallbackThaiLifeGraph } from '../../../services/aiService';
+import { CustomSelect } from '../../../components/common/CustomSelect';
 
 interface ThaiAstrologyPageProps {
   apiSettings?: ApiSettings;
@@ -164,35 +165,33 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({ apiSetting
       </div>
 
       {/* Birth Input Form */}
-      <div className={`${theme.cardBg} rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6`}>
+      <div className={`relative z-20 ${theme.cardBg} rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6`}>
         <form onSubmit={(e) => handleCalculate(e, useAi)} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-slate-300">วัน/เดือน/ปี เกิด (ค.ศ.):</label>
             <input
               type="date"
               value={birthDate}
               onChange={(e) => setBirthDate(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-400 text-sm font-mono"
+              className="w-full h-[46px] px-4 rounded-xl sm:rounded-2xl bg-slate-950/90 border border-slate-800 text-white focus:outline-none focus:border-rose-400 text-sm font-mono shadow-md"
             />
           </div>
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-300">เกิดตรงกับวัน:</label>
-            <select
+          <div>
+            <CustomSelect
+              label="เกิดตรงกับวัน:"
+              options={DAYS_OF_WEEK.map((d, idx) => ({
+                value: idx,
+                label: `${d.nameTh} (${d.element})`,
+              }))}
               value={dayIndex}
-              onChange={(e) => setDayIndex(Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-400 text-sm"
-            >
-              {DAYS_OF_WEEK.map((d, idx) => (
-                <option key={d.id} value={idx}>
-                  {d.nameTh} ({d.element})
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setDayIndex(Number(val))}
+              accentColor="rose"
+            />
           </div>
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full px-6 py-2.5 rounded-xl ${theme.primaryBtn} font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer ${
+            className={`w-full h-[46px] px-6 rounded-xl sm:rounded-2xl ${theme.primaryBtn} font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer ${
               isLoading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
