@@ -120,7 +120,7 @@ export function App() {
             <Route path="/horoscope" element={<HoroscopePage apiSettings={apiSettings} />} />
 
             {/* Numerology Module Route */}
-            <Route path="/numerology" element={<NumerologyPage />} />
+            <Route path="/numerology" element={<NumerologyPage apiSettings={apiSettings} />} />
 
             {/* Thai Astrology Module Route */}
             <Route path="/thai-astrology" element={<ThaiAstrologyPage />} />

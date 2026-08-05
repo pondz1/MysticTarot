@@ -480,18 +480,24 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    h1: ({ children }) => (
-                      <h2 className="text-base sm:text-lg font-bold text-purple-300 mt-5 mb-2.5 pb-1 border-b border-purple-500/30 flex items-center gap-2">
-                        <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
-                        <span>{children}</span>
-                      </h2>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-base sm:text-lg font-bold text-purple-300 mt-5 mb-2.5 pb-1 border-b border-purple-500/30 flex items-center gap-2">
-                        <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
-                        <span>{children}</span>
-                      </h2>
-                    ),
+                    h1: ({ children }) => {
+                      const text = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : children;
+                      return (
+                        <h2 className="text-base sm:text-lg font-bold text-purple-300 mt-5 mb-2.5 pb-1 border-b border-purple-500/30 flex items-center gap-2">
+                          <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
+                          <span>{text}</span>
+                        </h2>
+                      );
+                    },
+                    h2: ({ children }) => {
+                      const text = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : children;
+                      return (
+                        <h2 className="text-base sm:text-lg font-bold text-purple-300 mt-5 mb-2.5 pb-1 border-b border-purple-500/30 flex items-center gap-2">
+                          <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
+                          <span>{text}</span>
+                        </h2>
+                      );
+                    },
                     h3: ({ children }) => (
                       <h3 className="text-sm sm:text-base font-semibold text-purple-200 mt-4 mb-2">
                         {children}

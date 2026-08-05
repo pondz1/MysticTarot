@@ -83,7 +83,7 @@ export const COMMON_PAIR_ANALYSIS: Record<string, PairNumberAnalysis> = {
 
 export function analyzePhoneNumber(phone: string) {
   const clean = phone.replace(/\D/g, '');
-  if (clean.length < 9) {
+  if (clean.length < 1) {
     return null;
   }
 
