@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Star, ArrowRight, Sun, BookOpen } from 'lucide-react';
+import {
+  Sparkles,
+  Star,
+  ArrowRight,
+  Sun,
+  BookOpen,
+  Compass,
+  Hash,
+  Calendar,
+  Palette,
+  type LucideIcon,
+} from 'lucide-react';
 import { MODULE_THEMES, type ModuleId } from '../constants/moduleThemes';
 
 interface DivinationService {
@@ -8,7 +19,7 @@ interface DivinationService {
   title: string;
   tagline: string;
   description: string;
-  icon: string;
+  icon: LucideIcon;
   badge: string;
   link: string;
 }
@@ -19,7 +30,7 @@ const DIVINATION_SERVICES: DivinationService[] = [
     title: 'ไพ่ยิปซีออราเคิล (Tarot Cards)',
     tagline: 'ถอดรหัสชะตาชีวิต การงาน การเงิน ความรัก',
     description: 'เลือกไพ่ 1 ถึง 10 ใบ พร้อมธีมไพ่ 6 รูปแบบ คำนวณความหมายและสังเคราะห์ไพ่เชิงลึกด้วย AI ปรมาจารย์',
-    icon: '🔮',
+    icon: Compass,
     badge: 'นิยมสูงสุด',
     link: '/tarot',
   },
@@ -28,7 +39,7 @@ const DIVINATION_SERVICES: DivinationService[] = [
     title: 'ดูดวง 12 ราศี (Zodiac Horoscope)',
     tagline: 'เช็กดวงประจำวัน & รายเดือน 12 ราศี',
     description: 'คำนวณการเคลื่อนตัวของดวงดาวประจำราศี ผสานพลังงานธาตุ ดิน น้ำ ลม ไฟ พร้อมเลขและสีมงคลประจำวัน',
-    icon: '♈',
+    icon: Star,
     badge: 'ดวงประจำวัน',
     link: '/horoscope',
   },
@@ -37,7 +48,7 @@ const DIVINATION_SERVICES: DivinationService[] = [
     title: 'เลขศาสตร์ & เบอร์มงคล (Numerology)',
     tagline: 'วิเคราะห์เบอร์โทรศัพท์ ทะเบียนรถ เลขที่บ้าน',
     description: 'ถอดรหัสคู่เลข 2 หลัก ผลรวมเกรดความมงคล A+ ถึง D คำนวณพลังโชคลาภ ดึงดูดเงินทองและเสน่ห์',
-    icon: '🔢',
+    icon: Hash,
     badge: 'วิเคราะห์เบอร์',
     link: '/numerology',
   },
@@ -46,7 +57,7 @@ const DIVINATION_SERVICES: DivinationService[] = [
     title: 'ดวงไทย & กราฟชีวิต (Thai Life Chart)',
     tagline: 'คำนวณกราฟชีวิต 9 ช่วงอายุตามวันเกิด',
     description: 'ศาสตร์การทำนายดวงชะตาไทยโบราณ ค้นหาจังหวะชีวิตพุ่งสูงสุด การงาน ทรัพย์สิน และความรัก',
-    icon: '📜',
+    icon: Calendar,
     badge: 'ศาสตร์ไทยโบราณ',
     link: '/thai-astrology',
   },
@@ -55,18 +66,18 @@ const DIVINATION_SERVICES: DivinationService[] = [
     title: 'ฮวงจุ้ย & สี/ทิศมงคล (Daily Feng Shui)',
     tagline: 'ตารางสีเสื้อมงคลประจำวัน & ทิศนำโชค',
     description: 'ตารางสีเสื้อมงคลเสริมการงาน การเงิน ความรัก พร้อมเคล็ดลับจัดฮวงจุ้ยบ้านและโต๊ะทำงานรับทรัพย์',
-    icon: '☯️',
+    icon: Palette,
     badge: 'อัปเดตทุกวัน',
     link: '/feng-shui',
   },
 ];
 
 const DAILY_ORACLES = [
-  '✨ วันนี้จังหวะชีวิตเปิดกว้าง เหมาะสำหรับการเริ่มต้นสิ่งใหม่และการเจรจาธุรกิจ',
-  '💰 มีเกณฑ์ได้รับโชคลาภกะทันหัน หรือมีผู้ใหญ่อุปถัมภ์มอบโอกาสทางการเงิน',
-  '❤️ เสน่ห์เมตตามหานิยมทำงานสูง การสื่อสารเจรจาจะได้ผลลัพธ์น่าพึงพอใจ',
-  '🧘 ให้รักษาสติ ความสงบภายใน และหลีกเลี่ยงการตัดสินใจเรื่องใหญ่ด้วยความอารมณ์ชั่ววูบ',
-  '🌟 มีพลังงานบวกหนุนหลัง ทำงานสิ่งใดก็มีสิทธิ์สำเร็จเกินเป้าหมายที่ตั้งไว้',
+  'วันนี้จังหวะชีวิตเปิดกว้าง เหมาะสำหรับการเริ่มต้นสิ่งใหม่และการเจรจาธุรกิจ',
+  'มีเกณฑ์ได้รับโชคลาภกะทันหัน หรือมีผู้ใหญ่อุปถัมภ์มอบโอกาสทางการเงิน',
+  'เสน่ห์เมตตามหานิยมทำงานสูง การสื่อสารเจรจาจะได้ผลลัพธ์น่าพึงพอใจ',
+  'ให้รักษาสติ ความสงบภายใน และหลีกเลี่ยงการตัดสินใจเรื่องใหญ่ด้วยความอารมณ์ชั่ววูบ',
+  'มีพลังงานบวกหนุนหลัง ทำงานสิ่งใดก็มีสิทธิ์สำเร็จเกินเป้าหมายที่ตั้งไว้',
 ];
 
 export const HomePage: React.FC = () => {
@@ -114,15 +125,18 @@ export const HomePage: React.FC = () => {
                 <span>สาส์นคำแนะนำประจำวัน</span>
               </span>
               <button
+                type="button"
                 onClick={handleDrawOracle}
-                className={`text-xs px-3 py-1.5 rounded-lg ${homeTheme.secondaryBtn} font-semibold transition-all cursor-pointer`}
+                className={`text-xs px-3 py-1.5 rounded-lg ${homeTheme.secondaryBtn} font-semibold transition-all cursor-pointer flex items-center gap-1.5`}
               >
-                🔮 เปิดสาส์นนำทางประจำวัน
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>เปิดสาส์นนำทางประจำวัน</span>
               </button>
             </div>
             {randomOracle ? (
-              <p className="text-sm font-medium text-slate-100 bg-slate-950 p-3 rounded-xl border border-slate-800 text-left animate-fade-in">
-                {randomOracle}
+              <p className="text-sm font-medium text-slate-100 bg-slate-950 p-3 rounded-xl border border-slate-800 text-left animate-fade-in flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <span>{randomOracle}</span>
               </p>
             ) : (
               <p className="text-xs text-slate-400 text-left italic">
@@ -149,6 +163,7 @@ export const HomePage: React.FC = () => {
           {DIVINATION_SERVICES.map((service) => {
             const theme = MODULE_THEMES[service.id];
             const isTarot = service.id === 'tarot';
+            const Icon = service.icon;
 
             return (
               <div
@@ -157,7 +172,9 @@ export const HomePage: React.FC = () => {
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-4xl sm:text-5xl">{service.icon}</span>
+                    <div className={`p-3 rounded-2xl ${theme.badgeBg} border border-amber-500/20 shrink-0 inline-flex items-center justify-center shadow-md`}>
+                      <Icon className={`w-7 h-7 sm:w-8 sm:h-8 ${theme.iconColor}`} />
+                    </div>
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${theme.badgeBg}`}>
                       {service.badge}
                     </span>
@@ -198,4 +215,3 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
-
