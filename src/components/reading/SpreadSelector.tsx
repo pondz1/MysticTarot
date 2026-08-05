@@ -27,11 +27,11 @@ export const SpreadSelector: React.FC<SpreadSelectorProps> = ({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-2 sm:my-4 px-2">
-      <div className="flex items-center justify-between sm:justify-center mb-2.5 px-1">
-        <span className="text-xs font-semibold text-amber-300 tracking-wider uppercase">
-          เลือกรูปแบบการทำนาย (Tarot Spreads)
-        </span>
+    <div className="w-full max-w-5xl mx-auto my-2 sm:my-3 px-2">
+      <div className="flex items-center justify-between sm:justify-center mb-2 px-1">
+        <h2 className="text-xs sm:text-sm font-bold font-serif-mystic text-gold-gradient tracking-wide uppercase">
+          เลือกรูปแบบการทำนาย
+        </h2>
         <span className="text-[10px] text-purple-300/60 sm:hidden flex items-center gap-1">
           <span>เลื่อนดูเพิ่มเติม</span>
           <span className="text-amber-400">→</span>

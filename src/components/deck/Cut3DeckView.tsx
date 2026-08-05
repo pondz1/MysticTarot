@@ -188,7 +188,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
             ? 'แตะเลือกลดสำรับ 1 กองตามสัมผัส พลังงานจะสุ่มดึงไพ่ขึ้นมาให้อัตโนมัติ'
             : selectedPile === null
             ? 'แตะเลือก 1 กองที่คุณต้องการเปิดคลี่สำรับเพื่อเลือกไพ่ด้วยตัวเอง'
-            : `เลือกแตะไพ่จาก ${PILE_NAMES[selectedPile].title} (${selectedCards.length} / ${targetCount} ใบ)`}
+            : `เลือกแตะไพ่จาก ${PILE_NAMES[selectedPile].title}`}
         </p>
       </div>
 

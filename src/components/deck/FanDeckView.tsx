@@ -181,7 +181,7 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
       {!isSelectionComplete && (
         <p className="text-[10px] sm:text-xs text-purple-300/80 mt-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-950/50 border border-purple-800/40 shadow-sm">
           <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-pulse" />
-          <span>แตะเลือกไพ่ที่ต้องการ ({selectedCards.length} / {targetCount} ใบ) • พัดสำรับไพ่เวทมนตร์ {numRows} แถวขลัง</span>
+          <span>พัดสำรับไพ่เวทมนตร์ {numRows} แถวขลัง</span>
         </p>
       )}
     </div>

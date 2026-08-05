@@ -3,8 +3,9 @@ import type { TarotCard } from '../../data/tarotCards';
 import { TAROT_CARDS } from '../../data/tarotCards';
 import type { DrawnCard, SpreadMode, SelectionMode } from '../../types/tarot';
 import { getSpreadConfig } from '../../data/tarotSpreads';
-import { Sparkles, RefreshCw, Layers, Crown, LayoutGrid } from 'lucide-react';
+import { Sparkles, RefreshCw, Crown, LayoutGrid, Layers } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { CustomSelect, type CustomSelectOption } from '../common/CustomSelect';
 
 import { DeckModeSelector } from '../deck/DeckModeSelector';
 import { FanDeckView } from '../deck/FanDeckView';
@@ -19,6 +20,12 @@ interface TarotDeckProps {
   onCardsSelected: (cards: DrawnCard[], useAi: boolean, deckFilter?: 'all' | 'major' | 'minor') => void;
   isAnalyzing: boolean;
 }
+
+const DECK_FILTER_OPTIONS: CustomSelectOption<'all' | 'major' | 'minor'>[] = [
+  { value: 'major', label: 'สำรับ Major (22 ใบ)', icon: Crown },
+  { value: 'minor', label: 'สำรับ Minor (56 ใบ)', icon: LayoutGrid },
+  { value: 'all', label: 'ทั้งสำรับ (78 ใบ)', icon: Layers },
+];
 
 export const TarotDeck: React.FC<TarotDeckProps> = ({
   spreadMode,
@@ -210,95 +217,60 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const isSelectionComplete = selectedCards.length === targetCount;
 
   return (
-    <div className="w-full flex flex-col items-center my-2 sm:my-4">
+    <div className="w-full flex flex-col items-center my-2 sm:my-3">
 
-      {/* Header Badge */}
-      <div className="w-full max-w-full px-2 flex flex-col items-center gap-1.5 sm:gap-2 mb-2 text-center">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-purple-950/80 border border-amber-400/30 text-amber-200 text-[10px] sm:text-xs font-medium shadow-md">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin-slow shrink-0" />
-          <span className="leading-tight">
-            {isSelectionComplete
-              ? `เลือกครบแล้ว (${targetCount}/${targetCount} ใบ)! กดยืนยันด้านล่าง`
-              : `เลือกไพ่สำหรับ "${spreadConfig.titleTh}" (${selectedCards.length} / ${targetCount} ใบ)`}
-          </span>
-        </div>
-
-        {/* Deck Filter Selector Tabs (สำรับเต็ม 78 / Major 22 / Minor 56) */}
-        <div className="w-full max-w-xs xs:max-w-sm sm:max-w-md mx-auto grid grid-cols-3 gap-1 p-1 bg-black/60 backdrop-blur-md rounded-xl border border-amber-500/30 text-[10px] sm:text-xs shadow-inner">
-          <button
-            type="button"
+      {/* Header Controls & Status Badge Container */}
+      <div className="w-full max-w-full px-3 flex flex-col items-center gap-3 sm:gap-4 mb-4 sm:mb-5 text-center">
+        {/* Action Controls & Clean Dropdowns Row */}
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-3.5">
+          {/* Mode Dropdown */}
+          <DeckModeSelector
+            selectionMode={selectionMode}
+            onSelectMode={(mode) => setSelectionMode(mode)}
             disabled={isShuffling || isAnalyzing}
-            onClick={() => handleFilterChange('all')}
-            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate flex items-center justify-center gap-1 sm:gap-1.5 ${
-              deckFilter === 'all'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
-            }`}
-          >
-            <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-            <span>ทั้งสำรับ (78)</span>
-          </button>
-          <button
-            type="button"
-            disabled={isShuffling || isAnalyzing}
-            onClick={() => handleFilterChange('major')}
-            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate flex items-center justify-center gap-1 sm:gap-1.5 ${
-              deckFilter === 'major'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
-            }`}
-          >
-            <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-            <span>Major (22)</span>
-          </button>
-          <button
-            type="button"
-            disabled={isShuffling || isAnalyzing}
-            onClick={() => handleFilterChange('minor')}
-            className={`px-1 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer truncate flex items-center justify-center gap-1 sm:gap-1.5 ${
-              deckFilter === 'minor'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-                : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
-            }`}
-          >
-            <LayoutGrid className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-            <span>Minor (56)</span>
-          </button>
-        </div>
+          />
 
-        {/* Selection Mode Switcher Tabs */}
-        <DeckModeSelector
-          selectionMode={selectionMode}
-          onSelectMode={(mode) => {
-            setSelectionMode(mode);
-          }}
-          disabled={isShuffling || isAnalyzing}
-        />
+          {/* Deck Filter Custom Select */}
+          <CustomSelect
+            options={DECK_FILTER_OPTIONS}
+            value={deckFilter}
+            onChange={(val) => handleFilterChange(val)}
+            disabled={isShuffling || isAnalyzing}
+            ariaLabel="เลือกประเภทสำรับไพ่"
+          />
 
-        {/* Action Controls for Fan Deck Mode */}
-        {selectionMode === 'manual' && (
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-0.5">
+          {selectionMode === 'manual' && (
             <button
               type="button"
               disabled={isShuffling || selectedCards.length > 0 || isAnalyzing}
               onClick={handleShuffle}
-              className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3 py-1.5 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-100 disabled:opacity-40 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3.5 py-1.5 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-100 disabled:opacity-40 transition-all cursor-pointer shadow-sm"
             >
-              <RefreshCw className={`w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-300 ${isShuffling ? 'animate-spin' : ''}`} />
-              <span>{isShuffling ? 'กำลังสับไพ่...' : 'สับไพ่ในสำรับ'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 text-amber-300 ${isShuffling ? 'animate-spin' : ''}`} />
+              <span>{isShuffling ? 'กำลังสับ...' : 'สับไพ่'}</span>
             </button>
+          )}
 
-            {selectedCards.length > 0 && !isAnalyzing && (
-              <button
-                type="button"
-                onClick={handleResetSelection}
-                className="flex items-center gap-1.5 text-[11px] sm:text-xs px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 transition-all cursor-pointer"
-              >
-                <span>ล้างเลือกใหม่</span>
-              </button>
-            )}
-          </div>
-        )}
+          {selectedCards.length > 0 && !isAnalyzing && (
+            <button
+              type="button"
+              onClick={handleResetSelection}
+              className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 transition-all cursor-pointer shadow-sm"
+            >
+              <span>ล้างเลือกใหม่</span>
+            </button>
+          )}
+        </div>
+
+        {/* Status Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full bg-purple-950/80 border border-amber-400/30 text-amber-200 text-xs sm:text-sm font-medium shadow-md">
+          <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow shrink-0" />
+          <span className="leading-tight">
+            {isSelectionComplete
+              ? `เลือกครบแล้ว (${targetCount}/${targetCount} ใบ)! กดยืนยันด้านล่าง`
+              : `แตะเลือกไพ่สำหรับ "${spreadConfig.titleTh}" (${selectedCards.length} / ${targetCount} ใบ)`}
+          </span>
+        </div>
       </div>
 
       {/* Render Selected View Strategy */}

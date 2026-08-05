@@ -112,7 +112,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
           <span>กงล้อดวงดาว 360° (Full Cosmic Wheel)</span>
         </span>
         <p className="text-[10px] sm:text-xs text-purple-300/80 mt-0.5">
-          ปัดหมุนกงล้อจักรวาลแล้วแตะเลือกไพ่ ({selectedCards.length} / {targetCount} ใบ)
+          ปัดหมุนกงล้อจักรวาลแล้วแตะเลือกไพ่ที่ต้องการ
         </p>
       </div>
 
