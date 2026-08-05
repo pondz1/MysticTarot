@@ -8,11 +8,11 @@ import {
   Compass,
   Home,
   Star,
-  Phone,
   Calendar,
   Palette,
   Menu,
   X,
+  Hash,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -30,26 +30,73 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const isHomeActive = location.pathname === '/';
-  const isTarotActive = location.pathname.startsWith('/tarot') || location.pathname.startsWith('/reading');
+  const isTarotActive = location.pathname.startsWith('/tarot') || location.pathname.startsWith('/reading') || location.pathname.startsWith('/encyclopedia');
   const isHoroscopeActive = location.pathname.startsWith('/horoscope');
   const isNumerologyActive = location.pathname.startsWith('/numerology');
   const isThaiAstrologyActive = location.pathname.startsWith('/thai-astrology');
   const isFengShuiActive = location.pathname.startsWith('/feng-shui');
 
   const navItems = [
-    { label: 'หน้าแรก', path: '/', active: isHomeActive, icon: Home },
-    { label: 'ไพ่ยิปซี', path: '/tarot', active: isTarotActive, icon: Compass },
-    { label: '12 ราศี', path: '/horoscope', active: isHoroscopeActive, icon: Star },
-    { label: 'เลขศาสตร์', path: '/numerology', active: isNumerologyActive, icon: Phone },
-    { label: 'กราฟชีวิต', path: '/thai-astrology', active: isThaiAstrologyActive, icon: Calendar },
-    { label: 'ฮวงจุ้ย', path: '/feng-shui', active: isFengShuiActive, icon: Palette },
+    {
+      label: 'หน้าแรก',
+      path: '/',
+      active: isHomeActive,
+      icon: Home,
+      activeStyle: 'bg-amber-500/20 text-amber-200 border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.25)]',
+      iconColor: 'text-amber-400',
+      badgeBg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    },
+    {
+      label: 'ไพ่ยิปซี',
+      path: '/tarot',
+      active: isTarotActive,
+      icon: Compass,
+      activeStyle: 'bg-amber-500/20 text-amber-200 border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.25)]',
+      iconColor: 'text-amber-400',
+      badgeBg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    },
+    {
+      label: '12 ราศี',
+      path: '/horoscope',
+      active: isHoroscopeActive,
+      icon: Star,
+      activeStyle: 'bg-purple-500/25 text-purple-200 border-purple-400/60 shadow-[0_0_12px_rgba(168,85,247,0.3)]',
+      iconColor: 'text-purple-400',
+      badgeBg: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
+    },
+    {
+      label: 'เลขศาสตร์',
+      path: '/numerology',
+      active: isNumerologyActive,
+      icon: Hash,
+      activeStyle: 'bg-cyan-500/25 text-cyan-200 border-cyan-400/60 shadow-[0_0_12px_rgba(6,182,212,0.3)]',
+      iconColor: 'text-cyan-400',
+      badgeBg: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',
+    },
+    {
+      label: 'กราฟชีวิต',
+      path: '/thai-astrology',
+      active: isThaiAstrologyActive,
+      icon: Calendar,
+      activeStyle: 'bg-rose-500/25 text-rose-200 border-rose-400/60 shadow-[0_0_12px_rgba(244,63,94,0.3)]',
+      iconColor: 'text-rose-400',
+      badgeBg: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
+    },
+    {
+      label: 'ฮวงจุ้ย',
+      path: '/feng-shui',
+      active: isFengShuiActive,
+      icon: Palette,
+      activeStyle: 'bg-emerald-500/25 text-emerald-200 border-emerald-400/60 shadow-[0_0_12px_rgba(16,185,129,0.3)]',
+      iconColor: 'text-emerald-400',
+      badgeBg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+    },
   ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-amber-500/20 glass-panel backdrop-blur-md px-3 sm:px-4 py-2 sm:py-2.5">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
 
-        {/* Brand Logo */}
         <Link
           to="/"
           aria-label="MYSTICVERSE - หน้าแรก"
@@ -72,7 +119,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </Link>
 
-        {/* Desktop Navigation Links (Visible on md breakpoint and above) */}
         <nav className="hidden md:flex items-center gap-1.5 py-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -80,23 +126,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                   item.active
-                    ? 'bg-amber-500/20 text-amber-200 border border-amber-400/60 shadow-[0_0_10px_rgba(234,179,8,0.2)] font-semibold'
-                    : 'text-slate-300 bg-slate-900/80 border border-slate-800 hover:bg-slate-800 hover:text-white'
+                    ? `${item.activeStyle} font-semibold`
+                    : 'text-slate-300 bg-slate-900/80 border-slate-800 hover:bg-slate-800 hover:text-white'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <Icon className={`w-3.5 h-3.5 ${item.iconColor} shrink-0`} />
                 <span className="whitespace-nowrap">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Action Controls & Mobile Menu Button */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
-          {/* History Modal Button */}
           <button
             type="button"
             onClick={onOpenHistory}
@@ -107,33 +151,31 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden sm:inline whitespace-nowrap">ประวัติ</span>
           </button>
 
-          {/* API Settings Modal */}
           <button
             type="button"
             onClick={onOpenSettings}
-            className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-amber-100 bg-gradient-to-r from-amber-950 to-purple-950 border border-amber-400/50 hover:border-amber-300 transition-all shrink-0 cursor-pointer min-h-[36px]"
-            title="ตั้งค่าเชื่อมต่อ AI"
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer min-h-[36px] ${
+              hasCustomKey
+                ? 'bg-amber-500/20 text-amber-200 border border-amber-400/60 shadow-[0_0_10px_rgba(234,179,8,0.2)] font-semibold'
+                : 'text-slate-300 bg-slate-900/90 border border-slate-800 hover:bg-slate-800 hover:text-white'
+            }`}
+            title="ตั้งค่า API Key"
           >
-            <Settings className="w-4 h-4 text-amber-300 animate-spin-slow shrink-0" />
-            <span className="text-xs font-semibold">AI</span>
-            {hasCustomKey && (
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            )}
+            <Settings className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">ตั้งค่า API</span>
           </button>
 
-          {/* Mobile Menu Hamburger Toggle (Visible below md) */}
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden flex items-center justify-center p-2 rounded-lg bg-slate-900 border border-slate-800 text-amber-300 hover:text-white transition-colors min-h-[36px] min-w-[36px] cursor-pointer"
             aria-label="เปิดเมนูนำทาง"
+            className="md:hidden p-2 rounded-lg text-slate-300 hover:text-white bg-slate-900 border border-slate-800 focus:outline-none"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu Dropdown */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -151,13 +193,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-2.5 p-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    className={`flex items-center gap-2.5 p-3 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
                       item.active
-                        ? 'bg-amber-500/20 text-amber-200 border border-amber-400/60 shadow-md'
-                        : 'text-slate-300 bg-slate-900 border border-slate-800/80 hover:bg-slate-800'
+                        ? `${item.activeStyle} shadow-md`
+                        : 'text-slate-300 bg-slate-900 border-slate-800/80 hover:bg-slate-800'
                     }`}
                   >
-                    <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                    <div className={`p-1.5 rounded-lg border ${item.badgeBg}`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <span className="truncate">{item.label}</span>
