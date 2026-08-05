@@ -10,6 +10,7 @@ import { analyzeTarotReading, analyzeTarotFollowUp, generateFallbackReading } fr
 import { storageService } from '../../../services/storageService';
 import type { TarotCard } from '../data/tarotCards';
 import { Sparkles } from 'lucide-react';
+import { TarotSubNav } from '../components/TarotSubNav';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 
 interface ReadingPageProps {
@@ -219,6 +220,9 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center animate-fade-in pb-12">
+      {/* Tarot Feature Sub Navigation Tabs */}
+      <TarotSubNav />
+
       {/* Hero Section Banner */}
       <div className="text-center my-2 sm:my-4 max-w-2xl mx-auto">
         <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full ${theme.badgeBg} text-[10px] sm:text-xs mb-2 sm:mb-3 shadow-inner`}>

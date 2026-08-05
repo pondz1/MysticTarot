@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Star, ArrowRight, Sun } from 'lucide-react';
+import { Sparkles, Star, ArrowRight, Sun, BookOpen } from 'lucide-react';
 import { MODULE_THEMES, type ModuleId } from '../constants/moduleThemes';
 
 interface DivinationService {
@@ -148,10 +148,11 @@ export const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {DIVINATION_SERVICES.map((service) => {
             const theme = MODULE_THEMES[service.id];
+            const isTarot = service.id === 'tarot';
+
             return (
-              <Link
+              <div
                 key={service.id}
-                to={service.link}
                 className={`group relative rounded-2xl p-6 ${theme.cardBg} transition-all duration-300 hover:-translate-y-1.5 shadow-xl flex flex-col justify-between space-y-4 hover:${theme.borderGlow}`}
               >
                 <div className="space-y-3">
@@ -170,11 +171,26 @@ export const HomePage: React.FC = () => {
                   <p className="text-xs text-slate-400 leading-relaxed">{service.description}</p>
                 </div>
 
-                <div className="pt-2 flex items-center justify-between text-xs font-bold text-slate-300 group-hover:text-white">
-                  <span>เข้าสู่การทำนาย</span>
-                  <ArrowRight className={`w-4 h-4 ${theme.iconColor} group-hover:translate-x-1 transition-transform`} />
+                <div className="pt-2 flex flex-col gap-2">
+                  <Link
+                    to={service.link}
+                    className={`flex items-center justify-between text-xs font-bold p-2.5 rounded-xl ${theme.badgeBg} hover:brightness-110 transition-all cursor-pointer`}
+                  >
+                    <span>เข้าสู่การทำนาย</span>
+                    <ArrowRight className={`w-4 h-4 ${theme.iconColor} group-hover:translate-x-1 transition-transform`} />
+                  </Link>
+
+                  {isTarot && (
+                    <Link
+                      to="/tarot/encyclopedia"
+                      className="flex items-center justify-center gap-1.5 text-xs font-semibold text-amber-300/80 hover:text-amber-200 py-1 hover:underline transition-all cursor-pointer"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                      <span>เปิดคลังสารานุกรมไพ่ 78 ใบ</span>
+                    </Link>
+                  )}
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 
 import { storageService } from '../../../services/storageService';
+import { TarotSubNav } from '../components/TarotSubNav';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 
 type ArcanaFilter = 'all' | 'major' | 'minor';
@@ -145,7 +146,10 @@ export const TarotEncyclopediaPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 min-h-[80vh] flex flex-col animate-fade-in">
+    <div className="w-full max-w-6xl mx-auto min-h-[80vh] flex flex-col animate-fade-in">
+      {/* Tarot Sub Navigation Tabs */}
+      <TarotSubNav />
+
       {/* If Detail View mode is active via URL cardId */}
       {selectedCard ? (
         <div className="animate-fade-in flex flex-col gap-6">
