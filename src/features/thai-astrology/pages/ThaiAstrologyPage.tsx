@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { calculateLifeGraph, DAYS_OF_WEEK } from '../data/thaiAstrologyData';
 import type { ThaiLifeChartResult } from '../types/thaiAstrology';
 import { Sparkles, Calendar, TrendingUp } from 'lucide-react';
+import { MODULE_THEMES } from '../../../constants/moduleThemes';
 
 export const ThaiAstrologyPage: React.FC = () => {
+  const theme = MODULE_THEMES['thai-astrology'];
   const [birthDate, setBirthDate] = useState<string>('1995-06-15');
   const [dayIndex, setDayIndex] = useState<number>(3); // Wednesday default
   const [result, setResult] = useState<ThaiLifeChartResult | null>(() => calculateLifeGraph('1995-06-15', 3));
@@ -19,11 +21,11 @@ export const ThaiAstrologyPage: React.FC = () => {
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-12">
       {/* Header */}
       <div className="text-center space-y-2.5">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-medium">
-          <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${theme.badgeBg} text-xs sm:text-sm font-medium`}>
+          <Calendar className={`w-3.5 h-3.5 ${theme.iconColor}`} />
           <span>ดวงไทยโบราณ & กราฟชีวิต 9 ช่วงอายุ</span>
         </div>
-        <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-emerald-200 via-amber-200 to-emerald-400 bg-clip-text text-transparent px-2">
+        <h1 className={`text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent px-2`}>
           ถอดรหัสกราฟชีวิต & โหราศาสตร์ไทย <span className="block sm:inline text-base sm:text-2xl opacity-90">(Thai Life Chart)</span>
         </h1>
         <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">

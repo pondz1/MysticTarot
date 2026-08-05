@@ -29,12 +29,14 @@ import {
 } from 'lucide-react';
 import type { ApiSettings } from '../../tarot/types/tarot';
 import { analyzeZodiacHoroscope } from '../../../services/aiService';
+import { MODULE_THEMES } from '../../../constants/moduleThemes';
 
 interface HoroscopePageProps {
   apiSettings: ApiSettings;
 }
 
 export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => {
+  const theme = MODULE_THEMES.horoscope;
   const [selectedSign, setSelectedSign] = useState<ZodiacSign>(ZODIAC_SIGNS[0]);
   const [timeframe, setTimeframe] = useState<'daily' | 'monthly'>('daily');
   const [useAi, setUseAi] = useState<boolean>(false);
@@ -87,6 +89,8 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
   const handleFindZodiac = (e: React.FormEvent) => {
     e.preventDefault();
     const foundSign = findZodiacSignByBirthdate(birthMonth, birthDay);
+    setSelectedSign(foundSign);
+    setShowFinder(false);
     handleFetchHoroscope(foundSign, timeframe, useAi);
     if (resultCardRef.current) {
       resultCardRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -104,11 +108,11 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-16">
       {/* Header */}
       <div className="text-center space-y-2.5">
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-medium">
-          <Star className="w-3.5 h-3.5 text-amber-400" />
+        <div className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full ${theme.badgeBg} text-xs sm:text-sm font-medium`}>
+          <Star className={`w-3.5 h-3.5 ${theme.iconColor}`} />
           <span>ดวงชะตา 12 ราศีประจำวัน & รายเดือน</span>
         </div>
-        <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-amber-200 via-purple-200 to-amber-400 bg-clip-text text-transparent px-2">
+        <h1 className={`text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent px-2`}>
           ทำนายดวงชะตา 12 ราศี <span className="block sm:inline text-base sm:text-2xl opacity-90">(Zodiac Horoscope)</span>
         </h1>
         <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">

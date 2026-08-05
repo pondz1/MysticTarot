@@ -15,6 +15,8 @@ import {
   Hash,
 } from 'lucide-react';
 
+import { MODULE_THEMES } from '../../constants/moduleThemes';
+
 interface NavbarProps {
   onOpenSettings: () => void;
   onOpenHistory: () => void;
@@ -42,54 +44,42 @@ export const Navbar: React.FC<NavbarProps> = ({
       path: '/',
       active: isHomeActive,
       icon: Home,
-      activeStyle: 'bg-amber-500/20 text-amber-200 border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.25)]',
-      iconColor: 'text-amber-400',
-      badgeBg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+      theme: MODULE_THEMES.home,
     },
     {
       label: 'ไพ่ยิปซี',
       path: '/tarot',
       active: isTarotActive,
       icon: Compass,
-      activeStyle: 'bg-amber-500/20 text-amber-200 border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.25)]',
-      iconColor: 'text-amber-400',
-      badgeBg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+      theme: MODULE_THEMES.tarot,
     },
     {
       label: '12 ราศี',
       path: '/horoscope',
       active: isHoroscopeActive,
       icon: Star,
-      activeStyle: 'bg-purple-500/25 text-purple-200 border-purple-400/60 shadow-[0_0_12px_rgba(168,85,247,0.3)]',
-      iconColor: 'text-purple-400',
-      badgeBg: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
+      theme: MODULE_THEMES.horoscope,
     },
     {
       label: 'เลขศาสตร์',
       path: '/numerology',
       active: isNumerologyActive,
       icon: Hash,
-      activeStyle: 'bg-cyan-500/25 text-cyan-200 border-cyan-400/60 shadow-[0_0_12px_rgba(6,182,212,0.3)]',
-      iconColor: 'text-cyan-400',
-      badgeBg: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',
+      theme: MODULE_THEMES.numerology,
     },
     {
       label: 'กราฟชีวิต',
       path: '/thai-astrology',
       active: isThaiAstrologyActive,
       icon: Calendar,
-      activeStyle: 'bg-rose-500/25 text-rose-200 border-rose-400/60 shadow-[0_0_12px_rgba(244,63,94,0.3)]',
-      iconColor: 'text-rose-400',
-      badgeBg: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
+      theme: MODULE_THEMES['thai-astrology'],
     },
     {
       label: 'ฮวงจุ้ย',
       path: '/feng-shui',
       active: isFengShuiActive,
       icon: Palette,
-      activeStyle: 'bg-emerald-500/25 text-emerald-200 border-emerald-400/60 shadow-[0_0_12px_rgba(16,185,129,0.3)]',
-      iconColor: 'text-emerald-400',
-      badgeBg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+      theme: MODULE_THEMES['feng-shui'],
     },
   ];
 
@@ -128,11 +118,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 to={item.path}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                   item.active
-                    ? `${item.activeStyle} font-semibold`
+                    ? `${item.theme.activeNavStyle} font-semibold`
                     : 'text-slate-300 bg-slate-900/80 border-slate-800 hover:bg-slate-800 hover:text-white'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${item.iconColor} shrink-0`} />
+                <Icon className={`w-3.5 h-3.5 ${item.theme.iconColor} shrink-0`} />
                 <span className="whitespace-nowrap">{item.label}</span>
               </Link>
             );
@@ -195,11 +185,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-2.5 p-3 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
                       item.active
-                        ? `${item.activeStyle} shadow-md`
+                        ? `${item.theme.activeNavStyle} shadow-md`
                         : 'text-slate-300 bg-slate-900 border-slate-800/80 hover:bg-slate-800'
                     }`}
                   >
-                    <div className={`p-1.5 rounded-lg border ${item.badgeBg}`}>
+                    <div className={`p-1.5 rounded-lg border ${item.theme.badgeBg}`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <span className="truncate">{item.label}</span>

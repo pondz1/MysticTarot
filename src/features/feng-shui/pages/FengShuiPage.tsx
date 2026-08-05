@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { DAILY_LUCKY_COLORS_TABLE, AUSPICIOUS_DIRECTIONS, FENG_SHUI_TIPS } from '../data/fengShuiData';
 import { Compass, Palette, Home, CheckCircle2 } from 'lucide-react';
+import { MODULE_THEMES } from '../../../constants/moduleThemes';
 
 export const FengShuiPage: React.FC = () => {
+  const theme = MODULE_THEMES['feng-shui'];
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
 
   const currentDayInfo = DAILY_LUCKY_COLORS_TABLE[selectedDayIndex];
@@ -11,11 +13,11 @@ export const FengShuiPage: React.FC = () => {
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-12">
       {/* Header */}
       <div className="text-center space-y-2.5">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs sm:text-sm font-medium">
-          <Compass className="w-3.5 h-3.5 text-rose-400" />
+        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${theme.badgeBg} text-xs sm:text-sm font-medium`}>
+          <Compass className={`w-3.5 h-3.5 ${theme.iconColor}`} />
           <span>ศาสตร์แห่งพลังงานฮวงจุ้ย & สีมงคล</span>
         </div>
-        <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-rose-200 via-amber-200 to-rose-400 bg-clip-text text-transparent px-2">
+        <h1 className={`text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent px-2`}>
           ตารางสีเสื้อมงคล & พลังงานฮวงจุ้ย <span className="block sm:inline text-base sm:text-2xl opacity-90">(Daily Feng Shui)</span>
         </h1>
         <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">

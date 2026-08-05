@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { analyzePhoneNumber } from '../data/numerologyData';
 import type { PhoneAnalysisResult } from '../types/numerology';
-import { Sparkles, Phone, Award, ShieldCheck } from 'lucide-react';
+import { Sparkles, Hash, Award, ShieldCheck } from 'lucide-react';
+import { MODULE_THEMES } from '../../../constants/moduleThemes';
 
 export const NumerologyPage: React.FC = () => {
+  const theme = MODULE_THEMES.numerology;
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [result, setResult] = useState<PhoneAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
@@ -23,11 +25,11 @@ export const NumerologyPage: React.FC = () => {
     <div className="w-full max-w-4xl mx-auto space-y-8 animate-fade-in pb-12">
       {/* Header */}
       <div className="text-center space-y-2.5">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs sm:text-sm font-medium">
-          <Phone className="w-3.5 h-3.5 text-purple-400" />
+        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${theme.badgeBg} text-xs sm:text-sm font-medium`}>
+          <Hash className={`w-3.5 h-3.5 ${theme.iconColor}`} />
           <span>ศาสตร์แห่งตัวเลข & มหาโชคลาภ</span>
         </div>
-        <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-purple-200 via-amber-200 to-purple-400 bg-clip-text text-transparent px-2">
+        <h1 className={`text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent px-2`}>
           วิเคราะห์ตัวเลข & เบอร์มงคล <span className="block sm:inline text-base sm:text-2xl opacity-90">(Numerology)</span>
         </h1>
         <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
