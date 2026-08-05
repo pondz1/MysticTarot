@@ -30,6 +30,13 @@ export const DAILY_LUCKY_COLORS_TABLE: DailyLuckyColors[] = [
     unluckyForbidden: ['สีชมพูพาสเทล'],
   },
   {
+    dayNameTh: 'วันพุธ (กลางคืน)',
+    luckyWork: ['สีส้มสด', 'สีแดง'],
+    luckyWealth: ['สีชมพูสด', 'สีม่วง'],
+    luckyLove: ['สีดำเงา', 'สีเทาเข้ม'],
+    unluckyForbidden: ['สีเหลืองนวล', 'สีขาว'],
+  },
+  {
     dayNameTh: 'วันพฤหัสบดี',
     luckyWork: ['สีฟ้า', 'สีน้ำเงินไพลิน'],
     luckyWealth: ['สีแดงสด', 'สีส้ม'],
@@ -71,25 +78,31 @@ export const DAILY_AUSPICIOUS_DIRECTIONS_MAP: Record<number, AuspiciousDirection
     { directionTh: 'ทิศตะวันออกเฉียงใต้ (เสริมความรัก)', directionEn: 'South-East', angle: '135°', energyType: 'ธาตุไม้หวานชื่น', benefit: 'เสริมเสน่ห์ดึงดูดความรักที่ดี และมิตรภาพที่ซื่อสัตย์', category: 'love' },
     { directionTh: 'ทิศตะวันออกเฉียงเหนือ (ทิศอับโชค/ควรหลีกเลี่ยง)', directionEn: 'North-East', angle: '45°', energyType: 'ทิศกาลกิณีประจำวัน', benefit: 'ควรระวังเรื่องอารมณ์ผันผวน หากหันหน้าไปทิศนี้', category: 'avoid' },
   ],
-  3: [ // วันพุธ
+  3: [ // วันพุธ (กลางวัน)
     { directionTh: 'ทิศเหนือ (เสริมการงาน)', directionEn: 'North', angle: '0°', energyType: 'ธาตุน้ำสื่อสาร', benefit: 'การเจรจาเป็นเลิศ ค้าขายออนไลน์และการติดต่อต่างประเทศรุ่งเรือง', category: 'work' },
     { directionTh: 'ทิศตะวันออกเฉียงใต้ (เสริมการเงิน)', directionEn: 'South-East', angle: '135°', energyType: 'ธาตุไม้สมบูรณ์', benefit: 'ดึงดูดทรัพย์สิน เพิ่มพูนรายได้จากหลายทางพร้อมกัน', category: 'wealth' },
     { directionTh: 'ทิศตะวันออกเฉียงเหนือ (เสริมความรัก)', directionEn: 'North-East', angle: '45°', energyType: 'ธาตุดินมั่นคง', benefit: 'ความสัมพันธ์มั่นคง เป็นที่ปรึกษาและเกื้อกูลกันอย่างดี', category: 'love' },
     { directionTh: 'ทิศใต้ (ทิศอับโชค/ควรหลีกเลี่ยง)', directionEn: 'South', angle: '180°', energyType: 'ทิศกาลกิณีประจำวัน', benefit: 'หลีกเลี่ยงการเจรจาหรือเซ็นสัญญาสำคัญเมื่อหันหน้าทิศนี้', category: 'avoid' },
   ],
-  4: [ // วันพฤหัสบดี
+  4: [ // วันพุธ (กลางคืน / พระราหู)
+    { directionTh: 'ทิศตะวันตกเฉียงเหนือ (เสริมการงาน)', directionEn: 'North-West', angle: '315°', energyType: 'ธาตุทองมหาอำนาจ', benefit: 'ส่งเสริมการงาน ธุรกิจนวัตกรรม งานกลางคืน และสายเทคโนโลยี', category: 'work' },
+    { directionTh: 'ทิศตะวันออกเฉียงใต้ (เสริมการเงิน)', directionEn: 'South-East', angle: '135°', energyType: 'ธาตุไม้ลาภลอย', benefit: 'ดึงดูดโชคลาภการเงิน การลงทุนเสี่ยงโชค และลาภลอยกะทันหัน', category: 'wealth' },
+    { directionTh: 'ทิศตะวันตกเฉียงใต้ (เสริมความรัก)', directionEn: 'South-West', angle: '225°', energyType: 'ธาตุดินเสน่ห์ลุ่มลึก', benefit: 'เสริมเสน่ห์เมตตามหานิยม ความรักความเข้าใจลึกซึ้งน่าค้นหา', category: 'love' },
+    { directionTh: 'ทิศตะวันออก (ทิศอับโชค/ควรหลีกเลี่ยง)', directionEn: 'East', angle: '90°', energyType: 'ทิศกาลกิณีประจำวัน', benefit: 'หลีกเลี่ยงการทำกิจกรรมหรือตั้งโต๊ะทำงานหันไปทางทิศนี้', category: 'avoid' },
+  ],
+  5: [ // วันพฤหัสบดี
     { directionTh: 'ทิศตะวันออกเฉียงเหนือ (เสริมการงาน)', directionEn: 'North-East', angle: '45°', energyType: 'ธาตุดินสติปัญญา', benefit: 'เด่นด้านงานวิชาการ การสอบแข่งขัน และผู้ใหญ่เมตตาไว้วางใจ', category: 'work' },
     { directionTh: 'ทิศตะวันตกเฉียงเหนือ (เสริมการเงิน)', directionEn: 'North-West', angle: '315°', energyType: 'ธาตุทองมหาโชค', benefit: 'รับโชคลาภการเงินก้อนใหญ่ การลงทุนระยะยาวได้ผลตอบแทนดี', category: 'wealth' },
     { directionTh: 'ทิศเหนือ (เสริมความรัก)', directionEn: 'North', angle: '0°', energyType: 'ธาตุน้ำนุ่มนวล', benefit: 'ความสัมพันธ์อบอุ่น เข้าใจและเกื้อกูลกันในครอบครัว', category: 'love' },
     { directionTh: 'ทิศตะวันตกเฉียงใต้ (ทิศอับโชค/ควรหลีกเลี่ยง)', directionEn: 'South-West', angle: '225°', energyType: 'ทิศกาลกิณีประจำวัน', benefit: 'หลีกเลี่ยงการทำกิจกรรมสำคัญในทิศนี้ประจำวัน', category: 'avoid' },
   ],
-  5: [ // วันศุกร์
+  6: [ // วันศุกร์
     { directionTh: 'ทิศตะวันตกเฉียงเหนือ (เสริมการงาน)', directionEn: 'North-West', angle: '315°', energyType: 'ธาตุทองประณีต', benefit: 'ส่งเสริมความคิดสร้างสรรค์ การออกแบบ และงานบริหารธุรกิจ', category: 'work' },
     { directionTh: 'ทิศตะวันออก (เสริมการเงิน)', directionEn: 'East', angle: '90°', energyType: 'ธาตุไม้ลาภปาก', benefit: 'มีโชคลาภจากการเจรจา การเงินสะพัด มีลาภปากกะทันหัน', category: 'wealth' },
     { directionTh: 'ทิศใต้ (เสริมความรัก)', directionEn: 'South', angle: '180°', energyType: 'ทิศไฟเสน่ห์', benefit: 'มหาเสน่ห์ดึงดูดผู้คน ความรักสดใสหวานชื่นและสมหวัง', category: 'love' },
     { directionTh: 'ทิศเหนือ (ทิศอับโชค/ควรหลีกเลี่ยง)', directionEn: 'North', angle: '0°', energyType: 'ทิศกาลกิณีประจำวัน', benefit: 'หลีกเลี่ยงการตั้งโต๊ะหันหน้าเข้าทิศนี้ในวันนี้', category: 'avoid' },
   ],
-  6: [ // วันเสาร์
+  7: [ // วันเสาร์
     { directionTh: 'ทิศตะวันตกเฉียงใต้ (เสริมการงาน)', directionEn: 'South-West', angle: '225°', energyType: 'ธาตุดินมั่นคง', benefit: 'ส่งเสริมรากฐานการงานแข็งแกร่ง ลุยงานใหญ่ประสบความสำเร็จ', category: 'work' },
     { directionTh: 'ทิศใต้ (เสริมการเงิน)', directionEn: 'South', angle: '180°', energyType: 'ธาตุไฟมหาโชค', benefit: 'หมุนเงินก้อนโต มีโชคเสี่ยงดวง และบริวารช่วยเหลือ', category: 'wealth' },
     { directionTh: 'ทิศตะวันตก (เสริมความรัก)', directionEn: 'West', angle: '270°', energyType: 'ธาตุทองเกื้อกูล', benefit: 'คนรักช่วยสนับสนุนการงานและการเงินอย่างดีเยี่ยม', category: 'love' },
