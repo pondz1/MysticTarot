@@ -27,6 +27,7 @@ export interface ZodiacSign {
   luckyNumber: number[];
   luckyColor: string[];
   description: string;
+  image?: string;
 }
 
 export interface HoroscopePrediction {

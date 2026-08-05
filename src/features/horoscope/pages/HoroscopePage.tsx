@@ -239,7 +239,20 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                   : `${elementStyle.bg} ${elementStyle.border} text-slate-300`
               }`}
             >
-              <span className="text-2xl sm:text-3xl">{sign.symbol}</span>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex items-center justify-center relative">
+                <img
+                  src={`/zodiac/${sign.id}.png`}
+                  alt={sign.nameTh}
+                  className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-300"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.style.display = 'none';
+                    const sibling = target.nextElementSibling as HTMLElement;
+                    if (sibling) sibling.style.display = 'block';
+                  }}
+                />
+                <span className="hidden text-2xl sm:text-3xl">{sign.symbol}</span>
+              </div>
               <div className={`font-bold text-xs sm:text-sm ${isSelected ? elementStyle.text : 'text-slate-200'}`}>
                 {sign.nameTh}
               </div>
@@ -290,8 +303,19 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
         className="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6"
       >
         <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-slate-800 pb-6">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-500/20 to-purple-600/30 border border-amber-400/40 flex items-center justify-center text-4xl sm:text-5xl shadow-inner shrink-0">
-            {selectedSign.symbol}
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-500/20 to-purple-600/30 border border-amber-400/40 flex items-center justify-center overflow-hidden shadow-xl shrink-0 relative">
+            <img
+              src={`/zodiac/${selectedSign.id}.png`}
+              alt={selectedSign.nameTh}
+              className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-300"
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                const sibling = target.nextElementSibling as HTMLElement;
+                if (sibling) sibling.style.display = 'block';
+              }}
+            />
+            <span className="hidden text-4xl sm:text-5xl">{selectedSign.symbol}</span>
           </div>
           <div className="text-center sm:text-left space-y-1">
             <div className="flex items-center justify-center sm:justify-start gap-2">
