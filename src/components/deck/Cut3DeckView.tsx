@@ -352,7 +352,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 w-full">
+          <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3 xs:gap-4 sm:gap-6 w-full">
           {PILE_NAMES.map((pile) => {
             const isThisPileSelected = selectedPile === pile.id;
             const isCuttingThisPile = isCutting && isThisPileSelected;

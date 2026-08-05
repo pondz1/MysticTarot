@@ -161,6 +161,26 @@ export const MindfulHoldView: React.FC<MindfulHoldViewProps> = ({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
+  // Helper for responsive tight grid classes based on card count
+  const getGridConfig = (count: number) => {
+    switch (count) {
+      case 1:
+        return 'grid-cols-1 max-w-[140px]';
+      case 2:
+        return 'grid-cols-2 max-w-[270px]';
+      case 3:
+        return 'grid-cols-3 max-w-[360px] xs:max-w-[400px] sm:max-w-xl';
+      case 4:
+        return 'grid-cols-2 max-w-[280px] xs:max-w-[310px] sm:grid-cols-4 sm:max-w-3xl';
+      case 5:
+        return 'grid-cols-3 max-w-[360px] xs:max-w-[400px] sm:grid-cols-5 sm:max-w-4xl';
+      case 6:
+        return 'grid-cols-3 max-w-[360px] xs:max-w-[400px] sm:grid-cols-6 sm:max-w-5xl';
+      default: // 7-10+ cards
+        return 'grid-cols-3 max-w-[360px] xs:max-w-[400px] sm:grid-cols-4 md:grid-cols-5 sm:max-w-5xl';
+    }
+  };
+
   return (
     <div className="w-full flex flex-col items-center py-3 sm:py-5 select-none">
       {/* Charge Mode Toggle Bar */}
@@ -323,8 +343,8 @@ export const MindfulHoldView: React.FC<MindfulHoldViewProps> = ({
               <span>ไพ่ที่ได้รับการถ่ายทอดพลังงานอธิษฐาน ({selectedCards.length} ใบ)</span>
             </div>
 
-            {/* Manifested Large Cards Grid (2 cols on mobile, 3-4 cols on desktop) */}
-            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 w-full justify-items-center">
+            {/* Manifested Cards Compact Grid */}
+            <div className={`grid gap-x-2 gap-y-1.5 sm:gap-4 sm:gap-y-4 w-full justify-items-center ${getGridConfig(selectedCards.length)}`}>
               {selectedCards.map((sc, idx) => {
                 const shortPosition = sc.position.split(':')[0] || `ตำแหน่งที่ ${idx + 1}`;
                 const detailPosition = sc.position.includes(':') ? sc.position.split(':')[1]?.trim() : '';
@@ -332,37 +352,37 @@ export const MindfulHoldView: React.FC<MindfulHoldViewProps> = ({
                 return (
                   <motion.div
                     key={sc.card.id || idx}
-                    initial={{ opacity: 0, y: 30, scale: 0.8 }}
+                    initial={{ opacity: 0, y: 20, scale: 0.85 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.4, delay: idx * 0.1, ease: 'easeOut' }}
-                    className="relative group flex flex-col items-center max-w-[150px] sm:max-w-[180px] w-full"
+                    transition={{ duration: 0.35, delay: idx * 0.08, ease: 'easeOut' }}
+                    className="relative group flex flex-col items-center max-w-[130px] xs:max-w-[145px] sm:max-w-[170px] w-full"
                   >
-                    {/* Large Hero Card Image */}
-                    <div className="relative w-28 h-42 xs:w-32 xs:h-48 sm:w-36 sm:h-54 md:w-40 md:h-60 rounded-2xl border-2 border-amber-400/80 bg-slate-900 shadow-[0_0_25px_rgba(234,179,8,0.4)] group-hover:shadow-[0_0_35px_rgba(234,179,8,0.7)] group-hover:border-amber-300 transition-all duration-300 overflow-hidden">
+                    {/* Compact Hero Card Image */}
+                    <div className="relative w-22 h-34 xs:w-26 xs:h-40 sm:w-32 sm:h-48 md:w-36 md:h-54 rounded-xl sm:rounded-2xl border-2 border-amber-400/80 bg-slate-900 shadow-[0_0_20px_rgba(234,179,8,0.4)] group-hover:shadow-[0_0_30px_rgba(234,179,8,0.7)] group-hover:border-amber-300 transition-all duration-300 overflow-hidden">
                       <img
                         src="/cards/card_back.jpg"
                         alt={sc.card.nameTh}
-                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-purple-950/80 via-transparent to-transparent pointer-events-none" />
 
                       {/* Card Index Number Badge */}
-                      <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-amber-400 text-slate-950 text-[11px] font-extrabold flex items-center justify-center shadow-md">
+                      <span className="absolute top-1.5 left-1.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-amber-400 text-slate-950 text-[10px] sm:text-[11px] font-extrabold flex items-center justify-center shadow-md">
                         {idx + 1}
                       </span>
                     </div>
 
-                    {/* Compact Clean Position Badge */}
+                    {/* Compact Position Badge */}
                     <span
                       title={sc.position}
-                      className="text-[11px] sm:text-xs text-amber-200 font-bold mt-2 px-2.5 py-1 rounded-lg bg-purple-950/90 border border-amber-400/40 max-w-full truncate text-center shadow-sm"
+                      className="text-[10px] sm:text-xs text-amber-200 font-bold mt-1 px-2 py-0.5 rounded-md sm:rounded-lg bg-purple-950/90 border border-amber-400/40 max-w-full truncate text-center shadow-sm"
                     >
                       {shortPosition}
                     </span>
 
                     {/* Optional Detail Subtitle */}
                     {detailPosition && (
-                      <span className="text-[10px] text-purple-300/80 text-center mt-0.5 line-clamp-1 max-w-full px-1">
+                      <span className="text-[9px] sm:text-[10px] text-purple-300/80 text-center mt-0.5 line-clamp-1 max-w-full px-0.5 leading-tight">
                         {detailPosition}
                       </span>
                     )}
