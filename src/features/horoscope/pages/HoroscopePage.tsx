@@ -12,7 +12,7 @@ interface HoroscopePageProps {
 export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => {
   const [selectedSign, setSelectedSign] = useState<ZodiacSign>(ZODIAC_SIGNS[0]);
   const [timeframe, setTimeframe] = useState<'daily' | 'monthly'>('daily');
-  const [useAi, setUseAi] = useState<boolean>(true);
+  const [useAi, setUseAi] = useState<boolean>(false);
   const [prediction, setPrediction] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
