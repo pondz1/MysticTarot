@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   ZODIAC_SIGNS,
   getZodiacClassicPrediction,
@@ -372,8 +374,8 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
               <p className="text-sm">กำลังประมวลผลคำทำนาย...</p>
             </div>
           ) : prediction ? (
-            <div className="prose prose-invert max-w-none text-slate-200 text-sm sm:text-base leading-relaxed whitespace-pre-line bg-slate-950/60 p-4 sm:p-6 rounded-xl border border-slate-800/80">
-              {prediction}
+            <div className="prose prose-invert max-w-none text-slate-200 text-sm sm:text-base leading-relaxed bg-slate-950/60 p-4 sm:p-6 rounded-xl border border-slate-800/80">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{prediction}</ReactMarkdown>
             </div>
           ) : (
             <div className="text-center py-8 text-slate-400">
