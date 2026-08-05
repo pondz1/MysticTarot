@@ -16,27 +16,27 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ drawnCards, onOpenCard
   const getGridClass = (count: number) => {
     switch (count) {
       case 1: return 'grid-cols-1 max-w-xs mx-auto';
-      case 3: return 'grid-cols-1 sm:grid-cols-3 max-w-4xl mx-auto';
-      case 4: return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4 max-w-5xl mx-auto';
+      case 3: return 'grid-cols-2 sm:grid-cols-3 max-w-4xl mx-auto';
+      case 4: return 'grid-cols-2 sm:grid-cols-2 md:grid-cols-4 max-w-5xl mx-auto';
       case 5: return 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 max-w-6xl mx-auto';
       case 10: return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5 max-w-6xl mx-auto';
-      default: return 'grid-cols-1 sm:grid-cols-3 md:grid-cols-4 max-w-5xl mx-auto';
+      default: return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 max-w-5xl mx-auto';
     }
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto my-6 px-4">
-      <div className="text-center mb-6">
-        <h2 className="text-xl md:text-2xl font-bold font-serif-mystic text-gold-gradient flex items-center justify-center gap-2">
-          <Sparkles className="w-5 h-5 text-amber-400" />
+    <div className="w-full max-w-6xl mx-auto my-4 sm:my-6 px-2 sm:px-4">
+      <div className="text-center mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold font-serif-mystic text-gold-gradient flex items-center justify-center gap-2">
+          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
           ไพ่ยิปซีที่คุณเลือกสลักชะตา ({drawnCards.length} ใบ)
         </h2>
-        <p className="text-xs text-purple-300/80 mt-1">
+        <p className="text-[11px] sm:text-xs text-purple-300/80 mt-1">
           แตะคลิกที่ใบไพ่เพื่ออ่านรายละเอียดไพ่แต่ละใบเพิ่มเติมได้
         </p>
       </div>
 
-      <div className={`grid gap-4 sm:gap-6 justify-items-center ${getGridClass(drawnCards.length)}`}>
+      <div className={`grid gap-3 sm:gap-6 justify-items-center ${getGridClass(drawnCards.length)}`}>
         {drawnCards.map((dCard, index) => (
           <motion.div
             key={dCard.card.id + index}
@@ -47,7 +47,7 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ drawnCards, onOpenCard
             className="flex flex-col items-center w-full max-w-[260px] gpu-accelerated"
           >
             {/* Position Tag */}
-            <div className="mb-2 px-2.5 py-1 rounded-full bg-purple-950/90 border border-amber-400/40 text-amber-200 text-[11px] font-semibold shadow-md flex items-center gap-1 text-center truncate max-w-full">
+            <div className="mb-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-purple-950/90 border border-amber-400/40 text-amber-200 text-[10px] sm:text-[11px] font-semibold shadow-md flex items-center gap-1 text-center truncate max-w-full">
               <span className="truncate">{dCard.position}</span>
             </div>
 
