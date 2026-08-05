@@ -49,7 +49,7 @@ export const FengShuiPage: React.FC = () => {
             <Palette className={`w-5 h-5 ${theme.iconColor}`} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-rose-200">ตารางสีมงคลประจำ{currentDayInfo.dayNameTh}</h2>
+            <h2 className="text-xl font-bold text-emerald-200">ตารางสีมงคลประจำ{currentDayInfo.dayNameTh}</h2>
             <p className="text-xs text-slate-400">เลือกแต่งกายด้วยสีมงคลดึงดูดพลังงานบวกในแต่ละด้าน</p>
           </div>
         </div>
@@ -77,17 +77,17 @@ export const FengShuiPage: React.FC = () => {
       {/* Auspicious Directions */}
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
-          <Compass className="w-5 h-5 text-amber-400" />
+          <Compass className={`w-5 h-5 ${theme.iconColor}`} />
           <span>ทิศมงคลนำโชค (Auspicious Directions)</span>
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {AUSPICIOUS_DIRECTIONS.map((dir, idx) => (
-            <div key={idx} className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2 hover:border-rose-500/40 transition-all">
+            <div key={idx} className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2 hover:border-emerald-500/40 transition-all">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-amber-300 text-base">{dir.directionTh}</span>
-                <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-950 text-rose-300 border border-slate-700">{dir.angle}</span>
+                <span className="font-bold text-emerald-300 text-base">{dir.directionTh}</span>
+                <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-950 text-emerald-300 border border-slate-700">{dir.angle}</span>
               </div>
-              <span className="text-xs font-semibold text-rose-400 block">{dir.energyType}</span>
+              <span className="text-xs font-semibold text-emerald-400 block">{dir.energyType}</span>
               <p className="text-xs text-slate-300 leading-relaxed">{dir.benefit}</p>
             </div>
           ))}
@@ -97,13 +97,13 @@ export const FengShuiPage: React.FC = () => {
       {/* Feng Shui Tips */}
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
-          <Home className="w-5 h-5 text-rose-400" />
+          <Home className={`w-5 h-5 ${theme.iconColor}`} />
           <span>เคล็ดลับจัดฮวงจุ้ยบ้าน & ที่ทำงานรับทรัพย์</span>
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {FENG_SHUI_TIPS.map((tip, idx) => (
             <div key={idx} className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-              <h3 className="font-bold text-rose-300 text-sm flex items-center gap-2">
+              <h3 className="font-bold text-emerald-300 text-sm flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>{tip.title}</span>
               </h3>
