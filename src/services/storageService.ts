@@ -33,6 +33,11 @@ export const storageService = {
     return [];
   },
 
+  getReadingById(id: string): SavedReading | undefined {
+    const readings = this.getSavedReadings();
+    return readings.find((r) => r.id === id);
+  },
+
   saveReading(reading: SavedReading): SavedReading[] {
     const current = this.getSavedReadings();
     const updated = [reading, ...current];

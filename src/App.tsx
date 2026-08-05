@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { ApiSettingsModal } from './components/modals/ApiSettingsModal';
@@ -12,6 +12,8 @@ import { storageService } from './services/storageService';
 import type { TarotCard } from './data/tarotCards';
 
 export function App() {
+  const navigate = useNavigate();
+
   // Modals Visibility
   const [isApiSettingsOpen, setIsApiSettingsOpen] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
@@ -36,8 +38,8 @@ export function App() {
   };
 
   // Load a reading from history
-  const handleLoadHistoryReading = () => {
-    // History loading callback handled inside ReadingPage
+  const handleLoadHistoryReading = (reading: SavedReading) => {
+    navigate(`/reading/${reading.id}`);
   };
 
   return (
@@ -59,6 +61,17 @@ export function App() {
           {/* Home / Reading Route */}
           <Route
             path="/"
+            element={
+              <ReadingPage
+                apiSettings={apiSettings}
+                onOpenCardDetails={(inspect) => setSelectedInspectCard(inspect)}
+                savedReadings={savedReadings}
+                setSavedReadings={setSavedReadings}
+              />
+            }
+          />
+          <Route
+            path="/reading/:id"
             element={
               <ReadingPage
                 apiSettings={apiSettings}

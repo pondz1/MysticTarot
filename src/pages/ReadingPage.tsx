@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { SpreadSelector } from '../components/reading/SpreadSelector';
 import { QuestionInput } from '../components/reading/QuestionInput';
 import { TarotDeck } from '../components/reading/TarotDeck';
@@ -20,8 +21,12 @@ interface ReadingPageProps {
 export const ReadingPage: React.FC<ReadingPageProps> = ({
   apiSettings,
   onOpenCardDetails,
+  savedReadings,
   setSavedReadings
 }) => {
+  const { id } = useParams<{ id?: string }>();
+  const navigate = useNavigate();
+
   // Mode selection ('single' | 'three' | 'four' | 'five' | 'celtic')
   const [spreadMode, setSpreadMode] = useState<SpreadMode>('single');
 
@@ -36,12 +41,29 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [isSavedCurrent, setIsSavedCurrent] = useState<boolean>(false);
 
+  // Load reading if URL has an id parameter
+  useEffect(() => {
+    if (id) {
+      const found = savedReadings.find((r) => r.id === id) || storageService.getReadingById(id);
+      if (found) {
+        setDrawnCards(found.drawnCards);
+        setQuestion(found.question);
+        setSpreadMode(found.spreadMode);
+        setReadingResult(found.resultText);
+        setIsSavedCurrent(true);
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [id, savedReadings, navigate]);
+
   // Save Current Reading to History
   const handleSaveCurrentReading = () => {
     if (!readingResult || drawnCards.length === 0 || isSavedCurrent) return;
 
+    const newId = Date.now().toString();
     const newEntry: SavedReading = {
-      id: Date.now().toString(),
+      id: newId,
       timestamp: Date.now(),
       question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
       spreadMode,
@@ -52,6 +74,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
     const updated = storageService.saveReading(newEntry);
     setSavedReadings(updated);
     setIsSavedCurrent(true);
+    navigate(`/reading/${newId}`);
   };
 
   // Handle when cards are selected from TarotDeck
@@ -88,6 +111,8 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
     setDrawnCards([]);
     setReadingResult('');
     setIsSavedCurrent(false);
+    setQuestion('');
+    navigate('/');
   };
 
   return (
