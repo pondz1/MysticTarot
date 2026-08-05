@@ -319,6 +319,8 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           selectedCards={selectedCards}
           targetCount={targetCount}
           isAnalyzing={isAnalyzing}
+          isShuffling={isShuffling}
+          onShuffle={handleShuffle}
           onPickCard={handlePickCard}
         />
       ) : selectionMode === 'hold' ? (

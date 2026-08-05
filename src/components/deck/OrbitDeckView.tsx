@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import type { TarotCard } from '../../data/tarotCards';
 import type { DrawnCard } from '../../types/tarot';
-import { Orbit, CheckCircle2, RotateCcw, RotateCw, Eye } from 'lucide-react';
+import { Orbit, CheckCircle2, RotateCcw, RotateCw, Eye, Sparkles, Compass } from 'lucide-react';
 
 interface OrbitDeckViewProps {
   deck: TarotCard[];
   selectedCards: DrawnCard[];
   targetCount: number;
   isAnalyzing: boolean;
+  isShuffling?: boolean;
+  onShuffle?: () => void;
   onPickCard: (card: TarotCard) => void;
 }
 
@@ -16,17 +19,33 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
   selectedCards,
   targetCount,
   isAnalyzing,
+  isShuffling = false,
+  onShuffle,
   onPickCard,
 }) => {
   const [rotationDeg, setRotationDeg] = useState<number>(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartX, setDragStartX] = useState(0);
   const [radius, setRadius] = useState<number>(150);
+  const [isSpinningFast, setIsSpinningFast] = useState(false);
 
   const velocityRef = useRef(0);
   const lastXRef = useRef(0);
   const lastTimeRef = useRef(0);
   const animFrameRef = useRef<number | null>(null);
+
+  // Trigger cosmic spin shuffle animation when isShuffling changes
+  useEffect(() => {
+    if (isShuffling) {
+      setIsSpinningFast(true);
+      setRotationDeg((prev) => prev + 1080);
+      const timer = setTimeout(() => setIsSpinningFast(false), 900);
+      return () => clearTimeout(timer);
+    } else {
+      const timer = setTimeout(() => setIsSpinningFast(false), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isShuffling]);
 
   // Clean up animation frame on unmount
   useEffect(() => {
@@ -90,18 +109,43 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
     // Inertia spin momentum
     let currentVel = velocityRef.current * 14;
     if (Math.abs(currentVel) > 0.4) {
+      setIsSpinningFast(true);
       const decay = () => {
         currentVel *= 0.92;
         if (Math.abs(currentVel) > 0.05) {
           setRotationDeg((prev) => prev + currentVel);
           animFrameRef.current = requestAnimationFrame(decay);
+        } else {
+          setIsSpinningFast(false);
         }
       };
       animFrameRef.current = requestAnimationFrame(decay);
     }
   };
 
+  const handleRotateButton = (direction: 'left' | 'right') => {
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    setIsSpinningFast(true);
+    const delta = direction === 'left' ? 45 : -45;
+    
+    let stepCount = 0;
+    const totalSteps = 15;
+    const stepDeg = delta / totalSteps;
+
+    const animateStep = () => {
+      if (stepCount < totalSteps) {
+        setRotationDeg((prev) => prev + stepDeg);
+        stepCount++;
+        animFrameRef.current = requestAnimationFrame(animateStep);
+      } else {
+        setIsSpinningFast(false);
+      }
+    };
+    animFrameRef.current = requestAnimationFrame(animateStep);
+  };
+
   const isSelectionComplete = selectedCards.length === targetCount;
+  const isWheelActive = isDragging || isSpinningFast;
 
   return (
     <div className="w-full flex flex-col items-center py-2 sm:py-4 px-2 select-none">
@@ -117,26 +161,32 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
       </div>
 
       {/* Orbit Controls */}
-      <div className="flex items-center gap-3 mt-1 sm:mt-2 mb-2 sm:mb-4">
+      <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-2 mb-2 sm:mb-4">
         <button
           type="button"
-          onClick={() => {
-            if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-            setRotationDeg((prev) => prev + 30);
-          }}
-          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-colors cursor-pointer shadow-sm"
+          onClick={() => handleRotateButton('left')}
+          className="flex items-center gap-1.5 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-amber-400/40 text-amber-200 hover:text-amber-100 transition-all cursor-pointer shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.4)]"
         >
           <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
           <span>หมุนซ้าย</span>
         </button>
 
+        {onShuffle && (
+          <button
+            type="button"
+            disabled={isShuffling || selectedCards.length > 0 || isAnalyzing}
+            onClick={onShuffle}
+            className="flex items-center gap-1.5 text-[10px] sm:text-[11px] px-3.5 py-1.5 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/50 text-amber-100 disabled:opacity-40 transition-all cursor-pointer shadow-md shadow-amber-500/20"
+          >
+            <Sparkles className={`w-3.5 h-3.5 text-amber-300 ${isShuffling ? 'animate-spin' : ''}`} />
+            <span>{isShuffling ? 'กำลังสับ...' : 'หมุนสับไพ่'}</span>
+          </button>
+        )}
+
         <button
           type="button"
-          onClick={() => {
-            if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-            setRotationDeg((prev) => prev - 30);
-          }}
-          className="flex items-center gap-1 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-lg bg-purple-950/80 border border-amber-400/30 text-amber-200 hover:bg-purple-900 transition-colors cursor-pointer shadow-sm"
+          onClick={() => handleRotateButton('right')}
+          className="flex items-center gap-1.5 text-[10px] sm:text-[11px] px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-amber-400/40 text-amber-200 hover:text-amber-100 transition-all cursor-pointer shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.4)]"
         >
           <span>หมุนขวา</span>
           <RotateCw className="w-3.5 h-3.5 text-amber-300" />
@@ -151,10 +201,28 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
         onPointerLeave={handlePointerUp}
         className="relative w-full max-w-4xl sm:max-w-5xl h-[340px] xs:h-[380px] sm:h-[460px] md:h-[530px] flex items-center justify-center overflow-visible cursor-grab active:cursor-grabbing touch-pan-y my-2 sm:my-4 px-4 py-4"
       >
-        {/* Central Cosmic Core Icon */}
+        {/* Central Cosmic Core Icon & Multi-layer Glowing Aura Rings */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border border-amber-400/30 bg-purple-950/40 backdrop-blur-xs flex items-center justify-center shadow-[0_0_40px_rgba(234,179,8,0.3)]">
-            <Orbit className="w-8 h-8 sm:w-12 sm:h-12 text-amber-400/60 animate-spin-slow" />
+          {/* Outer Pulsing Aura Ring */}
+          <div
+            className={`w-32 h-32 sm:w-44 sm:h-44 rounded-full border border-amber-400/30 bg-purple-950/30 backdrop-blur-xs flex items-center justify-center transition-all duration-300 ${
+              isWheelActive
+                ? 'scale-110 border-amber-400/60 shadow-[0_0_60px_rgba(234,179,8,0.5)]'
+                : 'shadow-[0_0_30px_rgba(234,179,8,0.25)]'
+            }`}
+          >
+            {/* Spinning Stardust Ring */}
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border border-dashed border-purple-400/50 animate-spin-slow flex items-center justify-center relative">
+              <Sparkles className="w-3 h-3 text-amber-300 absolute -top-1.5 left-1/2 -translate-x-1/2 animate-pulse" />
+              <Sparkles className="w-3 h-3 text-purple-300 absolute -bottom-1.5 left-1/2 -translate-x-1/2 animate-pulse" />
+              <Sparkles className="w-3 h-3 text-amber-300 absolute top-1/2 -left-1.5 -translate-y-1/2 animate-pulse" />
+              <Sparkles className="w-3 h-3 text-purple-300 absolute top-1/2 -right-1.5 -translate-y-1/2 animate-pulse" />
+
+              {/* Inner Glowing Center Core */}
+              <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-amber-400/30 via-purple-900/70 to-purple-950/95 border border-amber-400/70 flex items-center justify-center shadow-inner">
+                <Compass className={`w-7 h-7 sm:w-10 sm:h-10 text-amber-400 transition-transform duration-300 ${isWheelActive ? 'animate-spin' : 'animate-spin-slow'}`} />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -164,14 +232,16 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
             transform: `rotate(${rotationDeg}deg)`,
             transformOrigin: 'center center',
             willChange: 'transform',
-            transition: isDragging ? 'none' : 'transform 0.15s ease-out',
+            transition: isDragging
+              ? 'none'
+              : isShuffling
+                ? 'transform 1.0s cubic-bezier(0.34, 1.25, 0.64, 1)'
+                : 'transform 0.5s ease-out',
           }}
           className="relative w-full h-full flex items-center justify-center"
         >
           {deck.map((card, idx) => {
             const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
-
-            // Use 2 concentric rings for large decks (56/78 cards) to avoid crowding and boost 60FPS performance
             const isLargeDeck = totalCards > 50;
             const useInnerRing = isLargeDeck && idx % 2 === 1;
 
@@ -182,12 +252,18 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
             const baseAngle = ringIdx * ringAngleStep;
             const rad = (baseAngle * Math.PI) / 180;
 
-            const effectiveRadius = (useInnerRing ? radius * 0.65 : radius) + (isPicked ? 12 : 0);
+            const centrifugalOffset = (isShuffling || isSpinningFast)
+              ? 24
+              : isDragging
+                ? Math.min(16, Math.abs(velocityRef.current) * 16)
+                : 0;
+
+            const effectiveRadius = (useInnerRing ? radius * 0.65 : radius) + (isPicked ? 12 : 0) + centrifugalOffset;
             const x = Math.sin(rad) * effectiveRadius;
             const y = -Math.cos(rad) * effectiveRadius;
 
             return (
-              <div
+              <motion.div
                 key={card.id}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -195,15 +271,31 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                 }}
                 style={{
                   position: 'absolute',
-                  transform: `translate3d(${x}px, ${y}px, 0px) rotate(${baseAngle}deg) scale(${isPicked ? 1.15 : 1})`,
                   transformOrigin: 'center center',
                   zIndex: isPicked ? 50 : useInnerRing ? 20 : 10,
-                  willChange: 'transform',
                 }}
-                className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-all duration-150 ${
+                animate={{
+                  x,
+                  y,
+                  rotate: baseAngle,
+                  scale: isPicked ? 1.15 : 1,
+                }}
+                transition={
+                  isDragging
+                    ? { duration: 0 }
+                    : {
+                        type: 'spring',
+                        stiffness: 90,
+                        damping: 15,
+                        mass: 0.8
+                      }
+                }
+                className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none ${
                   isPicked
                     ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
-                    : 'border-amber-400/40 hover:border-amber-300 hover:scale-110 hover:shadow-[0_0_24px_rgba(234,179,8,0.6)]'
+                    : isWheelActive
+                      ? 'border-amber-300/80 shadow-[0_0_20px_rgba(234,179,8,0.5)]'
+                      : 'border-amber-400/40 hover:border-amber-300 hover:scale-110 hover:shadow-[0_0_24px_rgba(234,179,8,0.6)]'
                 }`}
               >
                 <img
@@ -220,7 +312,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                     <CheckCircle2 className="w-3 h-3 fill-slate-950 text-amber-400" />
                   </div>
                 )}
-              </div>
+              </motion.div>
             );
           })}
         </div>
