@@ -14,14 +14,13 @@ import { JumpingCardView } from '../deck/JumpingCardView';
 import { CompassDeckView } from '../deck/CompassDeckView';
 import { DeckConfirmation } from '../deck/DeckConfirmation';
 import { DeckSelectionModal } from '../modals/DeckSelectionModal';
+import { storageService } from '../../services/storageService';
 
 interface TarotDeckProps {
   spreadMode: SpreadMode;
   onCardsSelected: (cards: DrawnCard[], useAi: boolean, deckFilter?: 'all' | 'major' | 'minor') => void;
   isAnalyzing: boolean;
 }
-
-
 
 export const TarotDeck: React.FC<TarotDeckProps> = ({
   spreadMode,
@@ -31,13 +30,21 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const spreadConfig = getSpreadConfig(spreadMode);
   const targetCount = spreadConfig.cardCount;
 
-  const [selectionMode, setSelectionMode] = useState<SelectionMode>('manual');
-  const [deckFilter, setDeckFilter] = useState<'all' | 'major' | 'minor'>('major');
+  // Persistent preferences from localStorage
+  const savedPrefs = storageService.getDeckPreferences();
+
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>(savedPrefs.selectionMode);
+  const [deckFilter, setDeckFilter] = useState<'all' | 'major' | 'minor'>(savedPrefs.deckFilter);
   const [selectedCards, setSelectedCards] = useState<DrawnCard[]>([]);
   const [hasStartedSelection, setHasStartedSelection] = useState<boolean>(false);
-  const [useAi, setUseAi] = useState<boolean>(true);
+  const [useAi, setUseAiState] = useState<boolean>(savedPrefs.useAi);
   const [isShuffling, setIsShuffling] = useState(false);
   const [activeModal, setActiveModal] = useState<'mode' | 'filter' | null>(null);
+
+  const setUseAi = (val: boolean) => {
+    setUseAiState(val);
+    storageService.saveDeckPreferences({ useAi: val });
+  };
 
   const isSelectionActive = selectedCards.length > 0 || hasStartedSelection;
 
@@ -96,10 +103,22 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const handleFilterChange = (filter: 'all' | 'major' | 'minor') => {
     if (isShuffling || isAnalyzing || isSelectionActive) return;
     setDeckFilter(filter);
+    storageService.saveDeckPreferences({ deckFilter: filter });
     setSelectedCards([]);
     setHasStartedSelection(false);
     cardRefs.current = [];
     setDeck(shuffleArray(getFilteredCards(filter)));
+  };
+
+  // Handle selection mode change without losing deckFilter
+  const handleModeChange = (mode: SelectionMode) => {
+    if (isShuffling || isAnalyzing || isSelectionActive) return;
+    setSelectionMode(mode);
+    storageService.saveDeckPreferences({ selectionMode: mode });
+    setSelectedCards([]);
+    setHasStartedSelection(false);
+    cardRefs.current = [];
+    setDeck(shuffleArray(getFilteredCards(deckFilter)));
   };
 
   // Trigger shuffle animation
@@ -200,16 +219,6 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
 
   // Reset selection
   const handleResetSelection = () => {
-    setSelectedCards([]);
-    setHasStartedSelection(false);
-    cardRefs.current = [];
-    setDeck(shuffleArray(getFilteredCards(deckFilter)));
-  };
-
-  // Handle selection mode change without losing deckFilter
-  const handleModeChange = (mode: SelectionMode) => {
-    if (isShuffling || isAnalyzing || isSelectionActive) return;
-    setSelectionMode(mode);
     setSelectedCards([]);
     setHasStartedSelection(false);
     cardRefs.current = [];

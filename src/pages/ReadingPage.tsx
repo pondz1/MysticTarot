@@ -28,7 +28,14 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
   const navigate = useNavigate();
 
   // Mode selection ('single' | 'three' | 'four' | 'five' | 'celtic')
-  const [spreadMode, setSpreadMode] = useState<SpreadMode>('single');
+  const [spreadMode, setSpreadModeState] = useState<SpreadMode>(
+    () => storageService.getDeckPreferences().spreadMode || 'three'
+  );
+
+  const setSpreadMode = (mode: SpreadMode) => {
+    setSpreadModeState(mode);
+    storageService.saveDeckPreferences({ spreadMode: mode });
+  };
 
   // User Question Input
   const [question, setQuestion] = useState<string>('');

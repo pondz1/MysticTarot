@@ -181,10 +181,10 @@ export const JumpingCardView: React.FC<JumpingCardViewProps> = ({
               animate={
                 isJumping
                   ? {
-                      x: [-12, 12, -8, 8, 0],
-                      y: [-6, 6, -6, 0],
-                      rotate: [-6, 6, -3, 3, 0],
-                    }
+                    x: [-12, 12, -8, 8, 0],
+                    y: [-6, 6, -6, 0],
+                    rotate: [-6, 6, -3, 3, 0],
+                  }
                   : { x: 0, y: 0, rotate: 0 }
               }
               transition={{ duration: 0.5, repeat: isJumping ? Infinity : 0 }}
@@ -226,7 +226,7 @@ export const JumpingCardView: React.FC<JumpingCardViewProps> = ({
           </div>
 
           {/* Action Control Buttons */}
-          <div className="flex items-center gap-2.5 mt-4 sm:mt-5">
+          <div className="flex items-center gap-2.5 mt-4 sm:mt-5 pt-4 sm:pt-5">
             <button
               type="button"
               disabled={isJumping || isAnalyzing}

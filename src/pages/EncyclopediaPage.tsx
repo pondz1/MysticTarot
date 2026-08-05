@@ -26,6 +26,8 @@ import {
   LayoutGrid,
 } from 'lucide-react';
 
+import { storageService } from '../services/storageService';
+
 type ArcanaFilter = 'all' | 'major' | 'minor';
 type SuitFilter = 'all' | 'wands' | 'cups' | 'swords' | 'pentacles';
 type ElementFilter = 'all' | 'fire' | 'water' | 'air' | 'earth';
@@ -35,11 +37,34 @@ export const EncyclopediaPage: React.FC = () => {
   const { cardId } = useParams<{ cardId?: string }>();
   const navigate = useNavigate();
 
+  // Load saved preferences
+  const savedEncPrefs = storageService.getEncyclopediaPreferences();
+
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedArcana, setSelectedArcana] = useState<ArcanaFilter>('all');
-  const [selectedSuit, setSelectedSuit] = useState<SuitFilter>('all');
-  const [selectedElement, setSelectedElement] = useState<ElementFilter>('all');
-  const [sortBy, setSortBy] = useState<SortOption>('number');
+  const [selectedArcana, setSelectedArcanaState] = useState<ArcanaFilter>(savedEncPrefs.selectedArcana);
+  const [selectedSuit, setSelectedSuitState] = useState<SuitFilter>(savedEncPrefs.selectedSuit);
+  const [selectedElement, setSelectedElementState] = useState<ElementFilter>(savedEncPrefs.selectedElement);
+  const [sortBy, setSortByState] = useState<SortOption>(savedEncPrefs.sortBy);
+
+  const setSelectedArcana = (val: ArcanaFilter) => {
+    setSelectedArcanaState(val);
+    storageService.saveEncyclopediaPreferences({ selectedArcana: val });
+  };
+
+  const setSelectedSuit = (val: SuitFilter) => {
+    setSelectedSuitState(val);
+    storageService.saveEncyclopediaPreferences({ selectedSuit: val });
+  };
+
+  const setSelectedElement = (val: ElementFilter) => {
+    setSelectedElementState(val);
+    storageService.saveEncyclopediaPreferences({ selectedElement: val });
+  };
+
+  const setSortBy = (val: SortOption) => {
+    setSortByState(val);
+    storageService.saveEncyclopediaPreferences({ sortBy: val });
+  };
 
   // Element pill filter mapper helper
   const getElementCategory = (elementStr: string): ElementFilter => {
