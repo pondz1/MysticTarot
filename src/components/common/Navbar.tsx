@@ -32,7 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const isHomeActive = location.pathname === '/';
-  const isTarotActive = location.pathname.startsWith('/tarot') || location.pathname.startsWith('/reading') || location.pathname.startsWith('/encyclopedia');
+  const isTarotActive = location.pathname.startsWith('/tarot');
   const isHoroscopeActive = location.pathname.startsWith('/horoscope');
   const isNumerologyActive = location.pathname.startsWith('/numerology');
   const isThaiAstrologyActive = location.pathname.startsWith('/thai-astrology');

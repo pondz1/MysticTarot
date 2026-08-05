@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 
 import { storageService } from '../../../services/storageService';
+import { MODULE_THEMES } from '../../../constants/moduleThemes';
 
 type ArcanaFilter = 'all' | 'major' | 'minor';
 type SuitFilter = 'all' | 'wands' | 'cups' | 'swords' | 'pentacles';
@@ -34,6 +35,7 @@ type ElementFilter = 'all' | 'fire' | 'water' | 'air' | 'earth';
 type SortOption = 'number' | 'nameAsc' | 'nameDesc';
 
 export const TarotEncyclopediaPage: React.FC = () => {
+  const theme = MODULE_THEMES.tarot;
   const { cardId } = useParams<{ cardId?: string }>();
   const navigate = useNavigate();
 
@@ -335,8 +337,8 @@ export const TarotEncyclopediaPage: React.FC = () => {
         <div className="flex flex-col gap-6 animate-fade-in">
           {/* Header Banner */}
           <div className="text-center max-w-2xl mx-auto mt-2 mb-1">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-300 text-xs mb-3 shadow-inner">
-              <BookOpen className="w-3.5 h-3.5 shrink-0" />
+            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${theme.badgeBg} text-xs mb-3 shadow-inner`}>
+              <BookOpen className={`w-3.5 h-3.5 shrink-0 ${theme.iconColor}`} />
               <span>คลังความรู้ไพ่ยิปซีครบสมบูรณ์ (78 ใบ)</span>
             </div>
 

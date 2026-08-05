@@ -129,17 +129,7 @@ export function App() {
             <Route path="/feng-shui" element={<FengShuiPage />} />
 
             {/* Legacy Fallbacks */}
-            <Route
-              path="/reading/:id"
-              element={
-                <TarotReadingPage
-                  apiSettings={apiSettings}
-                  onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
-                  savedReadings={savedReadings}
-                  setSavedReadings={setSavedReadings}
-                />
-              }
-            />
+            <Route path="/reading/*" element={<Navigate to="/tarot" replace />} />
             <Route path="/encyclopedia/*" element={<Navigate to="/tarot/encyclopedia" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

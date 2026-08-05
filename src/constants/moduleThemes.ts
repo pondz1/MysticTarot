@@ -1,5 +1,7 @@
+export type ModuleId = 'home' | 'tarot' | 'horoscope' | 'numerology' | 'thai-astrology' | 'feng-shui';
+
 export interface ModuleTheme {
-  id: 'home' | 'tarot' | 'horoscope' | 'numerology' | 'thai-astrology' | 'feng-shui';
+  id: ModuleId;
   nameTh: string;
   nameEn: string;
   primaryColor: string;
@@ -15,7 +17,7 @@ export interface ModuleTheme {
   activeToggleBtn: string;
 }
 
-export const MODULE_THEMES: Record<string, ModuleTheme> = {
+export const MODULE_THEMES: Record<ModuleId, ModuleTheme> = {
   home: {
     id: 'home',
     nameTh: 'หน้าแรก',
@@ -113,3 +115,13 @@ export const MODULE_THEMES: Record<string, ModuleTheme> = {
     activeToggleBtn: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md',
   },
 };
+
+export const getModuleThemeByPath = (pathname: string): ModuleTheme => {
+  if (pathname.startsWith('/tarot')) return MODULE_THEMES.tarot;
+  if (pathname.startsWith('/horoscope')) return MODULE_THEMES.horoscope;
+  if (pathname.startsWith('/numerology')) return MODULE_THEMES.numerology;
+  if (pathname.startsWith('/thai-astrology')) return MODULE_THEMES['thai-astrology'];
+  if (pathname.startsWith('/feng-shui')) return MODULE_THEMES['feng-shui'];
+  return MODULE_THEMES.home;
+};
+
