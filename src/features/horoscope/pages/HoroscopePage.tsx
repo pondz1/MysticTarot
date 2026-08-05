@@ -91,14 +91,18 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
     const foundSign = findZodiacSignByBirthdate(birthMonth, birthDay);
     setSelectedSign(foundSign);
     setShowFinder(false);
-    handleFetchHoroscope(foundSign, timeframe, useAi);
+    if (!useAi) {
+      setPrediction(getZodiacClassicPrediction(foundSign, timeframe));
+    } else {
+      handleFetchHoroscope(foundSign, timeframe, true);
+    }
     if (resultCardRef.current) {
       resultCardRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   useEffect(() => {
-    handleFetchHoroscope(selectedSign, timeframe, useAi);
+    handleFetchHoroscope(selectedSign, timeframe, false);
   }, []);
 
   const aspectScores = getZodiacAspectScores(selectedSign, timeframe);
@@ -215,16 +219,14 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
           <button
             type="button"
             disabled={isLoading}
-            onClick={() => {
-              setUseAi(true);
-              handleFetchHoroscope(selectedSign, timeframe, true);
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isLoading
+            onClick={() => setUseAi(true)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              isLoading
                 ? 'opacity-50 cursor-not-allowed text-slate-500'
                 : useAi
                   ? `${theme.secondaryBtn} cursor-pointer`
                   : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-              }`}
+            }`}
           >
             <Sparkles className={`w-3.5 h-3.5 ${theme.iconColor}`} />
             <span>โหมด AI</span>
@@ -235,14 +237,15 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             disabled={isLoading}
             onClick={() => {
               setUseAi(false);
-              handleFetchHoroscope(selectedSign, timeframe, false);
+              setPrediction(getZodiacClassicPrediction(selectedSign, timeframe));
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isLoading
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              isLoading
                 ? 'opacity-50 cursor-not-allowed text-slate-500'
                 : !useAi
                   ? `${theme.secondaryBtn} cursor-pointer`
                   : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-              }`}
+            }`}
           >
             <BookOpen className={`w-3.5 h-3.5 ${theme.iconColor}`} />
             <span>โหมดคลาสสิก</span>
@@ -259,13 +262,19 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             <button
               key={sign.id}
               disabled={isLoading}
-              onClick={() => handleFetchHoroscope(sign, timeframe, useAi)}
-              className={`p-3 sm:p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-1.5 group ${isLoading
+              onClick={() => {
+                setSelectedSign(sign);
+                if (!useAi) {
+                  setPrediction(getZodiacClassicPrediction(sign, timeframe));
+                }
+              }}
+              className={`p-3 sm:p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-1.5 group ${
+                isLoading
                   ? 'opacity-60 cursor-not-allowed'
                   : isSelected
                     ? `${elementStyle.activeBg} ${elementStyle.activeBorder} ${elementStyle.glow} scale-105 shadow-xl cursor-pointer`
                     : `${elementStyle.bg} ${elementStyle.border} text-slate-300 cursor-pointer`
-                }`}
+              }`}
             >
               <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-purple-400/50 shadow-lg shadow-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 relative bg-slate-950">
                 <img
@@ -296,39 +305,61 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
       </div>
 
       {/* Timeframe Toggle Buttons */}
-      <div className="flex justify-center gap-3">
-        <button
-          disabled={isLoading}
-          onClick={() => {
-            setTimeframe('daily');
-            handleFetchHoroscope(selectedSign, 'daily', useAi);
-          }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${isLoading
-              ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
-              : timeframe === 'daily'
-                ? `${theme.activeToggleBtn} cursor-pointer`
-                : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
+        <div className="flex items-center gap-3">
+          <button
+            disabled={isLoading}
+            onClick={() => {
+              setTimeframe('daily');
+              if (!useAi) {
+                setPrediction(getZodiacClassicPrediction(selectedSign, 'daily'));
+              }
+            }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              isLoading
+                ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
+                : timeframe === 'daily'
+                  ? `${theme.activeToggleBtn} cursor-pointer`
+                  : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
             }`}
-        >
-          <Calendar className={`w-4 h-4 ${theme.iconColor}`} />
-          <span>ดวงประจำวัน</span>
-        </button>
-        <button
-          disabled={isLoading}
-          onClick={() => {
-            setTimeframe('monthly');
-            handleFetchHoroscope(selectedSign, 'monthly', useAi);
-          }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${isLoading
-              ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
-              : timeframe === 'monthly'
-                ? `${theme.activeToggleBtn} cursor-pointer`
-                : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
+          >
+            <Calendar className={`w-4 h-4 ${theme.iconColor}`} />
+            <span>ดวงประจำวัน</span>
+          </button>
+          <button
+            disabled={isLoading}
+            onClick={() => {
+              setTimeframe('monthly');
+              if (!useAi) {
+                setPrediction(getZodiacClassicPrediction(selectedSign, 'monthly'));
+              }
+            }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              isLoading
+                ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
+                : timeframe === 'monthly'
+                  ? `${theme.activeToggleBtn} cursor-pointer`
+                  : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
             }`}
-        >
-          <Moon className={`w-4 h-4 ${theme.iconColor}`} />
-          <span>ดวงรายเดือน</span>
-        </button>
+          >
+            <Moon className={`w-4 h-4 ${theme.iconColor}`} />
+            <span>ดวงรายเดือน</span>
+          </button>
+        </div>
+
+        {useAi && (
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={() => handleFetchHoroscope(selectedSign, timeframe, true)}
+            className={`px-5 py-2.5 rounded-xl ${theme.primaryBtn} font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer hover:scale-105 ${
+              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            <Sparkles className="w-4 h-4 animate-pulse" />
+            <span>เริ่มทำนายดวง{selectedSign.nameTh} ด้วย AI</span>
+          </button>
+        )}
       </div>
 
       {/* Selected Sign Detail & Prediction Card */}
@@ -476,41 +507,76 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
               </div>
 
               {/* Formatted Markdown Content via ReactMarkdown */}
-              <div className="prose prose-invert max-w-none font-prompt text-slate-200 text-sm sm:text-base leading-relaxed">
+              <div className="prose prose-invert max-w-none font-prompt text-slate-100 text-sm sm:text-base leading-relaxed">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
                     h1: ({ children }) => {
-                      const text = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : children;
+                      const textStr = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : String(children || '');
+                      let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
+                      let colorClass = 'text-purple-300 border-purple-500/30';
+                      if (textStr.includes('งาน') || textStr.includes('เรียน')) {
+                        iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
+                        colorClass = 'text-blue-300 border-blue-500/30';
+                      } else if (textStr.includes('เงิน') || textStr.includes('โชค')) {
+                        iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
+                        colorClass = 'text-amber-300 border-amber-500/30';
+                      } else if (textStr.includes('รัก')) {
+                        iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
+                        colorClass = 'text-pink-300 border-pink-500/30';
+                      } else if (textStr.includes('สุขภาพ') || textStr.includes('กาย')) {
+                        iconComp = <Stethoscope className="w-4 h-4 text-emerald-400 shrink-0" />;
+                        colorClass = 'text-emerald-300 border-emerald-500/30';
+                      }
                       return (
-                        <h2 className="text-base sm:text-lg font-bold text-purple-300 mt-5 mb-2.5 pb-1 border-b border-purple-500/30 flex items-center gap-2">
-                          <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
-                          <span>{text}</span>
+                        <h2 className={`text-base sm:text-lg font-bold ${colorClass} mt-6 mb-3 pb-1.5 border-b flex items-center gap-2 tracking-wide`}>
+                          {iconComp}
+                          <span>{textStr}</span>
                         </h2>
                       );
                     },
                     h2: ({ children }) => {
-                      const text = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : children;
+                      const textStr = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : String(children || '');
+                      let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
+                      let colorClass = 'text-purple-300 border-purple-500/30';
+                      if (textStr.includes('งาน') || textStr.includes('เรียน')) {
+                        iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
+                        colorClass = 'text-blue-300 border-blue-500/30';
+                      } else if (textStr.includes('เงิน') || textStr.includes('โชค')) {
+                        iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
+                        colorClass = 'text-amber-300 border-amber-500/30';
+                      } else if (textStr.includes('รัก')) {
+                        iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
+                        colorClass = 'text-pink-300 border-pink-500/30';
+                      } else if (textStr.includes('สุขภาพ') || textStr.includes('กาย')) {
+                        iconComp = <Stethoscope className="w-4 h-4 text-emerald-400 shrink-0" />;
+                        colorClass = 'text-emerald-300 border-emerald-500/30';
+                      }
                       return (
-                        <h2 className="text-base sm:text-lg font-bold text-purple-300 mt-5 mb-2.5 pb-1 border-b border-purple-500/30 flex items-center gap-2">
-                          <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
-                          <span>{text}</span>
+                        <h2 className={`text-base sm:text-lg font-bold ${colorClass} mt-6 mb-3 pb-1.5 border-b flex items-center gap-2 tracking-wide`}>
+                          {iconComp}
+                          <span>{textStr}</span>
                         </h2>
                       );
                     },
                     h3: ({ children }) => (
-                      <h3 className="text-sm sm:text-base font-semibold text-purple-200 mt-4 mb-2">
-                        {children}
+                      <h3 className="text-sm sm:text-base font-bold text-indigo-300 mt-4 mb-2 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+                        <span>{children}</span>
                       </h3>
                     ),
-                    p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-200">{children}</p>,
-                    strong: ({ children }) => <strong className="font-semibold text-purple-200">{children}</strong>,
+                    p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-100 font-normal">{children}</p>,
+                    strong: ({ children }) => (
+                      <strong className="font-semibold text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                        {children}
+                      </strong>
+                    ),
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-purple-400 pl-4 py-3 italic my-4 text-purple-100 bg-purple-500/10 rounded-r-xl border border-purple-400/20">
+                      <blockquote className="border-l-4 border-amber-400 pl-4 py-3 my-4 text-amber-200 bg-gradient-to-r from-indigo-500/15 via-purple-500/10 to-pink-500/15 rounded-r-xl border border-indigo-500/30 shadow-md">
                         {children}
                       </blockquote>
                     ),
-                    ul: ({ children }) => <ul className="list-disc pl-5 my-3 space-y-1 text-slate-200">{children}</ul>,
+                    ul: ({ children }) => <ul className="list-disc pl-5 my-3 space-y-1.5 text-slate-100">{children}</ul>,
                     li: ({ children }) => <li className="pl-1">{children}</li>,
                   }}
                 >
