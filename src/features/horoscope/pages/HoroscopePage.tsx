@@ -239,8 +239,21 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                   : `${elementStyle.bg} ${elementStyle.border} text-slate-300`
               }`}
             >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-500/20 to-purple-600/30 border border-amber-400/40 flex items-center justify-center text-2xl sm:text-3xl text-amber-300 font-serif shadow-md transform group-hover:scale-110 transition-transform duration-300">
-                {sign.symbol}
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-amber-400/50 shadow-lg shadow-amber-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 relative bg-slate-950">
+                <img
+                  src={`/zodiac/${sign.id}.png`}
+                  alt={sign.nameTh}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.style.display = 'none';
+                    const sibling = target.nextElementSibling as HTMLElement;
+                    if (sibling) sibling.style.display = 'flex';
+                  }}
+                />
+                <div className="hidden w-full h-full bg-gradient-to-br from-amber-500/20 to-purple-600/30 text-amber-300 font-serif text-2xl items-center justify-center">
+                  {sign.symbol}
+                </div>
               </div>
               <div className={`font-bold text-xs sm:text-sm ${isSelected ? elementStyle.text : 'text-slate-100'}`}>
                 {sign.nameTh}
