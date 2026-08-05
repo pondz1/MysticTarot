@@ -14,8 +14,15 @@ import {
   Star,
   BookOpen,
   Calendar,
+  Moon,
   Search,
   TrendingUp,
+  Heart,
+  Briefcase,
+  Coins,
+  Stethoscope,
+  Hash,
+  Palette,
 } from 'lucide-react';
 import type { ApiSettings } from '../../tarot/types/tarot';
 import { analyzeZodiacHoroscope } from '../../../services/aiService';
@@ -252,26 +259,28 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             setTimeframe('daily');
             handleFetchHoroscope(selectedSign, 'daily', useAi);
           }}
-          className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
             timeframe === 'daily'
               ? 'bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-md'
               : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
           }`}
         >
-          📅 ดวงประจำวัน
+          <Calendar className="w-4 h-4 text-amber-300" />
+          <span>ดวงประจำวัน</span>
         </button>
         <button
           onClick={() => {
             setTimeframe('monthly');
             handleFetchHoroscope(selectedSign, 'monthly', useAi);
           }}
-          className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
             timeframe === 'monthly'
               ? 'bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-md'
               : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
           }`}
         >
-          🌙 ดวงรายเดือน
+          <Moon className="w-4 h-4 text-purple-300" />
+          <span>ดวงรายเดือน</span>
         </button>
       </div>
 
@@ -294,8 +303,9 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             <p className="text-xs sm:text-sm text-slate-400">ช่วงวันที่: {selectedSign.dateRange} | ดาวครองราศี: {selectedSign.rulingPlanet}</p>
             <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 pt-1">
               {selectedSign.traits.map((trait, idx) => (
-                <span key={idx} className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                  ✨ {trait}
+                <span key={idx} className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+                  <span>{trait}</span>
                 </span>
               ))}
             </div>
@@ -313,7 +323,10 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             {/* Love */}
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-pink-300 flex items-center gap-1">❤️ ความรัก & ความสัมพันธ์:</span>
+                <span className="text-pink-300 flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                  <span>ความรัก & ความสัมพันธ์:</span>
+                </span>
                 <span className="text-pink-300 font-mono">{aspectScores.love}%</span>
               </div>
               <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
@@ -324,7 +337,10 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             {/* Work */}
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-blue-300 flex items-center gap-1">💼 การงาน & การเรียน:</span>
+                <span className="text-blue-300 flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <span>การงาน & การเรียน:</span>
+                </span>
                 <span className="text-blue-300 font-mono">{aspectScores.work}%</span>
               </div>
               <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
@@ -335,7 +351,10 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             {/* Finance */}
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-amber-300 flex items-center gap-1">💰 การเงิน & โชคลาภ:</span>
+                <span className="text-amber-300 flex items-center gap-1.5">
+                  <Coins className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>การเงิน & โชคลาภ:</span>
+                </span>
                 <span className="text-amber-300 font-mono">{aspectScores.finance}%</span>
               </div>
               <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
@@ -346,7 +365,10 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             {/* Health */}
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-emerald-300 flex items-center gap-1">🩺 สุขภาพ & จิตใจ:</span>
+                <span className="text-emerald-300 flex items-center gap-1.5">
+                  <Stethoscope className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>สุขภาพ & จิตใจ:</span>
+                </span>
                 <span className="text-emerald-300 font-mono">{aspectScores.health}%</span>
               </div>
               <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
@@ -386,11 +408,17 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
           {/* Lucky Info Footer */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
             <div className="p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex items-center justify-between">
-              <span className="text-xs text-slate-400 font-medium">🔢 เลขนำโชคประจำราศี:</span>
+              <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
+                <Hash className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>เลขนำโชคประจำราศี:</span>
+              </span>
               <span className="text-sm font-bold text-amber-300">{selectedSign.luckyNumber.join(', ')}</span>
             </div>
             <div className="p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex items-center justify-between">
-              <span className="text-xs text-slate-400 font-medium">🎨 สีมงคลเสริมโชค:</span>
+              <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>สีมงคลเสริมโชค:</span>
+              </span>
               <span className="text-sm font-bold text-amber-300">{selectedSign.luckyColor.join(' / ')}</span>
             </div>
           </div>
