@@ -105,7 +105,12 @@ export const HomePage: React.FC = () => {
         </h1>
 
         <p className="text-slate-300 text-sm sm:text-base md:text-lg max-w-3xl mx-auto leading-relaxed">
-          ค้นหาคำตอบและพลังงานบวกในชีวิตผ่านศาสตร์ทำนายที่คุณไว้วางใจ ไม่ว่าจะเป็น **ไพ่ยิปซี**, **ดวง 12 ราศี**, **เลขศาสตร์เบอร์มงคล**, **กราฟชีวิตดวงไทย** และ **ฮวงจุ้ยประจำวัน**
+          ค้นหาคำตอบและพลังงานบวกในชีวิตผ่านศาสตร์ทำนายที่คุณไว้วางใจ ไม่ว่าจะเป็น{' '}
+          <strong className="font-semibold text-amber-200">ไพ่ยิปซี</strong>,{' '}
+          <strong className="font-semibold text-amber-200">ดวง 12 ราศี</strong>,{' '}
+          <strong className="font-semibold text-amber-200">เลขศาสตร์เบอร์มงคล</strong>,{' '}
+          <strong className="font-semibold text-amber-200">กราฟชีวิตดวงไทย</strong> และ{' '}
+          <strong className="font-semibold text-amber-200">ฮวงจุ้ยประจำวัน</strong>
         </p>
 
         {/* Daily Quick Oracle Interactive Drawer */}
