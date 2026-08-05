@@ -83,10 +83,21 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const handleShuffle = () => {
     if (isShuffling || selectedCards.length > 0) return;
     setIsShuffling(true);
+
     setTimeout(() => {
       setDeck(shuffleArray(getFilteredCards(deckFilter)));
       setIsShuffling(false);
-    }, 1200);
+      try {
+        confetti({
+          particleCount: 35,
+          spread: 55,
+          origin: { y: 0.65 },
+          colors: ['#EAB308', '#A855F7', '#38BDF8']
+        });
+      } catch (e) {
+        // ignore
+      }
+    }, 1000);
   };
 
   // Helper to get position name from spread config

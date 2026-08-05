@@ -117,18 +117,21 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
               animate={
                 isShuffling
                   ? {
-                    x: (Math.random() - 0.5) * 50,
-                    y: (Math.random() - 0.5) * 25,
-                    rotate: (Math.random() - 0.5) * 20,
-                  }
+                      x: globalIdx % 2 === 0 ? [0, -60, 25, 0] : [0, 60, -25, 0],
+                      y: [0, -20, 8, 0],
+                      rotate: globalIdx % 2 === 0 ? [0, -18, 6, 0] : [0, 18, -6, 0],
+                      scale: [1, 1.1, 1.03, 1],
+                      zIndex: [globalIdx + 1, 100 + (globalIdx % 10), globalIdx + 1]
+                    }
                   : isPicked
-                    ? { y: -16, scale: 1.12, rotate: 0, zIndex: 50 }
-                    : { y: [arcY, arcY - 4, arcY], rotate: fanAngle, zIndex: idx + 1 }
+                    ? { x: 0, y: -16, scale: 1.12, rotate: 0, zIndex: 50 }
+                    : { x: 0, y: [arcY, arcY - 4, arcY], rotate: fanAngle, zIndex: idx + 1 }
               }
               whileHover={{ y: -14, scale: 1.14, rotate: 0, zIndex: 45 }}
               transition={{
-                duration: isShuffling ? 0.3 : 0.2,
-                ease: 'easeOut',
+                duration: isShuffling ? 1.0 : 0.45,
+                ease: isShuffling ? [0.22, 1, 0.36, 1] : [0.16, 1, 0.3, 1],
+                delay: isShuffling ? (globalIdx % 10) * 0.02 : 0,
                 y: isPicked || isShuffling ? undefined : { repeat: Infinity, repeatType: 'reverse', duration: 2.6, delay: idx * 0.07 },
               }}
               onClick={() => onPickCard(card)}
