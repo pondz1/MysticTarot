@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import type { TarotCard } from '../../data/tarotCards';
 import type { DrawnCard } from '../../types/tarot';
 import { Orbit, CheckCircle2, RotateCcw, RotateCw, Eye, Sparkles, Compass } from 'lucide-react';
@@ -39,11 +38,10 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
     if (isShuffling) {
       setIsSpinningFast(true);
       setRotationDeg((prev) => prev + 1080);
-      const timer = setTimeout(() => setIsSpinningFast(false), 900);
+      const timer = setTimeout(() => setIsSpinningFast(false), 600);
       return () => clearTimeout(timer);
     } else {
-      const timer = setTimeout(() => setIsSpinningFast(false), 100);
-      return () => clearTimeout(timer);
+      setIsSpinningFast(false);
     }
   }, [isShuffling]);
 
@@ -226,96 +224,86 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
           </div>
         </div>
 
-        {/* Rotatable Wheel Container - hardware accelerated transform */}
-        <div
-          style={{
-            transform: `rotate(${rotationDeg}deg)`,
-            transformOrigin: 'center center',
-            willChange: 'transform',
-            transition: isDragging
-              ? 'none'
-              : isShuffling
-                ? 'transform 1.0s cubic-bezier(0.34, 1.25, 0.64, 1)'
-                : 'transform 0.5s ease-out',
-          }}
-          className="relative w-full h-full flex items-center justify-center"
-        >
-          {deck.map((card, idx) => {
-            const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
-            const isLargeDeck = totalCards > 50;
-            const useInnerRing = isLargeDeck && idx % 2 === 1;
+        {/* Rotatable Wheel Container - GPU Hardware-Accelerated Single Compositing Layer */}
+        {(() => {
+          const wheelScale = isShuffling || isSpinningFast
+            ? 1.15
+            : isDragging
+              ? 1 + Math.min(0.12, Math.abs(velocityRef.current) * 0.12)
+              : 1;
 
-            const ringCount = isLargeDeck ? (useInnerRing ? Math.floor(totalCards / 2) : Math.ceil(totalCards / 2)) : totalCards;
-            const ringIdx = isLargeDeck ? Math.floor(idx / 2) : idx;
-            const ringAngleStep = 360 / ringCount;
+          return (
+            <div
+              style={{
+                transform: `rotate(${rotationDeg}deg) scale(${wheelScale})`,
+                transformOrigin: 'center center',
+                willChange: 'transform',
+                transition: isDragging
+                  ? 'none'
+                  : isShuffling
+                    ? 'transform 0.65s cubic-bezier(0.22, 1, 0.36, 1)'
+                    : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+              className="relative w-full h-full flex items-center justify-center"
+            >
+              {deck.map((card, idx) => {
+                const isPicked = selectedCards.some((sc) => sc.card.id === card.id);
+                const isLargeDeck = totalCards > 50;
+                const useInnerRing = isLargeDeck && idx % 2 === 1;
 
-            const baseAngle = ringIdx * ringAngleStep;
-            const rad = (baseAngle * Math.PI) / 180;
+                const ringCount = isLargeDeck ? (useInnerRing ? Math.floor(totalCards / 2) : Math.ceil(totalCards / 2)) : totalCards;
+                const ringIdx = isLargeDeck ? Math.floor(idx / 2) : idx;
+                const ringAngleStep = 360 / ringCount;
 
-            const centrifugalOffset = (isShuffling || isSpinningFast)
-              ? 24
-              : isDragging
-                ? Math.min(16, Math.abs(velocityRef.current) * 16)
-                : 0;
+                const baseAngle = ringIdx * ringAngleStep;
+                const rad = (baseAngle * Math.PI) / 180;
 
-            const effectiveRadius = (useInnerRing ? radius * 0.65 : radius) + (isPicked ? 12 : 0) + centrifugalOffset;
-            const x = Math.sin(rad) * effectiveRadius;
-            const y = -Math.cos(rad) * effectiveRadius;
+                const effectiveRadius = (useInnerRing ? radius * 0.65 : radius) + (isPicked ? 12 : 0);
+                const x = Math.sin(rad) * effectiveRadius;
+                const y = -Math.cos(rad) * effectiveRadius;
 
-            return (
-              <motion.div
-                key={card.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isAnalyzing) onPickCard(card);
-                }}
-                style={{
-                  position: 'absolute',
-                  transformOrigin: 'center center',
-                  zIndex: isPicked ? 50 : useInnerRing ? 20 : 10,
-                }}
-                animate={{
-                  x,
-                  y,
-                  rotate: baseAngle,
-                  scale: isPicked ? 1.15 : 1,
-                }}
-                transition={
-                  isDragging
-                    ? { duration: 0 }
-                    : {
-                        type: 'spring',
-                        stiffness: 90,
-                        damping: 15,
-                        mass: 0.8
-                      }
-                }
-                className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none ${
-                  isPicked
-                    ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
-                    : isWheelActive
-                      ? 'border-amber-300/80 shadow-[0_0_20px_rgba(234,179,8,0.5)]'
-                      : 'border-amber-400/40 hover:border-amber-300 hover:scale-110 hover:shadow-[0_0_24px_rgba(234,179,8,0.6)]'
-                }`}
-              >
-                <img
-                  src="/cards/card_back.jpg"
-                  alt="Tarot Back"
-                  className="absolute inset-0 w-full h-full object-cover rounded-lg pointer-events-none"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
+                return (
+                  <div
+                    key={card.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isAnalyzing) onPickCard(card);
+                    }}
+                    style={{
+                      position: 'absolute',
+                      transform: `translate3d(${x}px, ${y}px, 0px) rotate(${baseAngle}deg) scale(${isPicked ? 1.15 : 1})`,
+                      transformOrigin: 'center center',
+                      zIndex: isPicked ? 50 : useInnerRing ? 20 : 10,
+                      willChange: 'transform',
+                    }}
+                    className={`w-13 h-20 xs:w-15 xs:h-23 sm:w-18 sm:h-28 md:w-20 md:h-32 rounded-lg cursor-pointer shadow-xl border bg-slate-900 flex flex-col items-center justify-center p-0.5 select-none transition-transform duration-150 ${
+                      isPicked
+                        ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_35px_rgba(234,179,8,0.95)]'
+                        : isWheelActive
+                          ? 'border-amber-300/80 shadow-[0_0_20px_rgba(234,179,8,0.5)]'
+                          : 'border-amber-400/40 hover:border-amber-300 hover:scale-110 hover:shadow-[0_0_24px_rgba(234,179,8,0.6)]'
+                    }`}
+                  >
+                    <img
+                      src="/cards/card_back.jpg"
+                      alt="Tarot Back"
+                      className="absolute inset-0 w-full h-full object-cover rounded-lg pointer-events-none"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
 
-                {isPicked && (
-                  <div className="absolute top-1 right-1 z-20 w-4 h-4 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
-                    <CheckCircle2 className="w-3 h-3 fill-slate-950 text-amber-400" />
+                    {isPicked && (
+                      <div className="absolute top-1 right-1 z-20 w-4 h-4 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
+                        <CheckCircle2 className="w-3 h-3 fill-slate-950 text-amber-400" />
+                      </div>
+                    )}
                   </div>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Touch Swipe Hint */}
