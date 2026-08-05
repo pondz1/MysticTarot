@@ -413,8 +413,32 @@ export function getNumerologySumMeaning(sum: number): NumerologySumMeaning {
   };
 }
 
-export function analyzePhoneNumber(phone: string) {
-  const clean = phone.replace(/\D/g, '');
+export const THAI_CHAR_MAP: Record<string, string> = {
+  'ก': '1', 'ด': '1', 'ถ': '1', 'ท': '1', 'ภ': '1', 'ฤ': '1',
+  'ข': '2', 'ช': '2', 'บ': '2', 'ป': '2', 'ง': '2',
+  'ต': '3', 'ฒ': '3', 'ฆ': '3',
+  'ค': '4', 'ธ': '4', 'ร': '4', 'ญ': '4', 'ษ': '4',
+  'ฉ': '5', 'ฌ': '5', 'ณ': '5', 'น': '5', 'ม': '5', 'ห': '5', 'ฮ': '5', 'ฬ': '5',
+  'ศ': '6', 'ส': '6',
+  'ซ': '7',
+  'ผ': '8', 'ฝ': '8', 'พ': '8', 'ฟ': '8',
+  'ฏ': '9', 'ฐ': '9',
+};
+
+export function convertInputToDigits(input: string): string {
+  let result = '';
+  for (const char of input) {
+    if (/\d/.test(char)) {
+      result += char;
+    } else if (THAI_CHAR_MAP[char]) {
+      result += THAI_CHAR_MAP[char];
+    }
+  }
+  return result;
+}
+
+export function analyzeNumerologyInput(input: string) {
+  const clean = convertInputToDigits(input);
   if (clean.length < 1) {
     return null;
   }
@@ -443,7 +467,7 @@ export function analyzePhoneNumber(phone: string) {
   const sumInfo = getNumerologySumMeaning(sum);
 
   return {
-    inputNumber: phone,
+    inputNumber: input,
     cleanDigits: clean,
     sumValue: sum,
     sumMeaning: sumInfo,
@@ -452,3 +476,5 @@ export function analyzePhoneNumber(phone: string) {
     summaryText: sumInfo.description,
   };
 }
+
+export const analyzePhoneNumber = analyzeNumerologyInput;
