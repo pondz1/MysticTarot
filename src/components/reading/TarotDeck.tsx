@@ -59,6 +59,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   // Reset selection when spreadMode changes
   useEffect(() => {
     setSelectedCards([]);
+    cardRefs.current = [];
   }, [spreadMode]);
 
   // Helper array shuffle
@@ -76,6 +77,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     if (isShuffling || isAnalyzing) return;
     setDeckFilter(filter);
     setSelectedCards([]);
+    cardRefs.current = [];
     setDeck(shuffleArray(getFilteredCards(filter)));
   };
 
@@ -119,11 +121,13 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         }
       }
 
-      const picked: DrawnCard[] = indices.map((idx, posIdx) => ({
-        card: deck[idx],
-        isReversed: Math.random() < 0.25,
-        position: getPositionName(posIdx)
-      }));
+      const picked: DrawnCard[] = indices
+        .filter((idx) => deck[idx] !== undefined)
+        .map((idx, posIdx) => ({
+          card: deck[idx],
+          isReversed: Math.random() < 0.25,
+          position: getPositionName(posIdx)
+        }));
 
       setSelectedCards(picked);
       setIsShuffling(false);
@@ -153,12 +157,12 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
 
   // Seamless Pick / Swap / Deselect card handler for manual fan deck & orbit view
   const handlePickCard = (card: TarotCard) => {
-    if (isShuffling || isAnalyzing) return;
+    if (!card || isShuffling || isAnalyzing) return;
 
-    const isAlreadyPicked = selectedCards.some((sc) => sc.card.id === card.id);
+    const isAlreadyPicked = selectedCards.some((sc) => sc?.card?.id === card.id);
 
     if (isAlreadyPicked) {
-      const remaining = selectedCards.filter((sc) => sc.card.id !== card.id);
+      const remaining = selectedCards.filter((sc) => sc?.card?.id !== card.id);
       const reindexed = remaining.map((sc, idx) => ({
         ...sc,
         position: getPositionName(idx)
@@ -200,10 +204,12 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   const handleConfirmSelection = () => {
     if (selectedCards.length !== targetCount || isAnalyzing) return;
 
-    const normalizedCards = selectedCards.map((sc, idx) => ({
-      ...sc,
-      position: getPositionName(idx)
-    }));
+    const normalizedCards = selectedCards
+      .filter((sc) => sc && sc.card)
+      .map((sc, idx) => ({
+        ...sc,
+        position: getPositionName(idx)
+      }));
 
     try {
       confetti({
@@ -222,6 +228,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
   // Reset selection
   const handleResetSelection = () => {
     setSelectedCards([]);
+    cardRefs.current = [];
     setDeck(shuffleArray(getFilteredCards(deckFilter)));
   };
 
@@ -230,6 +237,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     if (isShuffling || isAnalyzing) return;
     setSelectionMode(mode);
     setSelectedCards([]);
+    cardRefs.current = [];
     setDeck(shuffleArray(getFilteredCards(deckFilter)));
   };
 

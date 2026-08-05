@@ -37,9 +37,12 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ drawnCards, onOpenCard
       </div>
 
       <div className={`grid gap-3 sm:gap-6 justify-items-center ${getGridClass(drawnCards.length)}`}>
-        {drawnCards.map((dCard, index) => (
-          <motion.div
-            key={dCard.card.id + index}
+        {drawnCards.map((dCard, index) => {
+          if (!dCard || !dCard.card) return null;
+
+          return (
+            <motion.div
+              key={(dCard.card.id || 'card') + '-' + index}
             initial={{ opacity: 0, y: 30, rotateY: 180 }}
             animate={{ opacity: 1, y: 0, rotateY: 0 }}
             transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
@@ -71,7 +74,8 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ drawnCards, onOpenCard
               </div>
             </div>
           </motion.div>
-        ))}
+        );
+      })}
       </div>
     </div>
   );
