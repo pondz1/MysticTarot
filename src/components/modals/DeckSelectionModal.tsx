@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Layers, Scissors, Orbit, Sparkles, Crown, LayoutGrid, Check, Flame, Compass } from 'lucide-react';
-import type { SelectionMode } from '../../types/tarot';
+import type { SelectionMode } from '../../features/tarot/types/tarot';
 
 export interface ModeOptionInfo {
   id: SelectionMode;

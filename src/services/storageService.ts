@@ -1,4 +1,4 @@
-import type { ApiSettings, SavedReading, SelectionMode, SpreadMode } from '../types/tarot';
+import type { ApiSettings, SavedReading, SelectionMode, SpreadMode } from '../features/tarot/types/tarot';
 import { DEFAULT_API_SETTINGS } from './aiService';
 
 const SETTINGS_KEY = 'tarot_api_settings';

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { SelectionMode } from '../../types/tarot';
-import { CustomSelect, type CustomSelectOption } from '../common/CustomSelect';
+import { CustomSelect, type CustomSelectOption } from '../../../../components/common/CustomSelect';
 import { Layers, Scissors, Orbit, Sparkles, Flame, Compass } from 'lucide-react';
 
 interface DeckModeSelectorProps {

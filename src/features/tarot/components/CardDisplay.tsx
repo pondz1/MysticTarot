@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import type { DrawnCard } from '../../types/tarot';
-import { TarotArt } from '../common/TarotArt';
+import type { DrawnCard } from '../types/tarot';
+import { TarotArt } from '../../../components/common/TarotArt';
 import { Sparkles, Info } from 'lucide-react';
 
 interface CardDisplayProps {

@@ -1,6 +1,6 @@
 import React from 'react';
-import type { SpreadMode } from '../../types/tarot';
-import { TAROT_SPREADS } from '../../data/tarotSpreads';
+import type { SpreadMode } from '../types/tarot';
+import { TAROT_SPREADS } from '../data/tarotSpreads';
 import { Sparkles, Compass, Layers, Heart, Crown } from 'lucide-react';
 
 interface SpreadSelectorProps {

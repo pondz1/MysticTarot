@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
-import type { ApiSettings, ChatMessage, DrawnCard, SpreadMode } from '../types/tarot';
-import { getSpreadConfig } from '../data/tarotSpreads';
+import type { ApiSettings, ChatMessage, DrawnCard, SpreadMode } from '../features/tarot/types/tarot';
+import { getSpreadConfig } from '../features/tarot/data/tarotSpreads';
 
 export const DEFAULT_API_SETTINGS: ApiSettings = {
   apiKey: 'sk-dce7f4d0918d74dd-ocq0dk-310c8c1d',
@@ -359,5 +359,65 @@ export function generateFollowUpFallback(
 * **พลังบวกนำทาง:** ${outcomeCard?.advice || 'ก้าวเดินไปด้วยความมั่นใจ แล้วความสำเร็จจะตามมา'}
 
 > ✨ *สติและการตัดสินใจในปัจจุบันคือสิ่งที่เปลี่ยนชะตาชีวิต จงใช้พลังของไพ่เป็นเข็มทิศชี้นำทางด้วยปัญญา*`;
+}
+
+export async function analyzeZodiacHoroscope(
+  signNameTh: string,
+  elementTh: string,
+  timeframe: 'daily' | 'monthly',
+  settings: ApiSettings
+): Promise<string> {
+  const isLocalHost = settings.baseUrl.includes('localhost') || settings.baseUrl.includes('127.0.0.1');
+  if (!settings.apiKey && !isLocalHost) {
+    return generateFallbackZodiacHoroscope(signNameTh, timeframe);
+  }
+
+  const systemPrompt = `คุณคือโหราจารย์ผู้หยั่งรู้ดวงดาว 12 ราศี วิเคราะห์ดวงชะตาสละสลวย ให้พลังบวกและข้อคิดแม่นยำ`;
+  const userPrompt = `โปรดทำนายดวงชะตา ${timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'} สำหรับผู้เกิด "${signNameTh}" (${elementTh})
+โดยแยกหัวข้อสั้นๆ สละสลวยดังนี้:
+1. 🔮 ภาพรวมพลังงานดวงดาว
+2. 💼 การงาน & การเรียน
+3. 💰 การเงิน & โชคลาภ
+4. ❤️ ความรัก & ความสัมพันธ์
+5. 🌟 ข้อคิดชี้ทางประจำวัน`;
+
+  try {
+    const cleanBaseUrl = settings.baseUrl.replace(/\/+$/, '');
+    const client = new OpenAI({
+      apiKey: settings.apiKey || 'ollama',
+      baseURL: cleanBaseUrl,
+      dangerouslyAllowBrowser: true,
+    });
+
+    const completion = await client.chat.completions.create({
+      model: settings.model || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (content && content.trim()) {
+      return cleanAiResponse(content);
+    }
+    return generateFallbackZodiacHoroscope(signNameTh, timeframe);
+  } catch (error) {
+    console.error('Failed Zodiac AI call:', error);
+    return generateFallbackZodiacHoroscope(signNameTh, timeframe);
+  }
+}
+
+export function generateFallbackZodiacHoroscope(signNameTh: string, timeframe: 'daily' | 'monthly'): string {
+  return `🔮 **ภาพรวมดวงชะตา ${signNameTh} (${timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'})**
+
+ช่วงเวลานี้ดวงดาวประจำราศีส่งพลังงานบวกและโอกาสใหม่ๆ เข้ามา ให้ใช้วิสัยทัศน์และความตั้งใจในการเดินหน้าต่อ
+
+💼 **การงาน & การเรียน:** ราบรื่น มีผู้ใหญ่อุปถัมภ์ งานที่ติดต่อไว้จะได้รับข่าวดี
+💰 **การเงิน & โชคลาภ:** การเงินสะพัด มีช่องทางทำเงินเพิ่ม แต่ควรวางแผนรายจ่ายให้รอบคอบ
+❤️ **ความรัก & ความสัมพันธ์:** คนมีคู่มีความเข้าใจกันดี คนโสดมีเสน่ห์โดดเด่นมีคนสนใจ
+🌟 **ข้อคิดชี้ทาง:** "เปิดใจรับโอกาสใหม่ด้วยสติและความมั่นใจ แล้วความสำเร็จจะเข้ามาหาคุณ"`;
 }
 

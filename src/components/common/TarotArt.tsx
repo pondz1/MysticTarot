@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TarotCard } from '../../data/tarotCards';
+import type { TarotCard } from '../../features/tarot/data/tarotCards';
 import {
   Sun, Moon, Compass, Crown, Shield, Heart, Sparkles, Feather,
   Wand2, BookOpen, Flame, Scale, Anchor, Eye, Skull, Star, Music, Award, HelpCircle
@@ -80,7 +80,7 @@ export const TarotArt: React.FC<TarotArtProps> = ({ card, isReversed = false }) 
             {renderIcon()}
           </div>
           <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[90%]">
-            {card.keywords.slice(0, 2).map((kw, i) => (
+            {card.keywords.slice(0, 2).map((kw: string, i: number) => (
               <span key={i} className="text-[9px] bg-black/60 text-amber-100/90 px-1.5 py-0.5 rounded border border-amber-500/30">
                 {kw}
               </span>

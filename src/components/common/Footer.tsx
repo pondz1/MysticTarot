@@ -11,16 +11,16 @@ export const Footer: React.FC = () => {
             <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
           </div>
           <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
-            <p className="font-semibold text-purple-200 text-xs sm:text-sm">Mystic Tarot AI</p>
+            <p className="font-semibold text-purple-200 text-xs sm:text-sm">MysticVerse AI</p>
             <p className="text-[11px] text-purple-300/60 leading-tight mt-0.5">
-              ขับเคลื่อนด้วยพลังแห่งไพ่ยิปซีและปัญญาประดิษฐ์จักรวาล
+              ศูนย์รวมศาสตร์ดูดวงและโหราศาสตร์ปัญญาประดิษฐ์ครบวงจร
             </p>
           </div>
         </div>
 
         {/* Copyright */}
         <p className="text-[11px] sm:text-xs text-purple-400/60 font-mono text-center sm:text-right">
-          © 2026 Mystic Tarot AI. All rights reserved.
+          © 2026 MysticVerse. All rights reserved.
         </p>
       </div>
     </footer>

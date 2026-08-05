@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Sparkles, Copy, Check, RefreshCw, Save, Feather, Moon } from 'lucide-react';
-import type { ChatMessage } from '../../types/tarot';
+import type { ChatMessage } from '../types/tarot';
 import { AiFollowUpChat } from './AiFollowUpChat';
 
 interface ReadingResultProps {

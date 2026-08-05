@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { TAROT_CARDS } from '../data/tarotCards';
-import { TarotArt } from '../components/common/TarotArt';
+import { TarotArt } from '../../../components/common/TarotArt';
 import {
   Search,
   BookOpen,
@@ -26,14 +26,14 @@ import {
   LayoutGrid,
 } from 'lucide-react';
 
-import { storageService } from '../services/storageService';
+import { storageService } from '../../../services/storageService';
 
 type ArcanaFilter = 'all' | 'major' | 'minor';
 type SuitFilter = 'all' | 'wands' | 'cups' | 'swords' | 'pentacles';
 type ElementFilter = 'all' | 'fire' | 'water' | 'air' | 'earth';
 type SortOption = 'number' | 'nameAsc' | 'nameDesc';
 
-export const EncyclopediaPage: React.FC = () => {
+export const TarotEncyclopediaPage: React.FC = () => {
   const { cardId } = useParams<{ cardId?: string }>();
   const navigate = useNavigate();
 

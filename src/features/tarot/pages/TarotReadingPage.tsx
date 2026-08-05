@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { SpreadSelector } from '../components/reading/SpreadSelector';
-import { QuestionInput } from '../components/reading/QuestionInput';
-import { TarotDeck } from '../components/reading/TarotDeck';
-import { CardDisplay } from '../components/reading/CardDisplay';
-import { ReadingResult } from '../components/reading/ReadingResult';
+import { SpreadSelector } from '../components/SpreadSelector';
+import { QuestionInput } from '../components/QuestionInput';
+import { TarotDeck } from '../components/TarotDeck';
+import { CardDisplay } from '../components/CardDisplay';
+import { ReadingResult } from '../components/ReadingResult';
 import type { ApiSettings, ChatMessage, DrawnCard, SavedReading, SpreadMode } from '../types/tarot';
-import { analyzeTarotReading, analyzeTarotFollowUp, generateFallbackReading } from '../services/aiService';
-import { storageService } from '../services/storageService';
+import { analyzeTarotReading, analyzeTarotFollowUp, generateFallbackReading } from '../../../services/aiService';
+import { storageService } from '../../../services/storageService';
 import type { TarotCard } from '../data/tarotCards';
 import { Sparkles } from 'lucide-react';
 
@@ -18,7 +18,7 @@ interface ReadingPageProps {
   setSavedReadings: React.Dispatch<React.SetStateAction<SavedReading[]>>;
 }
 
-export const ReadingPage: React.FC<ReadingPageProps> = ({
+export const TarotReadingPage: React.FC<ReadingPageProps> = ({
   apiSettings,
   onOpenCardDetails,
   savedReadings,
@@ -65,7 +65,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
         setIsSavedCurrent(true);
         setIsAnalyzing(false);
       } else if (!isAnalyzing && drawnCards.length === 0) {
-        navigate('/', { replace: true });
+        navigate('/tarot', { replace: true });
       }
     } else {
       setDrawnCards([]);
@@ -95,7 +95,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
     setSavedReadings(updated);
     setIsSavedCurrent(true);
     if (!id) {
-      navigate(`/reading/${currentId}`);
+      navigate(`/tarot/reading/${currentId}`);
     }
   };
 
@@ -112,7 +112,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
     setReadingResult('');
     setChatHistory([]);
     setIsSavedCurrent(false);
-    navigate(`/reading/${newId}`);
+    navigate(`/tarot/reading/${newId}`);
 
     try {
       let analysis = '';
@@ -212,7 +212,7 @@ export const ReadingPage: React.FC<ReadingPageProps> = ({
     setChatHistory([]);
     setIsSavedCurrent(false);
     setQuestion('');
-    navigate('/');
+    navigate('/tarot');
   };
 
   return (

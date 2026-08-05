@@ -5,11 +5,18 @@ import { Footer } from './components/common/Footer';
 import { ApiSettingsModal } from './components/modals/ApiSettingsModal';
 import { CardDetailModal } from './components/modals/CardDetailModal';
 import { HistoryModal } from './components/modals/HistoryModal';
-import { ReadingPage } from './pages/ReadingPage';
-import { EncyclopediaPage } from './pages/EncyclopediaPage';
-import type { ApiSettings, SavedReading } from './types/tarot';
+
+import { HomePage } from './pages/HomePage';
+import { TarotReadingPage } from './features/tarot/pages/TarotReadingPage';
+import { TarotEncyclopediaPage } from './features/tarot/pages/TarotEncyclopediaPage';
+import { HoroscopePage } from './features/horoscope/pages/HoroscopePage';
+import { NumerologyPage } from './features/numerology/pages/NumerologyPage';
+import { ThaiAstrologyPage } from './features/thai-astrology/pages/ThaiAstrologyPage';
+import { FengShuiPage } from './features/feng-shui/pages/FengShuiPage';
+
+import type { ApiSettings, SavedReading } from './features/tarot/types/tarot';
 import { storageService } from './services/storageService';
-import type { TarotCard } from './data/tarotCards';
+import type { TarotCard } from './features/tarot/data/tarotCards';
 
 export function App() {
   const navigate = useNavigate();
@@ -39,7 +46,7 @@ export function App() {
 
   // Load a reading from history
   const handleLoadHistoryReading = (reading: SavedReading) => {
-    navigate(`/reading/${reading.id}`);
+    navigate(`/tarot/reading/${reading.id}`);
   };
 
   return (
@@ -58,35 +65,60 @@ export function App() {
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 flex flex-col items-center">
         <Routes>
-          {/* Home / Reading Route */}
+          {/* Platform Portal Home Route */}
+          <Route path="/" element={<HomePage />} />
+
+          {/* Tarot Module Routes */}
           <Route
-            path="/"
+            path="/tarot"
             element={
-              <ReadingPage
+              <TarotReadingPage
                 apiSettings={apiSettings}
-                onOpenCardDetails={(inspect) => setSelectedInspectCard(inspect)}
+                onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
                 savedReadings={savedReadings}
                 setSavedReadings={setSavedReadings}
               />
             }
           />
+          <Route
+            path="/tarot/reading/:id"
+            element={
+              <TarotReadingPage
+                apiSettings={apiSettings}
+                onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
+                savedReadings={savedReadings}
+                setSavedReadings={setSavedReadings}
+              />
+            }
+          />
+          <Route path="/tarot/encyclopedia" element={<TarotEncyclopediaPage />} />
+          <Route path="/tarot/encyclopedia/:cardId" element={<TarotEncyclopediaPage />} />
+
+          {/* Horoscope Module Route */}
+          <Route path="/horoscope" element={<HoroscopePage apiSettings={apiSettings} />} />
+
+          {/* Numerology Module Route */}
+          <Route path="/numerology" element={<NumerologyPage />} />
+
+          {/* Thai Astrology Module Route */}
+          <Route path="/thai-astrology" element={<ThaiAstrologyPage />} />
+
+          {/* Feng Shui Module Route */}
+          <Route path="/feng-shui" element={<FengShuiPage />} />
+
+          {/* Legacy Fallbacks */}
           <Route
             path="/reading/:id"
             element={
-              <ReadingPage
+              <TarotReadingPage
                 apiSettings={apiSettings}
-                onOpenCardDetails={(inspect) => setSelectedInspectCard(inspect)}
+                onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
                 savedReadings={savedReadings}
                 setSavedReadings={setSavedReadings}
               />
             }
           />
-
-          {/* Encyclopedia Routes */}
-          <Route path="/encyclopedia" element={<EncyclopediaPage />} />
-          <Route path="/encyclopedia/:cardId" element={<EncyclopediaPage />} />
-
-          {/* Fallback Route */}
+          <Route path="/encyclopedia/*" element={<Navigate to="/tarot/encyclopedia" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

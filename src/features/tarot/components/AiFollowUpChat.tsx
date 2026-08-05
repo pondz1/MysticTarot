@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { MessageSquare, Send, Sparkles, AlertCircle, Bot, User, HelpCircle } from 'lucide-react';
-import type { ChatMessage } from '../../types/tarot';
+import type { ChatMessage } from '../types/tarot';
 
 interface AiFollowUpChatProps {
   chatHistory: ChatMessage[];
