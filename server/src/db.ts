@@ -6,6 +6,8 @@ import { eq, desc, sql } from 'drizzle-orm';
 import { users, readings, userCredits, type ReadingSelect } from './schema.js';
 import { CREDIT_RATES } from './constants/creditRates.js';
 
+import { PROMO_CODES } from './constants/promoCodes.js';
+
 // Standard DB directory configuration (defaults to ./data in working directory)
 const dbDir = process.env.DATA_DIR
   ? path.resolve(process.env.DATA_DIR)
@@ -43,9 +45,15 @@ sqlite.exec(`
   CREATE TABLE IF NOT EXISTS user_credits (
     user_id TEXT PRIMARY KEY,
     credits INTEGER NOT NULL DEFAULT 10,
+    last_daily_refill TEXT,
+    used_codes TEXT DEFAULT '[]',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+// Safe migrations for existing SQLite databases
+try { sqlite.exec("ALTER TABLE user_credits ADD COLUMN last_daily_refill TEXT;"); } catch {}
+try { sqlite.exec("ALTER TABLE user_credits ADD COLUMN used_codes TEXT DEFAULT '[]';"); } catch {}
 
 // Drizzle ORM Instance
 export const db = drizzle(sqlite, { schema: { users, readings, userCredits } });
@@ -209,6 +217,113 @@ export const creditsDb = {
       .where(eq(userCredits.userId, userId))
       .run();
     return updated;
+  },
+
+  getDailyStatus(userId: string = 'default_user'): { canClaim: boolean; lastClaimedAt: string | null; nextAvailableMs: number } {
+    const row = db.select({ lastDailyRefill: userCredits.lastDailyRefill }).from(userCredits).where(eq(userCredits.userId, userId)).get();
+    if (!row || !row.lastDailyRefill) {
+      return { canClaim: true, lastClaimedAt: null, nextAvailableMs: 0 };
+    }
+
+    const lastTime = new Date(row.lastDailyRefill).getTime();
+    const now = Date.now();
+    const diffMs = now - lastTime;
+    const cooldownMs = 24 * 60 * 60 * 1000; // 24 hours
+
+    if (diffMs >= cooldownMs) {
+      return { canClaim: true, lastClaimedAt: row.lastDailyRefill, nextAvailableMs: 0 };
+    }
+
+    return {
+      canClaim: false,
+      lastClaimedAt: row.lastDailyRefill,
+      nextAvailableMs: cooldownMs - diffMs,
+    };
+  },
+
+  claimDailyBonus(userId: string = 'default_user', amount: number = 10): { success: boolean; credits: number; added: number; message: string } {
+    const status = this.getDailyStatus(userId);
+    if (!status.canClaim) {
+      const current = this.getCredits(userId);
+      const hours = Math.ceil(status.nextAvailableMs / (1000 * 60 * 60));
+      return {
+        success: false,
+        credits: current,
+        added: 0,
+        message: `คุณได้รับสิทธิ์ของวันนี้ไปแล้ว สามารถรับโบนัสฟรีได้อีกครั้งในอีก ~${hours} ชั่วโมง`,
+      };
+    }
+
+    const current = this.getCredits(userId);
+    const updated = current + amount;
+    db.update(userCredits)
+      .set({
+        credits: updated,
+        lastDailyRefill: new Date().toISOString(),
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(userCredits.userId, userId))
+      .run();
+
+    return {
+      success: true,
+      credits: updated,
+      added: amount,
+      message: `รับโบนัสฟรีประจำวัน +${amount} Credits สำเร็จ!`,
+    };
+  },
+
+  redeemPromoCode(userId: string = 'default_user', rawCode: string): { success: boolean; credits: number; added: number; message: string } {
+    const code = (rawCode || '').trim().toUpperCase();
+    const promo = PROMO_CODES[code];
+
+    if (!promo) {
+      const current = this.getCredits(userId);
+      return {
+        success: false,
+        credits: current,
+        added: 0,
+        message: 'โค้ดส่วนลดไม่ถูกต้อง หรือหมดอายุแล้ว',
+      };
+    }
+
+    const row = db.select({ credits: userCredits.credits, usedCodes: userCredits.usedCodes }).from(userCredits).where(eq(userCredits.userId, userId)).get();
+    let usedList: string[] = [];
+    try {
+      if (row?.usedCodes) {
+        usedList = JSON.parse(row.usedCodes);
+      }
+    } catch {}
+
+    if (usedList.includes(code)) {
+      const current = row?.credits ?? this.getCredits(userId);
+      return {
+        success: false,
+        credits: current,
+        added: 0,
+        message: `คุณเคยใช้งานโค้ด "${code}" นี้ไปแล้ว`,
+      };
+    }
+
+    usedList.push(code);
+    const current = row?.credits ?? this.getCredits(userId);
+    const updated = current + promo.credits;
+
+    db.update(userCredits)
+      .set({
+        credits: updated,
+        usedCodes: JSON.stringify(usedList),
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(userCredits.userId, userId))
+      .run();
+
+    return {
+      success: true,
+      credits: updated,
+      added: promo.credits,
+      message: `ใช้งานโค้ด "${code}" สำเร็จ! ได้รับ +${promo.credits} Credits (${promo.description})`,
+    };
   },
 };
 

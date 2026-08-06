@@ -67,6 +67,61 @@ userRouter.post('/refill', (req: AuthRequest, res: Response) => {
   }
 });
 
+// GET daily refill status
+userRouter.get('/daily-status', (req: AuthRequest, res: Response) => {
+  try {
+    const userId = getSessionId(req);
+    const status = creditsDb.getDailyStatus(userId);
+    sendSuccess(res, status);
+  } catch (error: any) {
+    console.error('[User Router Error] /api/user/daily-status failed:', error);
+    sendError(res, 'Failed to fetch daily status', 500);
+  }
+});
+
+// POST claim daily free bonus (+10 CR)
+userRouter.post('/claim-daily', (req: AuthRequest, res: Response) => {
+  try {
+    const userId = getSessionId(req);
+    const result = creditsDb.claimDailyBonus(userId, CREDIT_RATES.INITIAL_USER_CREDITS);
+
+    if (!result.success) {
+      sendError(res, result.message, 400, 'DAILY_COOLDOWN', { credits: result.credits });
+      return;
+    }
+
+    sendSuccess(res, result);
+  } catch (error: any) {
+    console.error('[User Router Error] /api/user/claim-daily failed:', error);
+    sendError(res, 'Failed to claim daily bonus', 500);
+  }
+});
+
+// POST redeem promo code
+userRouter.post('/redeem-code', (req: AuthRequest, res: Response) => {
+  try {
+    const userId = getSessionId(req);
+    const { code } = req.body;
+
+    if (!code || typeof code !== 'string') {
+      sendError(res, 'กรุณาระบุโค้ดส่วนลด', 400);
+      return;
+    }
+
+    const result = creditsDb.redeemPromoCode(userId, code);
+
+    if (!result.success) {
+      sendError(res, result.message, 400, 'INVALID_PROMO_CODE', { credits: result.credits });
+      return;
+    }
+
+    sendSuccess(res, result);
+  } catch (error: any) {
+    console.error('[User Router Error] /api/user/redeem-code failed:', error);
+    sendError(res, 'Failed to redeem promo code', 500);
+  }
+});
+
 // POST /api/user/topup-simulate (Simulated payment refill)
 userRouter.post('/topup-simulate', (req: AuthRequest, res: Response) => {
   try {
@@ -98,6 +153,7 @@ userRouter.post('/topup-simulate', (req: AuthRequest, res: Response) => {
     sendError(res, 'Failed to process topup simulation', 500);
   }
 });
+
 
 
 

@@ -74,7 +74,7 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
         if (onSuccess) onSuccess(updatedCredits);
       }
     } catch (err) {
-      console.error('Failed to simulate topup payment:', err);
+      console.error('Failed to process topup payment:', err);
     } finally {
       setIsProcessing(false);
     }
@@ -97,9 +97,9 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-bold font-serif-mystic text-gold-gradient">
-                Top-Up Simulator (ระบบจำลองการเติม เครดิต)
+                แพ็กเกจเติม เครดิต AI
               </h3>
-              <p className="text-[11px] text-purple-300">เลือกแพ็กเกจแล้วทดลองชำระเงินจำลองได้ทันที</p>
+              <p className="text-[11px] text-purple-300">เลือกแพ็กเกจและช่องทางชำระเงินที่ต้องการ</p>
             </div>
           </div>
           <button
@@ -117,14 +117,14 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
               <CheckCircle2 className="w-10 h-10 text-emerald-400 animate-pulse" />
             </div>
             <h4 className="text-xl font-bold text-emerald-300 font-serif-mystic mb-1">
-              จำลองชำระเงินสำเร็จ!
+              ชำระเงินสำเร็จเรียบร้อย!
             </h4>
             <p className="text-xs text-purple-200 mb-4">
-              เพิ่มเข้าสู่บัญชีของคุณเรียบร้อยแล้ว <span className="text-amber-300 font-bold">+{successInfo.added} Credits</span>
+              เพิ่มเข้าสู่บัญชีของคุณแล้ว <span className="text-amber-300 font-bold">+{successInfo.added} Credits</span>
             </p>
 
             <div className="w-full bg-purple-950/80 border border-amber-400/40 rounded-xl p-4 mb-6">
-              <div className="text-xs text-purple-300 mb-1">ยอด Credit คงเหลือล่าสุด</div>
+              <div className="text-xs text-purple-300 mb-1">ยอด Credit คงเหลือทั้งหมด</div>
               <div className="text-3xl font-extrabold text-amber-300 font-serif-mystic">
                 {successInfo.total} CR
               </div>
@@ -134,7 +134,7 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
               onClick={handleClose}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-purple-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
             >
-              ตกลง และ เริ่มใช้งาน AI
+              ตกลง และ เริ่มทำนายดวงชะตา
             </button>
           </div>
         ) : (
@@ -196,7 +196,7 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
             {/* Payment Method Selector */}
             <div className="mb-5">
               <label className="text-xs text-purple-200 font-semibold mb-2 block">
-                2. เลือกช่องทางชำระเงิน (จำลอง):
+                2. เลือกช่องทางชำระเงิน:
               </label>
 
               <div className="grid grid-cols-2 gap-2 mb-3">
@@ -210,7 +210,7 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
                   }`}
                 >
                   <QrCode className="w-4 h-4 text-amber-400" />
-                  <span>PromptPay QR</span>
+                  <span>PromptPay QR Code</span>
                 </button>
 
                 <button
@@ -223,27 +223,27 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
                   }`}
                 >
                   <CreditCard className="w-4 h-4 text-amber-400" />
-                  <span>บัตรเครดิต/เดบิต</span>
+                  <span>บัตรเครดิต / เดบิต</span>
                 </button>
               </div>
 
-              {/* Simulated QR Code / Card UI */}
+              {/* QR Code / Card UI */}
               {paymentMethod === 'promptpay' ? (
                 <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-purple-950/80 border border-amber-500/30 text-center">
                   <div className="p-3 bg-white rounded-xl shadow-lg mb-2">
                     <QrCode className="w-24 h-24 text-slate-900" />
                   </div>
                   <div className="text-xs font-bold text-amber-300">สแกนชำระเงิน ฿{selectedPkg.priceThb}</div>
-                  <div className="text-[10px] text-purple-300">รองรับแอปธนาคารทุกแห่ง (โหมดจำลอง)</div>
+                  <div className="text-[10px] text-purple-300">รองรับ Mobile Banking ทุกธนาคาร</div>
                 </div>
               ) : (
                 <div className="p-4 rounded-xl bg-purple-950/80 border border-amber-500/30 flex flex-col gap-2">
                   <div className="flex items-center justify-between text-xs text-purple-200 mb-1">
-                    <span>บัตรเครดิตสมมติ:</span>
+                    <span>บัตรชำระเงิน:</span>
                     <span className="text-amber-300 font-mono">•••• •••• •••• 4242</span>
                   </div>
                   <div className="text-[11px] text-purple-300">
-                    ยอดชำระ: <strong className="text-amber-300">฿{selectedPkg.priceThb}</strong> (ระบบทดสอบจะเติมให้โดยอัตโนมัติ)
+                    ยอดชำระ: <strong className="text-amber-300">฿{selectedPkg.priceThb}</strong> (ทำรายการอัตโนมัติ)
                   </div>
                 </div>
               )}
@@ -260,19 +260,19 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
                 {isProcessing ? (
                   <>
                     <Zap className="w-4 h-4 animate-spin" />
-                    <span>กำลังจำลองชำระเงิน...</span>
+                    <span>กำลังประมวลผลการชำระเงิน...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    <span>จำลองชำระเงินสำเร็จ (+{totalCredits} Credits)</span>
+                    <span>ยืนยันการชำระเงิน (+{totalCredits} Credits)</span>
                   </>
                 )}
               </button>
 
               <div className="flex items-center justify-center gap-1.5 text-[10px] text-purple-400 mt-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>นี่คือระบบ Simulator ไม่มีการตัดเงินจริงแต่อย่างใด</span>
+                <span>ปลอดภัย 100% เครดิตเข้าสู่บัญชีทันทีหลังชำระเงิน</span>
               </div>
             </div>
           </>

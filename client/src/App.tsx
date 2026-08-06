@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { ApiSettingsModal } from './components/modals/ApiSettingsModal';
+import { CreditCenterModal } from './components/modals/CreditCenterModal';
 import { CardDetailModal } from './components/modals/CardDetailModal';
 import { HistoryModal } from './components/modals/HistoryModal';
 import { Sparkles } from 'lucide-react';
@@ -44,13 +45,16 @@ export function App() {
 
   // Modals Visibility
   const [isApiSettingsOpen, setIsApiSettingsOpen] = useState<boolean>(false);
-  const [apiSettingsInitialTab, setApiSettingsInitialTab] = useState<'credit' | 'custom'>('custom');
+  const [isCreditCenterOpen, setIsCreditCenterOpen] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [selectedInspectCard, setSelectedInspectCard] = useState<{ card: TarotCard; isReversed?: boolean } | null>(null);
 
   const handleOpenSettings = (defaultTab?: 'credit' | 'custom') => {
-    setApiSettingsInitialTab(defaultTab || 'custom');
-    setIsApiSettingsOpen(true);
+    if (defaultTab === 'credit') {
+      setIsCreditCenterOpen(true);
+    } else {
+      setIsApiSettingsOpen(true);
+    }
   };
 
   // Persistent API Settings in localStorage via storageService
@@ -86,6 +90,7 @@ export function App() {
       {/* Navbar Header */}
       <Navbar
         onOpenSettings={handleOpenSettings}
+        onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
         onOpenHistory={() => setIsHistoryOpen(true)}
         hasCustomKey={!!apiSettings.apiKey}
       />
@@ -152,7 +157,12 @@ export function App() {
         onClose={() => setIsApiSettingsOpen(false)}
         settings={apiSettings}
         onSaveSettings={handleSaveApiSettings}
-        initialTab={apiSettingsInitialTab}
+        onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+      />
+
+      <CreditCenterModal
+        isOpen={isCreditCenterOpen}
+        onClose={() => setIsCreditCenterOpen(false)}
       />
 
       <CardDetailModal

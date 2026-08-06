@@ -21,12 +21,14 @@ import { useAuth } from '../../context/AuthContext';
 
 interface NavbarProps {
   onOpenSettings: (defaultTab?: 'credit' | 'custom') => void;
+  onOpenCreditCenter?: () => void;
   onOpenHistory: () => void;
   hasCustomKey: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenSettings,
+  onOpenCreditCenter,
   onOpenHistory,
   hasCustomKey,
 }) => {
@@ -138,7 +140,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Credits Balance Pill -> Opens Credit Tab */}
           <button
             type="button"
-            onClick={() => onOpenSettings('credit')}
+            onClick={() => {
+              if (onOpenCreditCenter) onOpenCreditCenter();
+              else onOpenSettings('credit');
+            }}
             className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 hover:from-amber-500/25 hover:to-amber-500/15 border border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.1)] hover:shadow-[0_0_16px_rgba(245,158,11,0.25)] transition-all cursor-pointer min-h-[36px]"
             title="เครดิตใช้งาน AI คงเหลือ (คลิกเพื่อดูรายละเอียดระบบ Credit)"
           >

@@ -21,6 +21,8 @@ export const readings = sqliteTable('readings', {
 export const userCredits = sqliteTable('user_credits', {
   userId: text('user_id').primaryKey(),
   credits: integer('credits').notNull().default(10),
+  lastDailyRefill: text('last_daily_refill'),
+  usedCodes: text('used_codes').default('[]'),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
