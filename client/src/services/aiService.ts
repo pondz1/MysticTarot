@@ -4,6 +4,7 @@ export {
   PROVIDER_PRESETS,
   cleanAiResponse,
   getOpenAIClient,
+  requestAiCompletion,
   streamAiCompletion,
 } from './ai/aiClient';
 
