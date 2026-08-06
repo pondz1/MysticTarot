@@ -19,7 +19,7 @@ import {
 import { MODULE_THEMES } from '../../constants/moduleThemes';
 
 interface NavbarProps {
-  onOpenSettings: () => void;
+  onOpenSettings: (defaultTab?: 'credit' | 'custom') => void;
   onOpenHistory: () => void;
   hasCustomKey: boolean;
 }
@@ -162,12 +162,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
-          {/* Credits Balance Pill */}
+          {/* Credits Balance Pill -> Opens Credit Tab */}
           <button
             type="button"
-            onClick={onOpenSettings}
+            onClick={() => onOpenSettings('credit')}
             className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 hover:from-amber-500/25 hover:to-amber-500/15 border border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.1)] hover:shadow-[0_0_16px_rgba(245,158,11,0.25)] transition-all cursor-pointer min-h-[36px]"
-            title="เครดิตใช้งาน AI คงเหลือ (คลิกเพื่อเติมเครดิต / ตั้งค่า)"
+            title="เครดิตใช้งาน AI คงเหลือ (คลิกเพื่อดูรายละเอียดระบบ Credit)"
           >
             <Coins className="w-4 h-4 text-amber-400 shrink-0 group-hover:rotate-12 transition-transform" />
             <span className="whitespace-nowrap font-medium text-amber-200">
@@ -188,16 +188,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden sm:inline whitespace-nowrap">ประวัติ</span>
           </button>
 
-          {/* AI Settings Button */}
+          {/* AI Settings Button -> Opens Custom API Key Tab */}
           <button
             type="button"
-            onClick={onOpenSettings}
+            onClick={() => onOpenSettings('custom')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer min-h-[36px] ${
               hasCustomKey
                 ? 'bg-purple-950/70 text-purple-200 border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.2)] font-semibold hover:bg-purple-900/80'
                 : 'text-slate-300 bg-slate-900/90 border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-700'
             }`}
-            title="ตั้งค่า AI (โมเดล / API Key)"
+            title="ตั้งค่า AI ( Custom API Key / โมเดล )"
           >
             <Settings className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">ตั้งค่า AI</span>

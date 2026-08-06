@@ -8,15 +8,17 @@ interface ApiSettingsModalProps {
   onClose: () => void;
   settings: ApiSettings;
   onSaveSettings: (newSettings: ApiSettings) => void;
+  initialTab?: AiConnectionMode;
 }
 
 export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   isOpen,
   onClose,
   settings,
-  onSaveSettings
+  onSaveSettings,
+  initialTab,
 }) => {
-  const [mode, setMode] = useState<AiConnectionMode>(settings.mode || 'credit');
+  const [mode, setMode] = useState<AiConnectionMode>(initialTab || settings.mode || 'credit');
   const [apiKey, setApiKey] = useState(settings.apiKey || '');
   const [baseUrl, setBaseUrl] = useState(settings.baseUrl || 'https://api.openai.com/v1');
   const [model, setModel] = useState(settings.model || 'gpt-4o-mini');
@@ -27,13 +29,13 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setMode(settings.mode || 'credit');
+      setMode(initialTab || settings.mode || 'credit');
       setApiKey(settings.apiKey || '');
       setBaseUrl(settings.baseUrl || 'https://api.openai.com/v1');
       setModel(settings.model || 'gpt-4o-mini');
       fetchCredits();
     }
-  }, [isOpen, settings]);
+  }, [isOpen, settings, initialTab]);
 
   const fetchCredits = async () => {
     setLoadingCredits(true);

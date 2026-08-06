@@ -44,8 +44,14 @@ export function App() {
 
   // Modals Visibility
   const [isApiSettingsOpen, setIsApiSettingsOpen] = useState<boolean>(false);
+  const [apiSettingsInitialTab, setApiSettingsInitialTab] = useState<'credit' | 'custom'>('custom');
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [selectedInspectCard, setSelectedInspectCard] = useState<{ card: TarotCard; isReversed?: boolean } | null>(null);
+
+  const handleOpenSettings = (defaultTab?: 'credit' | 'custom') => {
+    setApiSettingsInitialTab(defaultTab || 'custom');
+    setIsApiSettingsOpen(true);
+  };
 
   // Persistent API Settings in localStorage via storageService
   const [apiSettings, setApiSettings] = useState<ApiSettings>(() => storageService.getApiSettings());
@@ -67,6 +73,7 @@ export function App() {
 
   // Load a reading from history
   const handleLoadHistoryReading = (reading: SavedReading) => {
+    setIsHistoryOpen(false);
     navigate(`/tarot/reading/${reading.id}`);
   };
 
@@ -78,7 +85,7 @@ export function App() {
 
       {/* Navbar Header */}
       <Navbar
-        onOpenSettings={() => setIsApiSettingsOpen(true)}
+        onOpenSettings={handleOpenSettings}
         onOpenHistory={() => setIsHistoryOpen(true)}
         hasCustomKey={!!apiSettings.apiKey}
       />
@@ -145,6 +152,7 @@ export function App() {
         onClose={() => setIsApiSettingsOpen(false)}
         settings={apiSettings}
         onSaveSettings={handleSaveApiSettings}
+        initialTab={apiSettingsInitialTab}
       />
 
       <CardDetailModal
