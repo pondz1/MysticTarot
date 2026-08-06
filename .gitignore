@@ -21,7 +21,7 @@ server/public
 .env
 .env.*
 !.env.example
-data/
+/server/data/
 *.db
 *.db-journal
 *.db-wal
