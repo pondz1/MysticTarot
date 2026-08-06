@@ -47,7 +47,7 @@ export const BirthdateZodiacFinder: React.FC<BirthdateZodiacFinderProps> = ({
   return (
     <form
       onSubmit={onSubmit}
-      className="p-4 sm:p-6 rounded-2xl bg-slate-900/90 border border-purple-500/30 backdrop-blur-xl shadow-xl space-y-4 animate-scale-up"
+      className="relative z-30 p-4 sm:p-6 rounded-2xl bg-slate-900/90 border border-purple-500/30 backdrop-blur-xl shadow-xl space-y-4 animate-scale-up"
     >
       <div className="flex items-center gap-2 text-sm font-bold text-amber-300">
         <Calendar className="w-4 h-4 text-amber-400" />

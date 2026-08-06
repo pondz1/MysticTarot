@@ -113,11 +113,11 @@ export function CustomSelect<T = string | number>({
   };
 
   return (
-    <div className={`w-full space-y-1.5 ${className}`}>
+    <div className={`w-full space-y-1.5 ${isOpen ? 'relative z-[999]' : ''} ${className}`}>
       {label && <label className="block text-xs font-semibold text-slate-300">{label}</label>}
 
       {/* Button & Popover Wrapper */}
-      <div className={`relative w-full ${isOpen ? 'z-[60]' : 'z-10'}`} ref={containerRef}>
+      <div className={`relative w-full ${isOpen ? 'z-[999]' : 'z-10'}`} ref={containerRef}>
         {/* Trigger Button */}
         <button
           type="button"
@@ -142,7 +142,7 @@ export function CustomSelect<T = string | number>({
 
         {/* Dropdown Menu Popover */}
         {isOpen && (
-          <div className="absolute z-[100] top-full left-0 w-full mt-1.5 py-1.5 rounded-2xl bg-slate-950/98 border border-slate-700/80 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl max-h-64 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-800">
+          <div className="absolute z-[9999] top-full left-0 w-full mt-1.5 py-1.5 rounded-2xl bg-slate-950/98 border border-slate-700/80 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl max-h-64 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-800">
             {options.map((opt, idx) => {
               const isSelected = opt.value === value;
               return (
