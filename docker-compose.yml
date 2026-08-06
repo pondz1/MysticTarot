@@ -5,8 +5,8 @@ services:
       dockerfile: Dockerfile
     container_name: mystic-tarot
     restart: unless-stopped
-    ports:
-      - "3001:3001"
+    expose:
+      - "3001"
     environment:
       - PORT=3001
       - OPENAI_API_KEY=${OPENAI_API_KEY}

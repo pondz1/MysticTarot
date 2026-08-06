@@ -11,7 +11,7 @@
 1. เข้าสู่ **Coolify Dashboard** -> เลือก **Projects** -> เลือก Environment ของคุณ
 2. กด **+ Add New Resource** -> เลือก **Public Repository** หรือ **Private Repository** (ชี้มาที่ Git Repo นี้)
 3. ในส่วน **Build Pack** ให้เลือก: **Dockerfile**
-4. กำหนดค่า **Ports Exposed**: `3001`
+4. กำหนดค่า **Ports Exposed**: `3001` (สื่อสารภายในกับ Coolify Proxy โดยไม่ต้องเปิด Host Port สู่ภายนอก)
 5. ในส่วน **Environment Variables** เพิ่มค่าต่อไปนี้:
    - `PORT` = `3001`
    - `OPENAI_API_KEY` = `sk-dce7f4d0918d74dd-ocq0dk-310c8c1d` (หรือ Key ของคุณ)
