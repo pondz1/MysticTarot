@@ -14,6 +14,8 @@ interface ReadingResultProps {
   chatHistory?: ChatMessage[];
   onSendFollowUp?: (text: string) => Promise<void>;
   isSendingFollowUp?: boolean;
+  onOpenSettings?: () => void;
+  onOpenCreditCenter?: () => void;
 }
 
 export const ReadingResult: React.FC<ReadingResultProps> = ({
@@ -25,6 +27,8 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
   chatHistory = [],
   onSendFollowUp,
   isSendingFollowUp = false,
+  onOpenSettings,
+  onOpenCreditCenter,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -186,6 +190,8 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
               onSendMessage={onSendFollowUp}
               isSending={isSendingFollowUp}
               maxMessages={5}
+              onOpenSettings={onOpenSettings}
+              onOpenCreditCenter={onOpenCreditCenter}
             />
           )}
 

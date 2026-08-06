@@ -24,8 +24,12 @@ import { FengShuiColorGrid } from '../components/FengShuiColorGrid';
 import { FengShuiDirections } from '../components/FengShuiDirections';
 import { FengShuiTips } from '../components/FengShuiTips';
 
+import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
+
 interface FengShuiPageProps {
-  apiSettings?: ApiSettings;
+  apiSettings: ApiSettings;
+  onOpenSettings?: () => void;
+  onOpenCreditCenter?: () => void;
 }
 
 const SPACE_OPTIONS = [
@@ -36,13 +40,18 @@ const SPACE_OPTIONS = [
   { id: 'overall', label: 'ภาพรวมบ้าน & ที่อยู่อาศัย' },
 ];
 
-export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
+export const FengShuiPage: React.FC<FengShuiPageProps> = ({
+  apiSettings,
+  onOpenSettings,
+  onOpenCreditCenter,
+}) => {
   const theme = MODULE_THEMES['feng-shui'];
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
   const [selectedSpace, setSelectedSpace] = useState<string>('โต๊ะทำงาน / มุมทำงาน');
   const [useAi, setUseAi] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [predictionText, setPredictionText] = useState<string>('');
+  const [aiError, setAiError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
   const currentDayInfo = DAILY_LUCKY_COLORS_TABLE[selectedDayIndex];
@@ -60,6 +69,7 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
     const luckyWealthStr = currentDayInfo.luckyWealth.join(', ');
     const luckyLoveStr = currentDayInfo.luckyLove.join(', ');
     const unluckyStr = currentDayInfo.unluckyForbidden.join(', ');
+    setAiError(null);
 
     if (!runAiMode) {
       const fallback = generateFallbackFengShui(
@@ -86,18 +96,11 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
         apiSettings
       );
       setPredictionText(aiText);
-    } catch (err) {
-      console.error(err);
-      setPredictionText(
-        generateFallbackFengShui(
-          currentDayInfo.dayNameTh,
-          luckyWorkStr,
-          luckyWealthStr,
-          luckyLoveStr,
-          unluckyStr,
-          selectedSpace
-        )
-      );
+      setAiError(null);
+    } catch (err: any) {
+      console.error('Failed AI completion in FengShuiPage:', err);
+      const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ฮวงจุ้ย & สีมงคลได้ในขณะนี้';
+      setAiError(errMsg);
     } finally {
       setIsLoading(false);
     }
@@ -267,6 +270,32 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
         badgeBgStyle={theme.badgeBg}
         iconColorClass={theme.iconColor}
       />
+
+      {/* AI Error Fallback Banner */}
+      {aiError && (
+        <AiErrorFallbackCard
+          errorMessage={aiError}
+          onRetry={() => handleAnalyzeFengShui(true)}
+          onUseOfflineFallback={() => {
+            const luckyWorkStr = currentDayInfo.luckyWork.join(', ');
+            const luckyWealthStr = currentDayInfo.luckyWealth.join(', ');
+            const luckyLoveStr = currentDayInfo.luckyLove.join(', ');
+            const unluckyStr = currentDayInfo.unluckyForbidden.join(', ');
+            const fallback = generateFallbackFengShui(
+              currentDayInfo.dayNameTh,
+              luckyWorkStr,
+              luckyWealthStr,
+              luckyLoveStr,
+              unluckyStr,
+              selectedSpace
+            );
+            setPredictionText(fallback);
+            setAiError(null);
+          }}
+          onOpenCreditCenter={onOpenCreditCenter}
+          onOpenSettings={onOpenSettings}
+        />
+      )}
 
       {/* Prediction Markdown Output Display */}
       {predictionText && (

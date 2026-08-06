@@ -111,6 +111,8 @@ export function App() {
                   onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
                   savedReadings={savedReadings}
                   setSavedReadings={setSavedReadings}
+                  onOpenSettings={handleOpenSettings}
+                  onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
                 />
               }
             />
@@ -122,6 +124,8 @@ export function App() {
                   onOpenCardDetails={(inspect: { card: TarotCard; isReversed?: boolean }) => setSelectedInspectCard(inspect)}
                   savedReadings={savedReadings}
                   setSavedReadings={setSavedReadings}
+                  onOpenSettings={handleOpenSettings}
+                  onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
                 />
               }
             />
@@ -129,16 +133,52 @@ export function App() {
             <Route path="/tarot/encyclopedia/:cardId" element={<TarotEncyclopediaPage />} />
 
             {/* Horoscope Module Route */}
-            <Route path="/horoscope" element={<HoroscopePage apiSettings={apiSettings} />} />
+            <Route
+              path="/horoscope"
+              element={
+                <HoroscopePage
+                  apiSettings={apiSettings}
+                  onOpenSettings={handleOpenSettings}
+                  onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                />
+              }
+            />
 
             {/* Numerology Module Route */}
-            <Route path="/numerology" element={<NumerologyPage apiSettings={apiSettings} />} />
+            <Route
+              path="/numerology"
+              element={
+                <NumerologyPage
+                  apiSettings={apiSettings}
+                  onOpenSettings={handleOpenSettings}
+                  onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                />
+              }
+            />
 
             {/* Thai Astrology Module Route */}
-            <Route path="/thai-astrology" element={<ThaiAstrologyPage apiSettings={apiSettings} />} />
+            <Route
+              path="/thai-astrology"
+              element={
+                <ThaiAstrologyPage
+                  apiSettings={apiSettings}
+                  onOpenSettings={handleOpenSettings}
+                  onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                />
+              }
+            />
 
             {/* Feng Shui Module Route */}
-            <Route path="/feng-shui" element={<FengShuiPage apiSettings={apiSettings} />} />
+            <Route
+              path="/feng-shui"
+              element={
+                <FengShuiPage
+                  apiSettings={apiSettings}
+                  onOpenSettings={handleOpenSettings}
+                  onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                />
+              }
+            />
 
             {/* Legacy Fallbacks */}
             <Route path="/reading/*" element={<Navigate to="/tarot" replace />} />

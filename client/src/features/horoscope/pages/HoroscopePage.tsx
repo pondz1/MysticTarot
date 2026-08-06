@@ -34,17 +34,26 @@ import { BirthdateZodiacFinder } from '../components/BirthdateZodiacFinder';
 import { ZodiacGrid } from '../components/ZodiacGrid';
 import { ZodiacAspectBars } from '../components/ZodiacAspectBars';
 
+import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
+
 interface HoroscopePageProps {
   apiSettings: ApiSettings;
+  onOpenSettings?: () => void;
+  onOpenCreditCenter?: () => void;
 }
 
-export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => {
+export const HoroscopePage: React.FC<HoroscopePageProps> = ({
+  apiSettings,
+  onOpenSettings,
+  onOpenCreditCenter,
+}) => {
   const theme = MODULE_THEMES.horoscope;
   const [selectedSign, setSelectedSign] = useState<ZodiacSign>(ZODIAC_SIGNS[0]);
   const [timeframe, setTimeframe] = useState<'daily' | 'monthly'>('daily');
   const [useAi, setUseAi] = useState<boolean>(false);
   const [prediction, setPrediction] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   // Birthdate Finder state
   const [birthMonth, setBirthMonth] = useState<number>(6);
@@ -70,6 +79,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
   ) => {
     if (isLoading) return; // Prevent spamming API requests while processing
     setSelectedSign(sign);
+    setAiError(null);
     if (!withAi) {
       // Classic Offline Interpretation (Instant 0ms response)
       const classicText = getZodiacClassicPrediction(sign, mode);
@@ -82,8 +92,11 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
     try {
       const res = await analyzeZodiacHoroscope(sign.nameTh, sign.elementTh, mode, apiSettings);
       setPrediction(res);
-    } catch {
-      setPrediction(getZodiacClassicPrediction(sign, mode));
+      setAiError(null);
+    } catch (err: any) {
+      console.error('Failed AI completion in HoroscopePage:', err);
+      const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ดูดวงราศีได้ในขณะนี้';
+      setAiError(errMsg);
     } finally {
       setIsLoading(false);
     }
@@ -318,6 +331,20 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
           timeframe={timeframe}
           iconColorClass={theme.iconColor}
         />
+
+        {/* AI Error Fallback Banner */}
+        {aiError && (
+          <AiErrorFallbackCard
+            errorMessage={aiError}
+            onRetry={() => handleFetchHoroscope(selectedSign, timeframe, true)}
+            onUseOfflineFallback={() => {
+              setPrediction(getZodiacClassicPrediction(selectedSign, timeframe));
+              setAiError(null);
+            }}
+            onOpenCreditCenter={onOpenCreditCenter}
+            onOpenSettings={onOpenSettings}
+          />
+        )}
 
         {/* Prediction Content */}
         <div className="space-y-4">

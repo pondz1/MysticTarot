@@ -1,6 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import rateLimit from 'express-rate-limit';
@@ -9,8 +11,6 @@ import { readingsRouter } from './routes/readings.js';
 import { userRouter } from './routes/user.js';
 import { authRouter } from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;

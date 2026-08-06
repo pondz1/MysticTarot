@@ -3,12 +3,15 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { MessageSquare, Send, Sparkles, AlertCircle, Bot, User, HelpCircle } from 'lucide-react';
 import type { ChatMessage } from '../types/tarot';
+import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
 
 interface AiFollowUpChatProps {
   chatHistory: ChatMessage[];
   onSendMessage: (text: string) => Promise<void>;
   isSending: boolean;
   maxMessages?: number;
+  onOpenSettings?: () => void;
+  onOpenCreditCenter?: () => void;
 }
 
 const PRESET_QUESTIONS = [
@@ -23,8 +26,12 @@ export const AiFollowUpChat: React.FC<AiFollowUpChatProps> = ({
   onSendMessage,
   isSending,
   maxMessages = 5,
+  onOpenSettings,
+  onOpenCreditCenter,
 }) => {
   const [inputText, setInputText] = useState('');
+  const [chatError, setChatError] = useState<string | null>(null);
+  const [lastFailedText, setLastFailedText] = useState<string>('');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Count user messages sent so far
@@ -35,7 +42,18 @@ export const AiFollowUpChat: React.FC<AiFollowUpChatProps> = ({
   // Auto scroll to bottom when new messages arrive or loading state changes
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatHistory, isSending]);
+  }, [chatHistory, isSending, chatError]);
+
+  const sendWithErrorHandler = async (text: string) => {
+    try {
+      setChatError(null);
+      await onSendMessage(text);
+    } catch (err: any) {
+      console.error('Follow-up chat AI call failed:', err);
+      setLastFailedText(text);
+      setChatError(err?.message || 'ไม่สามารถส่งคำถามถามตอบเจาะลึกไปยัง AI ได้ในขณะนี้');
+    }
+  };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -43,13 +61,13 @@ export const AiFollowUpChat: React.FC<AiFollowUpChatProps> = ({
     if (!text || isSending || isLimitReached) return;
 
     setInputText('');
-    await onSendMessage(text);
+    await sendWithErrorHandler(text);
   };
 
   const handleSelectPreset = async (preset: string) => {
     if (isSending || isLimitReached) return;
     setInputText('');
-    await onSendMessage(preset);
+    await sendWithErrorHandler(preset);
   };
 
   return (
@@ -164,6 +182,16 @@ export const AiFollowUpChat: React.FC<AiFollowUpChatProps> = ({
 
           <div ref={chatEndRef} />
         </div>
+      )}
+
+      {/* AI Chat Error Fallback Card */}
+      {chatError && (
+        <AiErrorFallbackCard
+          errorMessage={chatError}
+          onRetry={lastFailedText ? () => sendWithErrorHandler(lastFailedText) : undefined}
+          onOpenCreditCenter={onOpenCreditCenter}
+          onOpenSettings={onOpenSettings}
+        />
       )}
 
       {/* Preset Suggestion Chips */}

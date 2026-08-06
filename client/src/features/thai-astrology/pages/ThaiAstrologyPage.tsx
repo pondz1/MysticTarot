@@ -23,17 +23,26 @@ import { ThaiAstrologyForm } from '../components/ThaiAstrologyForm';
 import { LifeGraphVisualizer } from '../components/LifeGraphVisualizer';
 import { LifeStageBreakdown } from '../components/LifeStageBreakdown';
 
+import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
+
 interface ThaiAstrologyPageProps {
-  apiSettings?: ApiSettings;
+  apiSettings: ApiSettings;
+  onOpenSettings?: () => void;
+  onOpenCreditCenter?: () => void;
 }
 
-export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({ apiSettings }) => {
+export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
+  apiSettings,
+  onOpenSettings,
+  onOpenCreditCenter,
+}) => {
   const theme = MODULE_THEMES['thai-astrology'];
   const [birthDate, setBirthDate] = useState<string>('1995-06-15');
   const [dayIndex, setDayIndex] = useState<number>(3); // Wednesday default
   const [useAi, setUseAi] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [predictionText, setPredictionText] = useState<string>('');
+  const [aiError, setAiError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
   const [result, setResult] = useState<ThaiLifeChartResult | null>(() => calculateLifeGraph('1995-06-15', 3));
@@ -52,6 +61,7 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({ apiSetting
 
     const mathRes = calculateLifeGraph(birthDate, dayIndex);
     setResult(mathRes);
+    setAiError(null);
 
     if (!runAiMode) {
       const fallback = generateFallbackThaiLifeGraph(
@@ -75,16 +85,11 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({ apiSetting
         apiSettings
       );
       setPredictionText(aiText);
-    } catch (err) {
-      console.error(err);
-      setPredictionText(
-        generateFallbackThaiLifeGraph(
-          birthDate,
-          mathRes.dayOfWeekTh,
-          mathRes.peakAgeRange,
-          mathRes.summaryGuidance
-        )
-      );
+      setAiError(null);
+    } catch (err: any) {
+      console.error('Failed AI completion in ThaiAstrologyPage:', err);
+      const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ดวงไทยโบราณได้ในขณะนี้';
+      setAiError(errMsg);
     } finally {
       setIsLoading(false);
     }
@@ -204,6 +209,28 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({ apiSetting
             lifeGraphPoints={result.lifeGraphPoints}
             secondaryIconColor={theme.secondaryIconColor}
           />
+
+          {/* AI Error Fallback Banner */}
+          {aiError && (
+            <AiErrorFallbackCard
+              errorMessage={aiError}
+              onRetry={() => handleCalculate(undefined, true)}
+              onUseOfflineFallback={() => {
+                if (result) {
+                  const fallback = generateFallbackThaiLifeGraph(
+                    birthDate,
+                    result.dayOfWeekTh,
+                    result.peakAgeRange,
+                    result.summaryGuidance
+                  );
+                  setPredictionText(fallback);
+                }
+                setAiError(null);
+              }}
+              onOpenCreditCenter={onOpenCreditCenter}
+              onOpenSettings={onOpenSettings}
+            />
+          )}
 
           {/* AI / Classic Prediction Content View */}
           {predictionText && (

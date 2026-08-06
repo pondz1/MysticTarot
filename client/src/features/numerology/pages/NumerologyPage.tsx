@@ -28,8 +28,12 @@ import { NumerologyHeaderBanner } from '../components/NumerologyHeaderBanner';
 import { NumerologyAspectBars } from '../components/NumerologyAspectBars';
 import { NumerologyPairGrid } from '../components/NumerologyPairGrid';
 
+import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
+
 interface NumerologyPageProps {
   apiSettings?: ApiSettings;
+  onOpenSettings?: () => void;
+  onOpenCreditCenter?: () => void;
 }
 
 const SAMPLE_NUMBERS: SampleNumberItem[] = [
@@ -40,7 +44,11 @@ const SAMPLE_NUMBERS: SampleNumberItem[] = [
   { label: 'บ้านเลขที่รับทรัพย์', number: '88/45', icon: HomeIcon, type: 'house' },
 ];
 
-export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) => {
+export const NumerologyPage: React.FC<NumerologyPageProps> = ({
+  apiSettings,
+  onOpenSettings,
+  onOpenCreditCenter,
+}) => {
   const theme = MODULE_THEMES.numerology;
   const [phoneNumber, setPhoneNumber] = useState<string>('0958889999');
   const [numberType, setNumberType] = useState<'phone' | 'car' | 'house' | 'card'>('phone');
@@ -50,6 +58,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
     generateFallbackNumerology('0958889999', 75, 'เลขมหาจักรพรรดิแห่งสติปัญญาและโชคลาภ')
   );
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
   const resultCardRef = useRef<HTMLDivElement>(null);
@@ -70,6 +79,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
 
     const mathResult = analyzePhoneNumber(numStr);
     setResult(mathResult);
+    setAiError(null);
 
     if (!mathResult) {
       setPredictionText('');
@@ -101,15 +111,11 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
         apiSettings || { apiKey: '', baseUrl: '', model: '' }
       );
       setPredictionText(aiText);
-    } catch (err) {
-      console.error(err);
-      setPredictionText(
-        generateFallbackNumerology(
-          mathResult.cleanDigits || numStr,
-          mathResult.sumValue,
-          mathResult.sumMeaning.title
-        )
-      );
+      setAiError(null);
+    } catch (err: any) {
+      console.error('Failed AI completion in NumerologyPage:', err);
+      const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ถอดรหัสตัวเลขได้ในขณะนี้';
+      setAiError(errMsg);
     } finally {
       setIsAnalyzing(false);
     }
@@ -340,6 +346,27 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
             tagBgStyle={theme.tagBg}
             iconColorClass={theme.iconColor}
           />
+
+          {/* AI Error Fallback Banner */}
+          {aiError && (
+            <AiErrorFallbackCard
+              errorMessage={aiError}
+              onRetry={() => handleAnalyze(phoneNumber, true)}
+              onUseOfflineFallback={() => {
+                if (result) {
+                  const fallback = generateFallbackNumerology(
+                    result.cleanDigits || phoneNumber,
+                    result.sumValue,
+                    result.sumMeaning.title
+                  );
+                  setPredictionText(fallback);
+                }
+                setAiError(null);
+              }}
+              onOpenCreditCenter={onOpenCreditCenter}
+              onOpenSettings={onOpenSettings}
+            />
+          )}
 
           {/* Markdown AI / Classic Prediction Section */}
           {predictionText && (

@@ -7,19 +7,25 @@ import { sendSuccess, sendError } from '../utils/response.js';
 
 export const aiRouter = Router();
 
-const DEFAULT_SERVER_SETTINGS = {
-  apiKey: process.env.OPENAI_API_KEY || '',
-  baseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
-  model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-};
+function getServerSettings() {
+  return {
+    apiKey: process.env.OPENAI_API_KEY || '',
+    baseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  };
+}
 
 function getClient(settings?: { apiKey?: string; baseUrl?: string }) {
-  const apiKey = settings?.apiKey || DEFAULT_SERVER_SETTINGS.apiKey;
-  const baseUrl = (settings?.baseUrl || DEFAULT_SERVER_SETTINGS.baseUrl).replace(/\/+$/, '');
+  const serverSettings = getServerSettings();
+  const apiKey = settings?.apiKey || serverSettings.apiKey;
+  const baseUrl = (settings?.baseUrl || serverSettings.baseUrl).replace(/\/+$/, '');
 
   return new OpenAI({
     apiKey: apiKey || 'ollama',
     baseURL: baseUrl,
+    defaultHeaders: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    },
   });
 }
 
@@ -32,7 +38,15 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
+    const serverSettings = getServerSettings();
     const isCreditMode = !settings || settings.mode === 'credit' || !settings.apiKey;
+
+    // Validate server API Key if in credit mode
+    if (isCreditMode && !serverSettings.apiKey) {
+      sendError(res, 'Server OPENAI_API_KEY ยังไม่ได้ตั้งค่าใน .env กรุณาตรวจสอบการตั้งค่าที่เซิร์ฟเวอร์', 500, 'MISSING_SERVER_API_KEY');
+      return;
+    }
+
     let remainingCredits: number | undefined;
 
     const headerSessionId = req.headers['x-session-id'];
@@ -56,9 +70,9 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
     }
 
     // Use server default settings if credit mode, else custom settings
-    const activeSettings = isCreditMode ? DEFAULT_SERVER_SETTINGS : settings;
+    const activeSettings = isCreditMode ? serverSettings : settings;
     const client = getClient(activeSettings);
-    const model = activeSettings?.model || DEFAULT_SERVER_SETTINGS.model;
+    const model = activeSettings?.model || serverSettings.model;
 
     if (stream) {
       res.setHeader('Content-Type', 'text/event-stream');

@@ -12,19 +12,24 @@ import type { TarotCard } from '../data/tarotCards';
 import { Sparkles } from 'lucide-react';
 import { TarotSubNav } from '../components/TarotSubNav';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
+import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
 
 interface ReadingPageProps {
   apiSettings: ApiSettings;
   onOpenCardDetails: (card: { card: TarotCard; isReversed?: boolean }) => void;
   savedReadings: SavedReading[];
   setSavedReadings: React.Dispatch<React.SetStateAction<SavedReading[]>>;
+  onOpenSettings?: () => void;
+  onOpenCreditCenter?: () => void;
 }
 
 export const TarotReadingPage: React.FC<ReadingPageProps> = ({
   apiSettings,
   onOpenCardDetails,
   savedReadings,
-  setSavedReadings
+  setSavedReadings,
+  onOpenSettings,
+  onOpenCreditCenter,
 }) => {
   const theme = MODULE_THEMES.tarot;
   const { id } = useParams<{ id?: string }>();
@@ -54,80 +59,46 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
   // AI Follow-up Chat History & Sending state
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isSendingFollowUp, setIsSendingFollowUp] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
-  // Load reading if URL has an id parameter; reset state if at home route (/)
+  // Filter settings from localStorage
+  const deckFilter = storageService.getDeckPreferences().deckFilter || 'all';
+
+  // Load existing reading by ID from URL params (/tarot/reading/:id)
   useEffect(() => {
     if (id) {
-      const found = savedReadings.find((r) => r.id === id) || storageService.getReadingById(id);
-      if (found) {
-        setDrawnCards(found.drawnCards);
-        setQuestion(found.question);
-        setSpreadMode(found.spreadMode);
-        setReadingResult(found.resultText);
-        setChatHistory(found.chatHistory || []);
+      const match = savedReadings.find((r) => r.id === id);
+      if (match) {
+        setQuestion(match.question || '');
+        setSpreadModeState(match.spreadMode);
+        setDrawnCards(match.drawnCards || []);
+        setReadingResult(match.resultText || '');
+        setChatHistory(match.chatHistory || []);
         setIsSavedCurrent(true);
-        setIsAnalyzing(false);
-      } else if (!isAnalyzing && drawnCards.length === 0) {
-        navigate('/tarot', { replace: true });
+        setAiError(null);
       }
-    } else {
-      setDrawnCards([]);
-      setReadingResult('');
-      setChatHistory([]);
-      setIsSavedCurrent(false);
-      setIsAnalyzing(false);
     }
-  }, [id]);
+  }, [id, savedReadings]);
 
-  // Save Current Reading to History
-  const handleSaveCurrentReading = () => {
-    if (!readingResult || drawnCards.length === 0 || isSavedCurrent) return;
-
-    const currentId = id || Date.now().toString();
-    const newEntry: SavedReading = {
-      id: currentId,
-      timestamp: Date.now(),
-      question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
-      spreadMode,
-      drawnCards,
-      resultText: readingResult,
-      chatHistory,
-    };
-
-    const updated = storageService.saveReading(newEntry);
-    setSavedReadings(updated);
-    setIsSavedCurrent(true);
-    if (!id) {
-      navigate(`/tarot/reading/${currentId}`);
-    }
-  };
-
-  // Handle when cards are selected from TarotDeck
-  const handleCardsSelected = async (
-    cards: DrawnCard[],
-    useAi: boolean = true,
-    deckFilter: 'all' | 'major' | 'minor' = 'all'
-  ) => {
-    const newId = Date.now().toString();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Execute reading analysis
+  const handleCardsSelected = async (cards: DrawnCard[], useAi: boolean = true) => {
     setDrawnCards(cards);
     setIsAnalyzing(true);
     setReadingResult('');
-    setChatHistory([]);
-    setIsSavedCurrent(false);
-    navigate(`/tarot/reading/${newId}`);
+    setAiError(null);
+    const newId = Date.now().toString();
 
     try {
       let analysis = '';
       if (useAi) {
         analysis = await analyzeTarotReading(question, cards, spreadMode, apiSettings, deckFilter);
       } else {
-        // Direct classic offline interpretation (0ms instant response)
         analysis = generateFallbackReading(question, cards, spreadMode);
       }
       setReadingResult(analysis);
+      setAiError(null);
 
-      // Auto save reading so /tarot/reading/:id can be opened/reloaded anytime
+      // Auto save reading
       const newEntry: SavedReading = {
         id: newId,
         timestamp: Date.now(),
@@ -141,11 +112,21 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
       const updated = storageService.saveReading(newEntry);
       setSavedReadings(updated);
       setIsSavedCurrent(true);
-    } catch (err) {
-      console.error(err);
-      setReadingResult('เกิดข้อผิดพลาดในการวิเคราะห์ไพ่ กรุณาลองใหม่อีกครั้ง');
+      navigate(`/tarot/reading/${newId}`);
+    } catch (err: any) {
+      console.error('Failed AI completion in TarotReadingPage:', err);
+      const msg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ได้ในขณะนี้';
+      setAiError(msg);
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleUseOfflineFallback = () => {
+    if (drawnCards.length > 0) {
+      const fallbackText = generateFallbackReading(question, drawnCards, spreadMode);
+      setReadingResult(fallbackText);
+      setAiError(null);
     }
   };
 
@@ -201,10 +182,29 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
         setSavedReadings(updatedList);
         setIsSavedCurrent(true);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed follow-up Q&A:', err);
     } finally {
       setIsSendingFollowUp(false);
+    }
+  };
+
+  // Save current reading to history
+  const handleSaveCurrentReading = () => {
+    if (readingResult && drawnCards.length > 0) {
+      const currentId = id || Date.now().toString();
+      const newEntry: SavedReading = {
+        id: currentId,
+        timestamp: Date.now(),
+        question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
+        spreadMode,
+        drawnCards,
+        resultText: readingResult,
+        chatHistory,
+      };
+      const updated = storageService.saveReading(newEntry);
+      setSavedReadings(updated);
+      setIsSavedCurrent(true);
     }
   };
 
@@ -215,6 +215,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
     setChatHistory([]);
     setIsSavedCurrent(false);
     setQuestion('');
+    setAiError(null);
     navigate('/tarot');
   };
 
@@ -273,6 +274,17 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
         <CardDisplay
           drawnCards={drawnCards}
           onOpenCardDetails={(dCard) => onOpenCardDetails({ card: dCard.card, isReversed: dCard.isReversed })}
+        />
+      )}
+
+      {/* AI Error Fallback Banner */}
+      {aiError && (
+        <AiErrorFallbackCard
+          errorMessage={aiError}
+          onRetry={() => handleCardsSelected(drawnCards, true)}
+          onUseOfflineFallback={handleUseOfflineFallback}
+          onOpenCreditCenter={onOpenCreditCenter}
+          onOpenSettings={onOpenSettings}
         />
       )}
 

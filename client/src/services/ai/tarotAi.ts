@@ -223,13 +223,9 @@ export async function analyzeTarotFollowUp(params: {
     }
 
     return generateFollowUpFallback(newQuestion, drawnCards);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed follow-up AI call:', error);
-    return generateFollowUpFallback(
-      newQuestion,
-      drawnCards,
-      `⚠️ (ระบบใช้ Smart AI Reader สำหรับตอบคำถามเพิ่มเติม)\n\n`
-    );
+    throw new Error(error?.message || 'ไม่สามารถประมวลผลคำตอบเจาะลึกจาก AI ได้ในขณะนี้');
   }
 }
 
