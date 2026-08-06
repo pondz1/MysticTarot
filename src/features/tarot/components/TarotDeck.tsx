@@ -77,7 +77,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     return TAROT_CARDS;
   };
 
-  const [deck, setDeck] = useState<TarotCard[]>(() => shuffleArray(getFilteredCards('major')));
+  const [deck, setDeck] = useState<TarotCard[]>(() => shuffleArray(getFilteredCards(savedPrefs.deckFilter)));
 
   const deckContainerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);

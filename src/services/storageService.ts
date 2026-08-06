@@ -80,7 +80,7 @@ export const storageService = {
         const parsed = JSON.parse(saved);
         return {
           selectionMode: parsed.selectionMode || 'manual',
-          deckFilter: parsed.deckFilter || 'major',
+          deckFilter: parsed.deckFilter || 'all',
           useAi: parsed.useAi ?? true,
           spreadMode: parsed.spreadMode || 'three',
         };
@@ -90,7 +90,7 @@ export const storageService = {
     }
     return {
       selectionMode: 'manual',
-      deckFilter: 'major',
+      deckFilter: 'all',
       useAi: true,
       spreadMode: 'three',
     };

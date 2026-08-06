@@ -98,9 +98,9 @@ export const TarotEncyclopediaPage: React.FC = () => {
       const matchesArcana =
         selectedArcana === 'all' || cardArcana === selectedArcana;
 
-      // Suit filter (only active when Minor or All is selected)
+      // Suit filter (only active when suit is 'all', or when Arcana is Major, or when card suit matches)
       const matchesSuit =
-        selectedSuit === 'all' || card.suit === selectedSuit;
+        selectedSuit === 'all' || selectedArcana === 'major' || card.suit === selectedSuit;
 
       // Element filter
       const matchesElement =
