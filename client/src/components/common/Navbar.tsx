@@ -162,46 +162,55 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
-          {/* Credits Badge */}
+          {/* Credits Balance Pill */}
           <button
             type="button"
             onClick={onOpenSettings}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition-all cursor-pointer min-h-[36px]"
-            title="เครดิตใช้งาน AI คงเหลือ"
+            className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 hover:from-amber-500/25 hover:to-amber-500/15 border border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.1)] hover:shadow-[0_0_16px_rgba(245,158,11,0.25)] transition-all cursor-pointer min-h-[36px]"
+            title="เครดิตใช้งาน AI คงเหลือ (คลิกเพื่อเติมเครดิต / ตั้งค่า)"
           >
-            <Coins className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="whitespace-nowrap">{credits !== null ? `${credits} CR` : 'Credit'}</span>
+            <Coins className="w-4 h-4 text-amber-400 shrink-0 group-hover:rotate-12 transition-transform" />
+            <span className="whitespace-nowrap font-medium text-amber-200">
+              {credits !== null ? `${credits} CR` : 'Credit'}
+            </span>
           </button>
 
+          <div className="h-4 w-px bg-slate-800/80 mx-0.5 hidden sm:block" />
+
+          {/* History Button */}
           <button
             type="button"
             onClick={onOpenHistory}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-900/90 border border-slate-800 hover:bg-slate-800 hover:text-white transition-all cursor-pointer min-h-[36px]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 bg-slate-900/90 border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-700 transition-all cursor-pointer min-h-[36px]"
             title="ประวัติการทำนาย"
           >
             <History className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">ประวัติ</span>
           </button>
 
+          {/* AI Settings Button */}
           <button
             type="button"
             onClick={onOpenSettings}
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer min-h-[36px] ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer min-h-[36px] ${
               hasCustomKey
-                ? 'bg-purple-900/60 text-purple-200 border border-purple-400/60 font-semibold'
-                : 'text-slate-300 bg-slate-900/90 border border-slate-800 hover:bg-slate-800 hover:text-white'
+                ? 'bg-purple-950/70 text-purple-200 border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.2)] font-semibold hover:bg-purple-900/80'
+                : 'text-slate-300 bg-slate-900/90 border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-700'
             }`}
-            title="ตั้งค่า AI"
+            title="ตั้งค่า AI (โมเดล / API Key)"
           >
             <Settings className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">ตั้งค่า AI</span>
+            {hasCustomKey && (
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse ml-0.5" title="ใช้งาน Custom API Key" />
+            )}
           </button>
 
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="เปิดเมนูนำทาง"
-            className="md:hidden p-2 rounded-lg text-slate-300 hover:text-white bg-slate-900 border border-slate-800 focus:outline-none"
+            className="md:hidden p-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800 focus:outline-none"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
