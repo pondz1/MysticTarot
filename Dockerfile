@@ -18,15 +18,21 @@ ARG COOLIFY_BUILD_SECRETS_HASH
 # Install build dependencies for native modules (e.g. better-sqlite3)
 RUN apk add --no-cache python3 make g++
 
-# Copy source files
-COPY . .
+# 1. Copy package files first to leverage Docker layer caching
+COPY package.json package-lock.json* ./
+COPY client/package.json client/package-lock.json* ./client/
+COPY server/package.json server/package-lock.json* ./server/
 
-# Install all dependencies including devDependencies for build tools
-RUN npm install --include=dev && \
+# 2. Install dependencies using BuildKit npm cache mount
+RUN --mount=type=cache,target=/root/.npm \
+    npm install --include=dev && \
     npm install --prefix client --include=dev && \
     npm install --prefix server --include=dev
 
-# Build client (Vite) into server/public, and compile server (TypeScript)
+# 3. Copy source files
+COPY . .
+
+# 4. Build client (Vite) into server/public, and compile server (TypeScript)
 RUN npm run build:client && npm run build:server
 
 # Stage 2: Production runtime
@@ -57,4 +63,5 @@ ENV NODE_ENV=production
 EXPOSE 3001
 
 CMD ["npm", "start"]
+
 
