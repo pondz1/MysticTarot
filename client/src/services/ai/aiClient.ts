@@ -36,6 +36,53 @@ export function getOpenAIClient(settings?: ApiSettings): OpenAI | null {
   });
 }
 
+/**
+ * Execute AI completion via Backend Proxy (/api/ai/completion),
+ * falling back to direct browser SDK call if backend is unavailable.
+ */
+export async function requestAiCompletion(
+  systemPrompt: string,
+  userPrompt: string,
+  settings: ApiSettings
+): Promise<string> {
+  // 1. Try Backend Proxy
+  try {
+    const res = await fetch('/api/ai/completion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ systemPrompt, userPrompt, settings }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.result) {
+        return cleanAiResponse(data.result);
+      }
+    }
+  } catch (backendError) {
+    console.warn('Backend proxy unavailable, falling back to client-side API call:', backendError);
+  }
+
+  // 2. Client-side Fallback
+  const client = getOpenAIClient(settings);
+  if (!client) {
+    throw new Error('API key or endpoint configuration is invalid');
+  }
+
+  const completion = await client.chat.completions.create({
+    model: settings.model || 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: 0.7,
+    max_tokens: 5000,
+  });
+
+  const rawContent = completion.choices[0]?.message?.content || '';
+  return cleanAiResponse(rawContent);
+}
+
 // Sanitizer function to clean up AI thinking / prompt leakage
 export function cleanAiResponse(rawContent: string): string {
   if (!rawContent) return '';
@@ -58,7 +105,7 @@ export function cleanAiResponse(rawContent: string): string {
 }
 
 /**
- * Async generator for streaming response completion (for future AI streaming UI)
+ * Async generator for streaming response completion
  */
 export async function* streamAiCompletion(
   systemPrompt: string,

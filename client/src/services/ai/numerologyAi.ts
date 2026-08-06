@@ -1,5 +1,5 @@
 import type { ApiSettings } from '../../features/tarot/types/tarot';
-import { getOpenAIClient, cleanAiResponse } from './aiClient';
+import { requestAiCompletion } from './aiClient';
 
 export async function analyzeNumerology(
   inputNumber: string,
@@ -8,11 +8,6 @@ export async function analyzeNumerology(
   pairsSummary: string,
   settings: ApiSettings
 ): Promise<string> {
-  const client = getOpenAIClient(settings);
-  if (!client) {
-    return generateFallbackNumerology(inputNumber, sumValue, sumTitle);
-  }
-
   const systemPrompt = `คุณคือปรมาจารย์ผู้เชี่ยวชาญศาสตร์แห่งตัวเลขและเบอร์มงคล (Celestial Master Numerologist) มีสติปัญญา ลึกซึ้ง และทำนายภาษาไทยสละสลวย 100% (ห้ามใส่ Emoji ใดๆ ในหัวข้อ Heading)`;
   const userPrompt = `โปรดทำนายวิเคราะห์เชิงลึกสำหรับตัวเลข "${inputNumber}"
 - ผลรวมตัวเลข: ${sumValue} (${sumTitle})
@@ -34,19 +29,9 @@ export async function analyzeNumerology(
 > **ข้อคิดคำแนะนำมงคลประจำชุดตัวเลขนี้**`;
 
   try {
-    const completion = await client.chat.completions.create({
-      model: settings.model || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
-
-    const content = completion.choices[0]?.message?.content;
+    const content = await requestAiCompletion(systemPrompt, userPrompt, settings);
     if (content && content.trim()) {
-      return cleanAiResponse(content);
+      return content;
     }
     return generateFallbackNumerology(inputNumber, sumValue, sumTitle);
   } catch (error) {

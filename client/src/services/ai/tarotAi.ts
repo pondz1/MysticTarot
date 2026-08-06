@@ -1,6 +1,6 @@
 import type { ApiSettings, ChatMessage, DrawnCard, SpreadMode } from '../../features/tarot/types/tarot';
 import { getSpreadConfig } from '../../features/tarot/data/tarotSpreads';
-import { getOpenAIClient, cleanAiResponse } from './aiClient';
+import { requestAiCompletion } from './aiClient';
 
 export async function analyzeTarotReading(
   question: string,
@@ -9,11 +9,6 @@ export async function analyzeTarotReading(
   settings: ApiSettings,
   deckFilter: 'all' | 'major' | 'minor' = 'all'
 ): Promise<string> {
-  const client = getOpenAIClient(settings);
-  if (!client) {
-    return generateFallbackReading(question, drawnCards, spreadMode);
-  }
-
   const spreadConfig = getSpreadConfig(spreadMode);
 
   const spreadGuidelineSection = spreadConfig.aiGuideline
@@ -59,29 +54,18 @@ export async function analyzeTarotReading(
   const userPrompt = buildInitialUserPrompt(question, drawnCards, spreadMode, deckFilter);
 
   try {
-    const completion = await client.chat.completions.create({
-      model: settings.model || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 5000,
-    });
-
-    const content = completion.choices[0]?.message?.content;
+    const content = await requestAiCompletion(systemPrompt, userPrompt, settings);
     if (content && content.trim()) {
-      return cleanAiResponse(content);
+      return content;
     }
-
     return generateFallbackReading(question, drawnCards, spreadMode);
   } catch (error) {
-    console.error('Failed to connect via OpenAI SDK:', error);
+    console.error('Failed AI request:', error);
     return generateFallbackReading(
       question,
       drawnCards,
       spreadMode,
-      `⚠️ (ข้อความจาก OpenAI SDK: ${error instanceof Error ? error.message : 'API Error'} - ระบบใช้ Smart AI Reader อัตโนมัติ)\n\n`
+      `⚠️ (ข้อความระบบ: ${error instanceof Error ? error.message : 'API Error'} - ระบบใช้ Smart AI Reader อัตโนมัติ)\n\n`
     );
   }
 }
@@ -206,11 +190,6 @@ export async function analyzeTarotFollowUp(params: {
 }): Promise<string> {
   const { question, drawnCards, spreadMode, initialResult, chatHistory, newQuestion, settings } = params;
 
-  const client = getOpenAIClient(settings);
-  if (!client) {
-    return generateFollowUpFallback(newQuestion, drawnCards);
-  }
-
   const spreadConfig = getSpreadConfig(spreadMode);
 
   const spreadGuidelineSection = spreadConfig.aiGuideline
@@ -236,37 +215,11 @@ export async function analyzeTarotFollowUp(params: {
   const initialUserPrompt = buildInitialUserPrompt(question, drawnCards, spreadMode);
 
   try {
-    const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: initialUserPrompt },
-      { role: 'assistant', content: initialResult },
-    ];
-
-    chatHistory.forEach((msg) => {
-      messages.push({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.content,
-      });
-    });
-
-    const lastMsg = chatHistory[chatHistory.length - 1];
-    if (!lastMsg || lastMsg.role !== 'user' || lastMsg.content !== newQuestion) {
-      messages.push({
-        role: 'user',
-        content: newQuestion,
-      });
-    }
-
-    const completion = await client.chat.completions.create({
-      model: settings.model || 'gpt-4o-mini',
-      messages,
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
-
-    const content = completion.choices[0]?.message?.content;
+    const historyText = chatHistory.map(m => `${m.role === 'user' ? 'ผู้ถาม' : 'หมอดู'}: ${m.content}`).join('\n');
+    const combinedUserPrompt = `คำถามตั้งต้นของผู้ถาม:\n${initialUserPrompt}\n\nผลทำนายเริ่มต้น:\n${initialResult}\n\nประวัติคำถามตอบก่อนหน้า:\n${historyText}\n\nคำถามเพิ่มเติมใหม่: ${newQuestion}`;
+    const content = await requestAiCompletion(systemPrompt, combinedUserPrompt, settings);
     if (content && content.trim()) {
-      return cleanAiResponse(content);
+      return content;
     }
 
     return generateFollowUpFallback(newQuestion, drawnCards);

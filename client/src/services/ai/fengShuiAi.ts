@@ -1,5 +1,5 @@
 import type { ApiSettings } from '../../features/tarot/types/tarot';
-import { getOpenAIClient, cleanAiResponse } from './aiClient';
+import { requestAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
 
 export async function analyzeFengShui(
   dayNameTh: string,
@@ -10,10 +10,7 @@ export async function analyzeFengShui(
   spaceType: string = 'ภาพรวมที่อยู่อาศัย & โต๊ะทำงาน',
   settings?: ApiSettings
 ): Promise<string> {
-  const client = getOpenAIClient(settings);
-  if (!client) {
-    return generateFallbackFengShui(dayNameTh, luckyWork, luckyWealth, luckyLove, unluckyForbidden, spaceType);
-  }
+  const effectiveSettings = settings || DEFAULT_API_SETTINGS;
 
   const systemPrompt = `คุณคือซินแสผู้เชี่ยวชาญศาสตร์ฮวงจุ้ยและการปรับพลังงานเบญจธาตุระดับสูง โปรดให้คำแนะนำการแต่งกายสีมงคล ทิศรับทรัพย์ และการจัดวางพื้นที่ (${spaceType}) ในรูปแบบ Markdown (ห้ามใช้อิโมจิ)
 
@@ -40,19 +37,9 @@ export async function analyzeFengShui(
 - พื้นที่ที่ต้องการจัดฮวงจุ้ย: ${spaceType}`;
 
   try {
-    const completion = await client.chat.completions.create({
-      model: settings?.model || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
-
-    const content = completion.choices[0]?.message?.content;
+    const content = await requestAiCompletion(systemPrompt, userPrompt, effectiveSettings);
     if (content && content.trim()) {
-      return cleanAiResponse(content);
+      return content;
     }
     return generateFallbackFengShui(dayNameTh, luckyWork, luckyWealth, luckyLove, unluckyForbidden, spaceType);
   } catch (error) {

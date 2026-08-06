@@ -1,5 +1,5 @@
 import type { ApiSettings } from '../../features/tarot/types/tarot';
-import { getOpenAIClient, cleanAiResponse } from './aiClient';
+import { requestAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
 
 export async function analyzeThaiLifeGraph(
   birthDate: string,
@@ -9,10 +9,7 @@ export async function analyzeThaiLifeGraph(
   summaryGuidance: string,
   settings?: ApiSettings
 ): Promise<string> {
-  const client = getOpenAIClient(settings);
-  if (!client) {
-    return generateFallbackThaiLifeGraph(birthDate, dayOfWeekTh, peakAgeRange, summaryGuidance);
-  }
+  const effectiveSettings = settings || DEFAULT_API_SETTINGS;
 
   const systemPrompt = `คุณคือโหราจารย์ผู้เชี่ยวชาญศาสตร์โหราศาสตร์ไทยโบราณและคำนวณกราฟชีวิต 9 ช่วงอายุ โปรดวิเคราะห์ดวงชะตากราฟชีวิตอย่างลึกซึ้ง มีเสน่ห์ ทรงพลัง และให้สติปัญญาในการดำเนินชีวิต
 
@@ -40,19 +37,9 @@ export async function analyzeThaiLifeGraph(
 - คำแนะนำภาพรวม: ${summaryGuidance}`;
 
   try {
-    const completion = await client.chat.completions.create({
-      model: settings?.model || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
-
-    const content = completion.choices[0]?.message?.content;
+    const content = await requestAiCompletion(systemPrompt, userPrompt, effectiveSettings);
     if (content && content.trim()) {
-      return cleanAiResponse(content);
+      return content;
     }
     return generateFallbackThaiLifeGraph(birthDate, dayOfWeekTh, peakAgeRange, summaryGuidance);
   } catch (error) {

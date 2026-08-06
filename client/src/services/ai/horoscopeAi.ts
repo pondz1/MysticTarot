@@ -1,5 +1,5 @@
 import type { ApiSettings } from '../../features/tarot/types/tarot';
-import { getOpenAIClient, cleanAiResponse } from './aiClient';
+import { requestAiCompletion } from './aiClient';
 
 export async function analyzeZodiacHoroscope(
   signNameTh: string,
@@ -7,11 +7,6 @@ export async function analyzeZodiacHoroscope(
   timeframe: 'daily' | 'monthly',
   settings: ApiSettings
 ): Promise<string> {
-  const client = getOpenAIClient(settings);
-  if (!client) {
-    return generateFallbackZodiacHoroscope(signNameTh, timeframe);
-  }
-
   const systemPrompt = `คุณคือโหราจารย์ผู้หยั่งรู้ดวงดาว 12 ราศี วิเคราะห์ดวงชะตาสละสลวย ให้พลังบวกและข้อคิดแม่นยำ`;
   const userPrompt = `โปรดทำนายดวงชะตา ${timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'} สำหรับผู้เกิด "${signNameTh}" (${elementTh})
 โดยแยกหัวข้อสั้นๆ สละสลวยดังนี้:
@@ -22,19 +17,9 @@ export async function analyzeZodiacHoroscope(
 5. 🌟 ข้อคิดชี้ทางประจำวัน`;
 
   try {
-    const completion = await client.chat.completions.create({
-      model: settings.model || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
-
-    const content = completion.choices[0]?.message?.content;
+    const content = await requestAiCompletion(systemPrompt, userPrompt, settings);
     if (content && content.trim()) {
-      return cleanAiResponse(content);
+      return content;
     }
     return generateFallbackZodiacHoroscope(signNameTh, timeframe);
   } catch (error) {

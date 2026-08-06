@@ -38,6 +38,7 @@ export const storageService = {
   },
 
   getSavedReadings(): SavedReading[] {
+    // Synchronous local get for initial render
     const saved = localStorage.getItem(HISTORY_KEY);
     if (saved) {
       try {
@@ -47,6 +48,23 @@ export const storageService = {
       }
     }
     return [];
+  },
+
+  /**
+   * Async sync with backend to get latest saved readings
+   */
+  async fetchSavedReadingsAsync(): Promise<SavedReading[]> {
+    try {
+      const res = await fetch('/api/readings');
+      if (res.ok) {
+        const readings: SavedReading[] = await res.json();
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(readings));
+        return readings;
+      }
+    } catch (e) {
+      console.warn('Backend sync failed, using localStorage readings');
+    }
+    return this.getSavedReadings();
   },
 
   getReadingById(id: string): SavedReading | undefined {
@@ -65,11 +83,22 @@ export const storageService = {
       updated = [reading, ...current];
     }
     localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+
+    // Async sync to Backend database
+    fetch('/api/readings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reading),
+    }).catch((err) => console.warn('Failed to sync reading to backend database:', err));
+
     return updated;
   },
 
   clearSavedReadings(): void {
     localStorage.removeItem(HISTORY_KEY);
+
+    fetch('/api/readings', { method: 'DELETE' })
+      .catch((err) => console.warn('Failed to clear readings on backend:', err));
   },
 
   // Deck Preferences Storage

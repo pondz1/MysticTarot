@@ -1,0 +1,79 @@
+import { Router, Request, Response } from 'express';
+import OpenAI from 'openai';
+
+export const aiRouter = Router();
+
+const DEFAULT_SERVER_SETTINGS = {
+  apiKey: process.env.OPENAI_API_KEY || 'sk-dce7f4d0918d74dd-ocq0dk-310c8c1d',
+  baseUrl: process.env.OPENAI_BASE_URL || 'https://9router.jsd.my.id/v1',
+  model: process.env.OPENAI_MODEL || 'tarot-cards',
+};
+
+function getClient(settings?: { apiKey?: string; baseUrl?: string }) {
+  const apiKey = settings?.apiKey || DEFAULT_SERVER_SETTINGS.apiKey;
+  const baseUrl = (settings?.baseUrl || DEFAULT_SERVER_SETTINGS.baseUrl).replace(/\/+$/, '');
+
+  return new OpenAI({
+    apiKey: apiKey || 'ollama',
+    baseURL: baseUrl,
+  });
+}
+
+aiRouter.post('/completion', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { systemPrompt, userPrompt, settings, stream } = req.body;
+
+    if (!userPrompt) {
+      res.status(400).json({ error: 'userPrompt is required' });
+      return;
+    }
+
+    const client = getClient(settings);
+    const model = settings?.model || DEFAULT_SERVER_SETTINGS.model;
+
+    if (stream) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      const streamResponse = await client.chat.completions.create({
+        model,
+        messages: [
+          ...(systemPrompt ? [{ role: 'system' as const, content: systemPrompt }] : []),
+          { role: 'user' as const, content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 5000,
+        stream: true,
+      });
+
+      for await (const chunk of streamResponse) {
+        const content = chunk.choices[0]?.delta?.content || '';
+        if (content) {
+          res.write(`data: ${JSON.stringify({ content })}\n\n`);
+        }
+      }
+      res.write('data: [DONE]\n\n');
+      res.end();
+      return;
+    }
+
+    const completion = await client.chat.completions.create({
+      model,
+      messages: [
+        ...(systemPrompt ? [{ role: 'system' as const, content: systemPrompt }] : []),
+        { role: 'user' as const, content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 5000,
+    });
+
+    const result = completion.choices[0]?.message?.content || '';
+    res.json({ result, model, usage: completion.usage });
+  } catch (error: any) {
+    console.error('AI completion error:', error);
+    res.status(500).json({
+      error: error?.message || 'Failed to complete AI request',
+    });
+  }
+});
