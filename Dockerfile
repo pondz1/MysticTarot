@@ -4,7 +4,7 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 # Install build dependencies for native modules (e.g. better-sqlite3)
-RUN apk add --no-co-cache python3 make g++
+RUN apk add --no-cache python3 make g++
 
 # Copy root and subpackage dependencies
 COPY package.json ./
@@ -23,7 +23,7 @@ FROM node:22-alpine AS production
 WORKDIR /app
 
 # Install runtime dependencies for native modules
-RUN apk add --no-co-cache python3 make g++
+RUN apk add --no-cache python3 make g++
 
 COPY --from=build /app/package.json ./
 COPY --from=build /app/server ./server
