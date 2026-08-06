@@ -29,6 +29,7 @@ import {
 import { storageService } from '../../../services/storageService';
 import { TarotSubNav } from '../components/TarotSubNav';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
+import { CustomSelect } from '../../../components/common/CustomSelect';
 
 type ArcanaFilter = 'all' | 'major' | 'minor';
 type SuitFilter = 'all' | 'wands' | 'cups' | 'swords' | 'pentacles';
@@ -493,17 +494,18 @@ export const TarotEncyclopediaPage: React.FC = () => {
             </div>
 
             {/* Sort Selector */}
-            <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-purple-400" />
-              <select
+            <div className="w-52 shrink-0 self-end md:self-auto">
+              <CustomSelect
+                options={[
+                  { value: 'number', label: 'เรียงตามลำดับเลขไพ่' },
+                  { value: 'nameAsc', label: 'เรียงตามชื่อ (ก - ฮ)' },
+                  { value: 'nameDesc', label: 'เรียงตามชื่อ (ฮ - ก)' },
+                ]}
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="bg-black/60 border border-purple-500/40 text-xs text-amber-200 rounded-xl px-2.5 py-2 focus:outline-none focus:border-amber-400 cursor-pointer"
-              >
-                <option value="number">เรียงตามลำดับเลขไพ่</option>
-                <option value="nameAsc">เรียงตามชื่อ (ก - ฮ)</option>
-                <option value="nameDesc">เรียงตามชื่อ (ฮ - ก)</option>
-              </select>
+                onChange={(val) => setSortBy(val as SortOption)}
+                accentColor="amber"
+                icon={<SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" />}
+              />
             </div>
           </div>
 

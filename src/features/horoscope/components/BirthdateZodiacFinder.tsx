@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Search } from 'lucide-react';
+import { CustomSelect } from '../../../components/common/CustomSelect';
 
 interface BirthdateZodiacFinderProps {
   birthDay: number;
@@ -25,6 +26,16 @@ const MONTH_NAMES = [
   'ธันวาคม',
 ];
 
+const DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => ({
+  value: i + 1,
+  label: `วันที่ ${i + 1}`,
+}));
+
+const MONTH_OPTIONS = MONTH_NAMES.map((m, idx) => ({
+  value: idx + 1,
+  label: m,
+}));
+
 export const BirthdateZodiacFinder: React.FC<BirthdateZodiacFinderProps> = ({
   birthDay,
   setBirthDay,
@@ -43,40 +54,30 @@ export const BirthdateZodiacFinder: React.FC<BirthdateZodiacFinderProps> = ({
         <span>ระบุวันเกิดของคุณเพื่อค้นหาราศีอัตโนมัติ:</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">วันที่เกิด:</label>
-          <select
+          <CustomSelect
+            label="วันที่เกิด:"
+            options={DAY_OPTIONS}
             value={birthDay}
-            onChange={(e) => setBirthDay(Number(e.target.value))}
-            className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
-          >
-            {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-              <option key={d} value={d}>
-                วันที่ {d}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setBirthDay(Number(val))}
+            accentColor="amber"
+          />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">เดือนเกิด:</label>
-          <select
+          <CustomSelect
+            label="เดือนเกิด:"
+            options={MONTH_OPTIONS}
             value={birthMonth}
-            onChange={(e) => setBirthMonth(Number(e.target.value))}
-            className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
-          >
-            {MONTH_NAMES.map((m, idx) => (
-              <option key={idx} value={idx + 1}>
-                {m}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setBirthMonth(Number(val))}
+            accentColor="amber"
+          />
         </div>
 
         <button
           type="submit"
-          className={`sm:mt-5 p-2.5 rounded-xl ${primaryBtnStyle} font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer`}
+          className={`h-[46px] rounded-xl sm:rounded-2xl ${primaryBtnStyle} font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer`}
         >
           <Search className="w-4 h-4" />
           <span>ค้นหาราศีทันที</span>
