@@ -7,13 +7,8 @@ WORKDIR /app
 ENV NODE_ENV=development
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 
-# Build arguments injected by Coolify / CI
-ARG COOLIFY_FQDN
-ARG PORT
-ARG OPENAI_API_KEY
-ARG OPENAI_BASE_URL
-ARG OPENAI_MODEL
-ARG COOLIFY_BUILD_SECRETS_HASH
+# No build arguments are declared: every OPENAI_*/PORT value is read from the
+# process environment at runtime, and ARG/ENV would leak them into image history.
 
 # Install build dependencies for native modules (e.g. better-sqlite3)
 RUN apk add --no-cache python3 make g++
@@ -39,14 +34,6 @@ RUN npm run build:client && npm run build:server
 FROM node:22-alpine AS production
 
 WORKDIR /app
-
-# Build arguments injected by Coolify / CI
-ARG COOLIFY_FQDN
-ARG PORT
-ARG OPENAI_API_KEY
-ARG OPENAI_BASE_URL
-ARG OPENAI_MODEL
-ARG COOLIFY_BUILD_SECRETS_HASH
 
 # Install runtime dependencies for native modules
 RUN apk add --no-cache python3 make g++
