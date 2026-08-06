@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Hash,
+  Coins,
 } from 'lucide-react';
 
 import { MODULE_THEMES } from '../../constants/moduleThemes';
@@ -30,6 +31,32 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchCredits();
+
+    const handleCreditsUpdate = (e: CustomEvent<number>) => {
+      setCredits(e.detail);
+    };
+
+    window.addEventListener('user_credits_updated', handleCreditsUpdate as EventListener);
+    return () => {
+      window.removeEventListener('user_credits_updated', handleCreditsUpdate as EventListener);
+    };
+  }, []);
+
+  const fetchCredits = async () => {
+    try {
+      const res = await fetch('/api/user/credits');
+      if (res.ok) {
+        const data = await res.json();
+        setCredits(data.credits);
+      }
+    } catch (e) {
+      // ignore offline
+    }
+  };
 
   const isHomeActive = location.pathname === '/';
   const isTarotActive = location.pathname.startsWith('/tarot');
@@ -131,6 +158,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
+          {/* Credits Badge */}
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition-all cursor-pointer min-h-[36px]"
+            title="เครดิตใช้งาน AI คงเหลือ"
+          >
+            <Coins className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="whitespace-nowrap">{credits !== null ? `${credits} CR` : 'Credit'}</span>
+          </button>
+
           <button
             type="button"
             onClick={onOpenHistory}
@@ -146,13 +184,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onOpenSettings}
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer min-h-[36px] ${
               hasCustomKey
-                ? 'bg-amber-500/20 text-amber-200 border border-amber-400/60 shadow-[0_0_10px_rgba(234,179,8,0.2)] font-semibold'
+                ? 'bg-purple-900/60 text-purple-200 border border-purple-400/60 font-semibold'
                 : 'text-slate-300 bg-slate-900/90 border border-slate-800 hover:bg-slate-800 hover:text-white'
             }`}
-            title="ตั้งค่า API Key"
+            title="ตั้งค่า AI"
           >
             <Settings className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="hidden sm:inline whitespace-nowrap">ตั้งค่า API</span>
+            <span className="hidden sm:inline whitespace-nowrap">ตั้งค่า AI</span>
           </button>
 
           <button

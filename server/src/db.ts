@@ -22,7 +22,13 @@ db.exec(`
     spread_mode TEXT,
     data TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
+  );
+
+  CREATE TABLE IF NOT EXISTS user_credits (
+    user_id TEXT PRIMARY KEY,
+    credits INTEGER NOT NULL DEFAULT 10,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 export interface DBReading {
@@ -67,5 +73,34 @@ export const readingsDb = {
   clearAll(): void {
     const stmt = db.prepare('DELETE FROM readings');
     stmt.run();
+  }
+};
+
+export const creditsDb = {
+  getCredits(userId: string = 'default_user'): number {
+    const stmt = db.prepare('SELECT credits FROM user_credits WHERE user_id = ?');
+    const row = stmt.get(userId) as { credits: number } | undefined;
+    if (!row) {
+      db.prepare('INSERT INTO user_credits (user_id, credits) VALUES (?, 10)').run(userId);
+      return 10;
+    }
+    return row.credits;
+  },
+
+  deductCredit(userId: string = 'default_user'): { success: boolean; remainingCredits: number } {
+    const current = this.getCredits(userId);
+    if (current <= 0) {
+      return { success: false, remainingCredits: 0 };
+    }
+    const remainingCredits = current - 1;
+    db.prepare('UPDATE user_credits SET credits = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?').run(remainingCredits, userId);
+    return { success: true, remainingCredits };
+  },
+
+  refillCredits(userId: string = 'default_user', amount: number = 10): number {
+    const current = this.getCredits(userId);
+    const updated = current + amount;
+    db.prepare('UPDATE user_credits SET credits = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?').run(updated, userId);
+    return updated;
   }
 };

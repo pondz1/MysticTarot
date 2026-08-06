@@ -22,7 +22,10 @@ export interface DrawnCard {
   position: string;
 }
 
+export type AiConnectionMode = 'credit' | 'custom';
+
 export interface ApiSettings {
+  mode?: AiConnectionMode;
   apiKey: string;
   baseUrl: string;
   model: string;

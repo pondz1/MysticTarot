@@ -2,19 +2,14 @@ import OpenAI from 'openai';
 import type { ApiSettings } from '../../features/tarot/types/tarot';
 
 export const DEFAULT_API_SETTINGS: ApiSettings = {
-  apiKey: 'sk-dce7f4d0918d74dd-ocq0dk-310c8c1d',
-  baseUrl: 'https://9router.jsd.my.id/v1',
-  model: 'tarot-cards',
+  mode: 'credit',
+  apiKey: '',
+  baseUrl: 'https://api.openai.com/v1',
+  model: 'gpt-4o-mini',
 };
 
-// Preset providers for quick configuration
+// Preset providers for quick configuration (Custom Mode)
 export const PROVIDER_PRESETS: { name: string; baseUrl: string; model: string; apiKey?: string }[] = [
-  {
-    name: '9Router (Tarot Special)',
-    baseUrl: 'https://9router.jsd.my.id/v1',
-    model: 'tarot-cards',
-    apiKey: 'sk-dce7f4d0918d74dd-ocq0dk-310c8c1d'
-  },
   { name: 'OpenAI (Default)', baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
   { name: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
   { name: 'Groq', baseUrl: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' },
@@ -37,14 +32,15 @@ export function getOpenAIClient(settings?: ApiSettings): OpenAI | null {
 }
 
 /**
- * Execute AI completion via Backend Proxy (/api/ai/completion),
- * falling back to direct browser SDK call if backend is unavailable.
+ * Execute AI completion via Backend Proxy (/api/ai/completion) or direct client
  */
 export async function requestAiCompletion(
   systemPrompt: string,
   userPrompt: string,
   settings: ApiSettings
 ): Promise<string> {
+  const isCreditMode = !settings.mode || settings.mode === 'credit';
+
   // 1. Try Backend Proxy
   try {
     const res = await fetch('/api/ai/completion', {
@@ -56,17 +52,31 @@ export async function requestAiCompletion(
     if (res.ok) {
       const data = await res.json();
       if (data.result) {
+        // Dispatch custom event to notify UI of remaining credits if updated
+        if (typeof data.remainingCredits === 'number') {
+          window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: data.remainingCredits }));
+        }
         return cleanAiResponse(data.result);
       }
+    } else if (res.status === 402) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
     }
-  } catch (backendError) {
+  } catch (backendError: any) {
+    if (backendError?.message?.includes('Credit')) {
+      throw backendError;
+    }
     console.warn('Backend proxy unavailable, falling back to client-side API call:', backendError);
   }
 
-  // 2. Client-side Fallback
+  // 2. Client-side Fallback (For Custom Mode when offline or no backend)
+  if (isCreditMode) {
+    throw new Error('ไม่สามารถเชื่อมต่อระบบ Credit Server ได้ในขณะนี้ กรุณาสลับไปใช้ Custom API Key');
+  }
+
   const client = getOpenAIClient(settings);
   if (!client) {
-    throw new Error('API key or endpoint configuration is invalid');
+    throw new Error('API Key หรือ Endpoint Configuration ไม่ถูกต้อง');
   }
 
   const completion = await client.chat.completions.create({
@@ -87,15 +97,12 @@ export async function requestAiCompletion(
 export function cleanAiResponse(rawContent: string): string {
   if (!rawContent) return '';
 
-  // 1. Remove <think>...</think> tags (common in DeepSeek / Reasoning models)
   let cleaned = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
-  // 2. Extract content starting from the first Markdown heading (e.g., # 🔮 or ## 🔮 or ## 🃏)
   const headingMatch = cleaned.match(/(#+\s*🔮?[\s\S]*)/i);
   if (headingMatch && headingMatch[1]) {
     cleaned = headingMatch[1].trim();
   } else {
-    // Fallback: If no heading found, strip common English prompt reflection lines
     cleaned = cleaned
       .replace(/^(We need to|Constraints:|Let's craft|Pattern:|Structure:|Must keep|The instruction says)[\s\S]*?(?=\n\n|$)/gi, '')
       .trim();

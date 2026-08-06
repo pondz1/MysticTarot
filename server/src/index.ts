@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { aiRouter } from './routes/ai.js';
 import { readingsRouter } from './routes/readings.js';
+import { userRouter } from './routes/user.js';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json({ limit: '10mb' }));
 // API Routes
 app.use('/api/ai', aiRouter);
 app.use('/api/readings', readingsRouter);
+app.use('/api/user', userRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {
