@@ -29,6 +29,7 @@ COPY --from=build /app/package.json ./
 COPY --from=build /app/server ./server
 
 WORKDIR /app/server
+RUN npm rebuild
 ENV PORT=3001
 ENV NODE_ENV=production
 
