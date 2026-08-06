@@ -16,7 +16,6 @@ import {
   Calendar,
   Moon,
   Search,
-  TrendingUp,
   Heart,
   Briefcase,
   Coins,
@@ -30,6 +29,10 @@ import {
 import type { ApiSettings } from '../../tarot/types/tarot';
 import { analyzeZodiacHoroscope } from '../../../services/aiService';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
+
+import { BirthdateZodiacFinder } from '../components/BirthdateZodiacFinder';
+import { ZodiacGrid } from '../components/ZodiacGrid';
+import { ZodiacAspectBars } from '../components/ZodiacAspectBars';
 
 interface HoroscopePageProps {
   apiSettings: ApiSettings;
@@ -138,68 +141,14 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
 
       {/* Birthdate Zodiac Finder Card Drawer */}
       {showFinder && (
-        <form
+        <BirthdateZodiacFinder
+          birthDay={birthDay}
+          setBirthDay={setBirthDay}
+          birthMonth={birthMonth}
+          setBirthMonth={setBirthMonth}
           onSubmit={handleFindZodiac}
-          className="p-4 sm:p-6 rounded-2xl bg-slate-900/90 border border-purple-500/30 backdrop-blur-xl shadow-xl space-y-4 animate-scale-up"
-        >
-          <div className="flex items-center gap-2 text-sm font-bold text-amber-300">
-            <Calendar className="w-4 h-4 text-amber-400" />
-            <span>ระบุวันเกิดของคุณเพื่อค้นหาราศีอัตโนมัติ:</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">วันที่เกิด:</label>
-              <select
-                value={birthDay}
-                onChange={(e) => setBirthDay(Number(e.target.value))}
-                className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
-              >
-                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                  <option key={d} value={d}>
-                    วันที่ {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">เดือนเกิด:</label>
-              <select
-                value={birthMonth}
-                onChange={(e) => setBirthMonth(Number(e.target.value))}
-                className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
-              >
-                {[
-                  'มกราคม',
-                  'กุมภาพันธ์',
-                  'มีนาคม',
-                  'เมษายน',
-                  'พฤษภาคม',
-                  'มิถุนายน',
-                  'กรกฎาคม',
-                  'สิงหาคม',
-                  'กันยายน',
-                  'ตุลาคม',
-                  'พฤศจิกายน',
-                  'ธันวาคม',
-                ].map((m, idx) => (
-                  <option key={idx} value={idx + 1}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              type="submit"
-              className={`sm:mt-5 p-2.5 rounded-xl ${theme.primaryBtn} font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer`}
-            >
-              <Search className="w-4 h-4" />
-              <span>ค้นหาราศีทันที</span>
-            </button>
-          </div>
-        </form>
+          primaryBtnStyle={theme.primaryBtn}
+        />
       )}
 
       {/* Mode Control Bar: AI vs Classic Offline Mode */}
@@ -220,12 +169,13 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             type="button"
             disabled={isLoading}
             onClick={() => setUseAi(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isLoading
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              isLoading
                 ? 'opacity-50 cursor-not-allowed text-slate-500'
                 : useAi
                   ? `${theme.secondaryBtn} cursor-pointer`
                   : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-              }`}
+            }`}
           >
             <Sparkles className={`w-3.5 h-3.5 ${theme.iconColor}`} />
             <span>โหมด AI</span>
@@ -238,12 +188,13 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
               setUseAi(false);
               setPrediction(getZodiacClassicPrediction(selectedSign, timeframe));
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isLoading
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              isLoading
                 ? 'opacity-50 cursor-not-allowed text-slate-500'
                 : !useAi
                   ? `${theme.secondaryBtn} cursor-pointer`
                   : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-              }`}
+            }`}
           >
             <BookOpen className={`w-3.5 h-3.5 ${theme.iconColor}`} />
             <span>โหมดคลาสสิก</span>
@@ -252,54 +203,17 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
       </div>
 
       {/* Zodiac Grid Selection */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-3.5">
-        {ZODIAC_SIGNS.map((sign) => {
-          const isSelected = selectedSign.id === sign.id;
-          const elementStyle = ELEMENT_STYLE_MAP[sign.element];
-          return (
-            <button
-              key={sign.id}
-              disabled={isLoading}
-              onClick={() => {
-                setSelectedSign(sign);
-                if (!useAi) {
-                  setPrediction(getZodiacClassicPrediction(sign, timeframe));
-                }
-              }}
-              className={`p-2 sm:p-3.5 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center gap-1 sm:gap-1.5 group ${isLoading
-                  ? 'opacity-60 cursor-not-allowed'
-                  : isSelected
-                    ? `${elementStyle.activeBg} ${elementStyle.activeBorder} ${elementStyle.glow} scale-105 shadow-xl cursor-pointer`
-                    : `${elementStyle.bg} ${elementStyle.border} text-slate-300 cursor-pointer`
-                }`}
-            >
-              <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-purple-400/50 shadow-lg shadow-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 relative bg-slate-950">
-                <img
-                  src={`/zodiac/${sign.id}.png`}
-                  alt={sign.nameTh}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    target.style.display = 'none';
-                    const sibling = target.nextElementSibling as HTMLElement;
-                    if (sibling) sibling.style.display = 'flex';
-                  }}
-                />
-                <div className="hidden w-full h-full bg-gradient-to-br from-purple-500/20 to-indigo-600/30 text-purple-300 font-serif text-2xl items-center justify-center">
-                  {sign.symbol}
-                </div>
-              </div>
-              <div className={`font-bold text-xs sm:text-sm ${isSelected ? elementStyle.text : 'text-slate-100'}`}>
-                {sign.nameTh}
-              </div>
-              <div className="text-[10px] text-slate-400">{sign.dateRange}</div>
-              <span className={`text-[9px] px-2 py-0.5 rounded-full border mt-0.5 font-medium ${elementStyle.badgeBg}`}>
-                {sign.elementTh}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <ZodiacGrid
+        zodiacSigns={ZODIAC_SIGNS}
+        selectedSign={selectedSign}
+        onSelectSign={(sign) => {
+          setSelectedSign(sign);
+          if (!useAi) {
+            setPrediction(getZodiacClassicPrediction(sign, timeframe));
+          }
+        }}
+        isLoading={isLoading}
+      />
 
       {/* Timeframe Toggle Buttons */}
       <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
@@ -312,12 +226,13 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                 setPrediction(getZodiacClassicPrediction(selectedSign, 'daily'));
               }
             }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${isLoading
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              isLoading
                 ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
                 : timeframe === 'daily'
                   ? `${theme.activeToggleBtn} cursor-pointer`
                   : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
-              }`}
+            }`}
           >
             <Calendar className={`w-4 h-4 ${theme.iconColor}`} />
             <span>ดวงประจำวัน</span>
@@ -330,12 +245,13 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
                 setPrediction(getZodiacClassicPrediction(selectedSign, 'monthly'));
               }
             }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${isLoading
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              isLoading
                 ? 'opacity-50 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
                 : timeframe === 'monthly'
                   ? `${theme.activeToggleBtn} cursor-pointer`
                   : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer'
-              }`}
+            }`}
           >
             <Moon className={`w-4 h-4 ${theme.iconColor}`} />
             <span>ดวงรายเดือน</span>
@@ -347,8 +263,9 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
             type="button"
             disabled={isLoading}
             onClick={() => handleFetchHoroscope(selectedSign, timeframe, true)}
-            className={`px-5 py-2.5 rounded-xl ${theme.primaryBtn} font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer hover:scale-105 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+            className={`px-5 py-2.5 rounded-xl ${theme.primaryBtn} font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer hover:scale-105 ${
+              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             <Sparkles className="w-4 h-4 animate-pulse" />
             <span>เริ่มทำนายดวง{selectedSign.nameTh} ด้วย AI</span>
@@ -396,70 +313,11 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
         </div>
 
         {/* Aspect Rating Bars (คะแนนดวงมงคล 4 ด้าน) */}
-        <div className="space-y-3 bg-slate-950/70 p-4 sm:p-6 rounded-xl border border-slate-800/80">
-          <div className={`flex items-center gap-2 text-xs sm:text-sm font-bold ${theme.iconColor}`}>
-            <TrendingUp className={`w-4 h-4 ${theme.iconColor}`} />
-            <span>ระดับคะแนนดวงชะตามงคล 4 ด้าน ({timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'})</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            {/* Love */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-pink-300 flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                  <span>ความรัก & ความสัมพันธ์:</span>
-                </span>
-                <span className="text-pink-300 font-mono">{aspectScores.love}%</span>
-              </div>
-              <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                <div style={{ width: `${aspectScores.love}%` }} className="bg-gradient-to-r from-pink-600 to-rose-400 h-full rounded-full transition-all duration-500" />
-              </div>
-            </div>
-
-            {/* Work */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-blue-300 flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                  <span>การงาน & การเรียน:</span>
-                </span>
-                <span className="text-blue-300 font-mono">{aspectScores.work}%</span>
-              </div>
-              <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                <div style={{ width: `${aspectScores.work}%` }} className="bg-gradient-to-r from-blue-600 to-cyan-400 h-full rounded-full transition-all duration-500" />
-              </div>
-            </div>
-
-            {/* Finance */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-amber-300 flex items-center gap-1.5">
-                  <Coins className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>การเงิน & โชคลาภ:</span>
-                </span>
-                <span className="text-amber-300 font-mono">{aspectScores.finance}%</span>
-              </div>
-              <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                <div style={{ width: `${aspectScores.finance}%` }} className="bg-gradient-to-r from-amber-600 to-yellow-400 h-full rounded-full transition-all duration-500" />
-              </div>
-            </div>
-
-            {/* Health */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-emerald-300 flex items-center gap-1.5">
-                  <Stethoscope className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>สุขภาพ & จิตใจ:</span>
-                </span>
-                <span className="text-emerald-300 font-mono">{aspectScores.health}%</span>
-              </div>
-              <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                <div style={{ width: `${aspectScores.health}%` }} className="bg-gradient-to-r from-emerald-600 to-teal-400 h-full rounded-full transition-all duration-500" />
-              </div>
-            </div>
-          </div>
-        </div>
+        <ZodiacAspectBars
+          aspectScores={aspectScores}
+          timeframe={timeframe}
+          iconColorClass={theme.iconColor}
+        />
 
         {/* Prediction Content */}
         <div className="space-y-4">
