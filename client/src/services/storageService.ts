@@ -1,6 +1,6 @@
 import type { ApiSettings, SavedReading, SelectionMode, SpreadMode } from '../features/tarot/types/tarot';
 import { DEFAULT_API_SETTINGS } from '../constants/aiSettings';
-
+import { authService } from './authService';
 
 const SETTINGS_KEY = 'tarot_api_settings';
 const HISTORY_KEY = 'tarot_saved_readings';
@@ -56,7 +56,9 @@ export const storageService = {
    */
   async fetchSavedReadingsAsync(): Promise<SavedReading[]> {
     try {
-      const res = await fetch('/api/readings');
+      const res = await fetch('/api/readings', {
+        headers: { ...authService.getAuthHeaders() },
+      });
       if (res.ok) {
         const readings: SavedReading[] = await res.json();
         localStorage.setItem(HISTORY_KEY, JSON.stringify(readings));
@@ -88,7 +90,10 @@ export const storageService = {
     // Async sync to Backend database
     fetch('/api/readings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...authService.getAuthHeaders(),
+      },
       body: JSON.stringify(reading),
     }).catch((err) => console.warn('Failed to sync reading to backend database:', err));
 
@@ -98,8 +103,10 @@ export const storageService = {
   clearSavedReadings(): void {
     localStorage.removeItem(HISTORY_KEY);
 
-    fetch('/api/readings', { method: 'DELETE' })
-      .catch((err) => console.warn('Failed to clear readings on backend:', err));
+    fetch('/api/readings', {
+      method: 'DELETE',
+      headers: { ...authService.getAuthHeaders() },
+    }).catch((err) => console.warn('Failed to clear readings on backend:', err));
   },
 
   // Deck Preferences Storage

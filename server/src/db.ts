@@ -19,6 +19,14 @@ db.pragma('journal_mode = WAL');
 
 // Initialize database schema
 db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    device_id TEXT UNIQUE NOT NULL,
+    role TEXT NOT NULL DEFAULT 'guest',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS readings (
     id TEXT PRIMARY KEY,
     timestamp INTEGER NOT NULL,
@@ -34,6 +42,56 @@ db.exec(`
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+export interface DBUser {
+  id: string;
+  device_id: string;
+  role: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export const usersDb = {
+  getById(id: string): DBUser | undefined {
+    const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
+    return stmt.get(id) as DBUser | undefined;
+  },
+
+  getByDeviceId(deviceId: string): DBUser | undefined {
+    const stmt = db.prepare('SELECT * FROM users WHERE device_id = ?');
+    return stmt.get(deviceId) as DBUser | undefined;
+  },
+
+  findOrCreateByDeviceId(deviceId: string): DBUser {
+    const existing = this.getByDeviceId(deviceId);
+    if (existing) {
+      return existing;
+    }
+
+    const newId = `usr_${Math.random().toString(36).substring(2, 10)}_${Date.now().toString(36)}`;
+    try {
+      const stmt = db.prepare(`
+        INSERT INTO users (id, device_id, role)
+        VALUES (?, ?, 'guest')
+      `);
+      stmt.run(newId, deviceId);
+    } catch {
+      const recheck = this.getByDeviceId(deviceId);
+      if (recheck) {
+        return recheck;
+      }
+    }
+
+    // Initialize default credits (10) for new user
+    creditsDb.getCredits(newId);
+
+    return {
+      id: newId,
+      device_id: deviceId,
+      role: 'guest',
+    };
+  },
+};
 
 export interface DBReading {
   id: string;

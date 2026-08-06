@@ -7,6 +7,8 @@ import rateLimit from 'express-rate-limit';
 import { aiRouter } from './routes/ai.js';
 import { readingsRouter } from './routes/readings.js';
 import { userRouter } from './routes/user.js';
+import { authRouter } from './routes/auth.js';
+import { authMiddleware } from './middleware/auth.js';
 
 dotenv.config();
 
@@ -34,6 +36,9 @@ app.use(
 // Reduced body limit (100kb)
 app.use(express.json({ limit: '100kb' }));
 
+// Global authentication middleware to parse JWT tokens on incoming requests
+app.use(authMiddleware);
+
 // Rate limiter for AI routes to prevent API abuse
 const aiRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -44,6 +49,7 @@ const aiRateLimiter = rateLimit({
 });
 
 // API Routes
+app.use('/api/auth', authRouter);
 app.use('/api/ai', aiRateLimiter, aiRouter);
 app.use('/api/readings', readingsRouter);
 app.use('/api/user', userRouter);

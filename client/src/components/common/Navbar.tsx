@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 import { MODULE_THEMES } from '../../constants/moduleThemes';
+import { useAuth } from '../../context/AuthContext';
 
 interface NavbarProps {
   onOpenSettings: (defaultTab?: 'credit' | 'custom') => void;
@@ -31,35 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-  const [credits, setCredits] = useState<number | null>(null);
-
-  useEffect(() => {
-    fetchCredits();
-
-    const handleCreditsUpdate = (e: CustomEvent<number>) => {
-      setCredits(e.detail);
-    };
-
-    window.addEventListener('user_credits_updated', handleCreditsUpdate as EventListener);
-    return () => {
-      window.removeEventListener('user_credits_updated', handleCreditsUpdate as EventListener);
-    };
-  }, []);
-
-  const fetchCredits = async () => {
-    try {
-      const { getSessionId } = await import('../../services/ai/aiClient');
-      const res = await fetch('/api/user/credits', {
-        headers: { 'X-Session-ID': getSessionId() },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setCredits(data.credits);
-      }
-    } catch {
-      // ignore offline
-    }
-  };
+  const { credits } = useAuth();
 
 
   const isHomeActive = location.pathname === '/';

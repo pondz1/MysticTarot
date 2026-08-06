@@ -1,9 +1,13 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { creditsDb } from '../db.js';
+import { AuthRequest } from '../middleware/auth.js';
 
 export const userRouter = Router();
 
-function getSessionId(req: Request): string {
+function getSessionId(req: AuthRequest): string {
+  if (req.user?.userId) {
+    return req.user.userId;
+  }
   const headerId = req.headers['x-session-id'];
   if (typeof headerId === 'string' && headerId.trim()) {
     return headerId.trim();
@@ -12,7 +16,7 @@ function getSessionId(req: Request): string {
 }
 
 // GET user credits for specific session
-userRouter.get('/credits', (req: Request, res: Response) => {
+userRouter.get('/credits', (req: AuthRequest, res: Response) => {
   try {
     const userId = getSessionId(req);
     const credits = creditsDb.getCredits(userId);
@@ -25,7 +29,7 @@ userRouter.get('/credits', (req: Request, res: Response) => {
 });
 
 // POST refill credits (Restricted in production / capped to max 10)
-userRouter.post('/refill', (req: Request, res: Response) => {
+userRouter.post('/refill', (req: AuthRequest, res: Response) => {
   try {
     const adminToken = process.env.ADMIN_TOKEN;
     const requestAdminToken = req.headers['x-admin-token'];

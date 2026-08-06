@@ -1,6 +1,7 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import OpenAI from 'openai';
 import { creditsDb } from '../db.js';
+import { AuthRequest } from '../middleware/auth.js';
 
 export const aiRouter = Router();
 
@@ -20,7 +21,7 @@ function getClient(settings?: { apiKey?: string; baseUrl?: string }) {
   });
 }
 
-aiRouter.post('/completion', async (req: Request, res: Response): Promise<void> => {
+aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { systemPrompt, userPrompt, settings, stream } = req.body;
 
@@ -33,7 +34,9 @@ aiRouter.post('/completion', async (req: Request, res: Response): Promise<void> 
     let remainingCredits: number | undefined;
 
     const headerSessionId = req.headers['x-session-id'];
-    const userId = typeof headerSessionId === 'string' && headerSessionId.trim() ? headerSessionId.trim() : 'default_user';
+    const userId = req.user?.userId
+      ? req.user.userId
+      : (typeof headerSessionId === 'string' && headerSessionId.trim() ? headerSessionId.trim() : 'default_user');
 
     // 1. If Credit Mode: Deduct Credit
     if (isCreditMode) {

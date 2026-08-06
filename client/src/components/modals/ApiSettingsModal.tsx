@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import type { ApiSettings, AiConnectionMode } from '../../features/tarot/types/tarot';
 import { PROVIDER_PRESETS } from '../../services/aiService';
 import { Settings, X, Key, Globe, Cpu, Check, Sparkles, Coins, RefreshCw } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { authService } from '../../services/authService';
 
 interface ApiSettingsModalProps {
   isOpen: boolean;
@@ -16,15 +18,16 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   onClose,
   settings,
   onSaveSettings,
-  initialTab,
+  initialTab = 'credit',
 }) => {
+  const { credits: authCredits, refillCredits } = useAuth();
   const [mode, setMode] = useState<AiConnectionMode>(initialTab || settings.mode || 'credit');
   const [apiKey, setApiKey] = useState(settings.apiKey || '');
   const [baseUrl, setBaseUrl] = useState(settings.baseUrl || 'https://api.openai.com/v1');
   const [model, setModel] = useState(settings.model || 'gpt-4o-mini');
-  const [credits, setCredits] = useState<number | null>(null);
-  const [loadingCredits, setLoadingCredits] = useState(false);
-  const [refillSuccess, setRefillSuccess] = useState(false);
+  const [credits, setCredits] = useState<number | null>(authCredits);
+  const [loadingCredits, setLoadingCredits] = useState<boolean>(false);
+  const [refillSuccess, setRefillSuccess] = useState<boolean>(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
@@ -37,12 +40,15 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
     }
   }, [isOpen, settings, initialTab]);
 
+  useEffect(() => {
+    setCredits(authCredits);
+  }, [authCredits]);
+
   const fetchCredits = async () => {
     setLoadingCredits(true);
     try {
-      const { getSessionId } = await import('../../services/ai/aiClient');
       const res = await fetch('/api/user/credits', {
-        headers: { 'X-Session-ID': getSessionId() },
+        headers: { ...authService.getAuthHeaders() },
       });
       if (res.ok) {
         const data = await res.json();
@@ -57,20 +63,10 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
 
   const handleRefillCredits = async () => {
     try {
-      const { getSessionId } = await import('../../services/ai/aiClient');
-      const res = await fetch('/api/user/refill', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Session-ID': getSessionId(),
-        },
-        body: JSON.stringify({ amount: 10 }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setCredits(data.credits);
+      const updated = await refillCredits(10);
+      if (typeof updated === 'number') {
+        setCredits(updated);
         setRefillSuccess(true);
-        window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: data.credits }));
         setTimeout(() => setRefillSuccess(false), 2000);
       }
     } catch (e) {

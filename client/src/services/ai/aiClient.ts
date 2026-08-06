@@ -1,4 +1,5 @@
 import type { ApiSettings } from '../../features/tarot/types/tarot';
+import { authService } from '../authService';
 export { DEFAULT_API_SETTINGS, PROVIDER_PRESETS } from '../../constants/aiSettings';
 
 export function getSessionId(): string {
@@ -28,25 +29,16 @@ export async function getOpenAIClient(settings?: ApiSettings) {
   });
 }
 
-/**
- * Execute AI completion:
- * - Mode 'credit': Sends request to our Server (/api/ai/completion) to deduct 1 credit & use server key.
- * - Mode 'custom': Connects directly from browser to the AI Provider (OpenAI / DeepSeek / etc.).
- */
 export async function requestAiCompletion(
   systemPrompt: string,
   userPrompt: string,
-  settings: ApiSettings
+  settings?: ApiSettings
 ): Promise<string> {
-  const isCustomMode = settings.mode === 'custom';
-
-  // -------------------------------------------------------------
-  // Mode 1: Custom Mode -> Connect directly to provider from browser
-  // -------------------------------------------------------------
-  if (isCustomMode) {
+  // Mode 1: Custom API Key -> Direct Client API Call
+  if (settings && settings.mode === 'custom' && settings.apiKey) {
     const client = await getOpenAIClient(settings);
     if (!client) {
-      throw new Error('API Key หรือ Endpoint Configuration ไม่ถูกต้อง กรุณาตรวจสอบในหน้าตั้งค่า');
+      throw new Error('API Key ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการตั้งค่า');
     }
 
     const completion = await client.chat.completions.create({
@@ -56,7 +48,7 @@ export async function requestAiCompletion(
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.7,
-      max_tokens: 5000,
+      max_tokens: 2000,
     });
 
     const rawContent = completion.choices[0]?.message?.content || '';
@@ -71,6 +63,7 @@ export async function requestAiCompletion(
     headers: {
       'Content-Type': 'application/json',
       'X-Session-ID': getSessionId(),
+      ...authService.getAuthHeaders(),
     },
     body: JSON.stringify({ systemPrompt, userPrompt, settings }),
   });
