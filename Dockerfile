@@ -2,6 +2,13 @@
 FROM node:22-alpine AS build
 
 WORKDIR /app
+ENV NODE_ENV=development
+
+# Build arguments from Coolify / CI
+ARG PORT
+ARG OPENAI_API_KEY
+ARG OPENAI_BASE_URL
+ARG OPENAI_MODEL
 
 # Install build dependencies for native modules (e.g. better-sqlite3)
 RUN apk add --no-cache python3 make g++
@@ -11,7 +18,8 @@ COPY package.json ./
 COPY client/package.json ./client/
 COPY server/package.json ./server/
 
-RUN npm run install:all
+# Install all dependencies including devDependencies for build tools (vite, tsc, tailwind)
+RUN npm install --include=dev && npm install --prefix client --include=dev && npm install --prefix server --include=dev
 
 # Copy source code and build client + server
 COPY . .
