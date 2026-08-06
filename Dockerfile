@@ -14,19 +14,14 @@ ARG OPENAI_MODEL
 # Install build dependencies for native modules (e.g. better-sqlite3)
 RUN apk add --no-cache python3 make g++
 
-# Copy package files
-COPY package.json ./
-COPY client/package.json ./client/
-COPY server/package.json ./server/
+# Copy source files
+COPY . .
 
 # Install all dependencies including devDependencies for build tools
 RUN npm install --include=dev && npm install --prefix client --include=dev && npm install --prefix server --include=dev
 
-# Copy source code
-COPY . .
-
 # Build client (Vite) into server/public, and compile server (TypeScript)
-RUN npm run build
+RUN npm run build:client && npm run build:server
 
 # Stage 2: Production runtime
 FROM node:22-alpine AS production
