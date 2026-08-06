@@ -6,12 +6,10 @@ import type { PhoneAnalysisResult } from '../types/numerology';
 import {
   Sparkles,
   Hash,
-  Award,
   ShieldCheck,
   BookOpen,
   Copy,
   Check,
-  TrendingUp,
   Phone,
   Car,
   Home as HomeIcon,
@@ -25,16 +23,21 @@ import type { ApiSettings } from '../../tarot/types/tarot';
 import { analyzeNumerology, generateFallbackNumerology } from '../../../services/aiService';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 
+import { NumerologyPresets, type SampleNumberItem } from '../components/NumerologyPresets';
+import { NumerologyHeaderBanner } from '../components/NumerologyHeaderBanner';
+import { NumerologyAspectBars } from '../components/NumerologyAspectBars';
+import { NumerologyPairGrid } from '../components/NumerologyPairGrid';
+
 interface NumerologyPageProps {
   apiSettings?: ApiSettings;
 }
 
-const SAMPLE_NUMBERS = [
-  { label: 'เบอร์มหาเสน่ห์ค้าขาย', number: '0958889999', icon: Sparkles, type: 'phone' as const },
-  { label: 'เบอร์มหาเศรษฐีโชคลาภ', number: '0624567890', icon: Coins, type: 'phone' as const },
-  { label: 'เบอร์ผู้ใหญ่อุปถัมภ์', number: '0891545636', icon: BookOpen, type: 'phone' as const },
-  { label: 'ทะเบียนรถนำโชค', number: '9กข3654', icon: Car, type: 'car' as const },
-  { label: 'บ้านเลขที่รับทรัพย์', number: '88/45', icon: HomeIcon, type: 'house' as const },
+const SAMPLE_NUMBERS: SampleNumberItem[] = [
+  { label: 'เบอร์มหาเสน่ห์ค้าขาย', number: '0958889999', icon: Sparkles, type: 'phone' },
+  { label: 'เบอร์มหาเศรษฐีโชคลาภ', number: '0624567890', icon: Coins, type: 'phone' },
+  { label: 'เบอร์ผู้ใหญ่อุปถัมภ์', number: '0891545636', icon: BookOpen, type: 'phone' },
+  { label: 'ทะเบียนรถนำโชค', number: '9กข3654', icon: Car, type: 'car' },
+  { label: 'บ้านเลขที่รับทรัพย์', number: '88/45', icon: HomeIcon, type: 'house' },
 ];
 
 export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) => {
@@ -162,23 +165,10 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
         </p>
 
         {/* Quick Sample Presets */}
-        <div className="pt-2 flex flex-wrap justify-center gap-2 max-w-3xl mx-auto">
-          {SAMPLE_NUMBERS.map((s, idx) => {
-            const IconComp = s.icon;
-            return (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleSelectSample(s.number, s.type)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-teal-400 text-cyan-200 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-xs hover:shadow-[0_0_12px_rgba(6,182,212,0.25)]"
-              >
-                <IconComp className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                <span>{s.label}</span>
-                <span className="font-mono text-teal-300">({s.number})</span>
-              </button>
-            );
-          })}
-        </div>
+        <NumerologyPresets
+          sampleNumbers={SAMPLE_NUMBERS}
+          onSelectSample={handleSelectSample}
+        />
       </div>
 
       {/* Mode Control Bar: AI vs Classic Mode */}
@@ -331,147 +321,25 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({ apiSettings }) =
           className={`rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-8 animate-scale-up ${theme.cardBg}`}
         >
           {/* Top Grade Banner */}
-          <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r ${theme.subtleGradient} border ${theme.borderGlow} shadow-xl`}>
-            <div className="space-y-1 text-center sm:text-left">
-              <span className="text-xs text-cyan-300/80 font-semibold uppercase tracking-widest flex items-center gap-1.5 justify-center sm:justify-start">
-                <Hash className="w-3.5 h-3.5 text-cyan-400" />
-                <span>ผลการถอดรหัสตัวเลข: {result.cleanDigits}</span>
-              </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-100">{result.sumMeaning.title}</h2>
-            </div>
-
-            <div className="flex items-center justify-center sm:justify-start gap-3 sm:gap-4 bg-slate-950/90 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-teal-400/50 shadow-[0_0_15px_rgba(20,184,166,0.15)] shrink-0 w-full sm:w-auto">
-              <div className="text-center">
-                <span className="text-[10px] text-slate-400 block font-semibold">ผลรวม (Sum)</span>
-                <span className="text-2xl font-black text-cyan-300 font-mono">{result.sumValue}</span>
-              </div>
-              <div className="h-8 w-px bg-slate-800" />
-              <div className="text-center">
-                <span className="text-[10px] text-slate-400 block font-semibold">เกรดมงคล</span>
-                <span className="text-3xl font-black text-teal-400">{result.overallGrade}</span>
-              </div>
-            </div>
-          </div>
+          <NumerologyHeaderBanner
+            result={result}
+            subtleGradientStyle={theme.subtleGradient}
+            borderGlowStyle={theme.borderGlow}
+          />
 
           {/* Aspect Rating Bars (ดวง 4 ด้านประจำตัวเลข) */}
-          <div className="space-y-3 bg-slate-950/70 p-4 sm:p-6 rounded-xl border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
-            <div className={`flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-bold ${theme.iconColor}`}>
-              <div className="flex items-center gap-2 min-w-0">
-                <TrendingUp className={`w-4 h-4 ${theme.iconColor} shrink-0`} />
-                <span>ระดับคะแนนส่งเสริมดวงชะตา 4 ด้านประจำตัวเลข</span>
-              </div>
-              <Sparkles className={`w-4 h-4 ${theme.secondaryIconColor} shrink-0 hidden sm:block`} />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              {/* Work */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-blue-300 flex items-center gap-1.5">
-                    <Briefcase className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                    <span>การงาน & สติปัญญานำพาความก้าวหน้า:</span>
-                  </span>
-                  <span className="text-blue-300 font-mono">{aspectScores.work}%</span>
-                </div>
-                <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                  <div style={{ width: `${aspectScores.work}%` }} className="bg-gradient-to-r from-blue-600 to-cyan-400 h-full rounded-full transition-all duration-500" />
-                </div>
-              </div>
-
-              {/* Wealth */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-amber-300 flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span>การเงิน & ทรัพย์สินมหาโชคลาภ:</span>
-                  </span>
-                  <span className="text-amber-300 font-mono">{aspectScores.wealth}%</span>
-                </div>
-                <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                  <div style={{ width: `${aspectScores.wealth}%` }} className="bg-gradient-to-r from-amber-600 to-yellow-400 h-full rounded-full transition-all duration-500" />
-                </div>
-              </div>
-
-              {/* Love */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-pink-300 flex items-center gap-1.5">
-                    <Heart className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                    <span>เสน่ห์เมตตา & ความรักสมหวัง:</span>
-                  </span>
-                  <span className="text-pink-300 font-mono">{aspectScores.love}%</span>
-                </div>
-                <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                  <div style={{ width: `${aspectScores.love}%` }} className="bg-gradient-to-r from-pink-600 to-rose-400 h-full rounded-full transition-all duration-500" />
-                </div>
-              </div>
-
-              {/* Karma */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-emerald-300 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>บารมี & สิ่งศักดิ์สิทธิ์คุ้มครอง:</span>
-                  </span>
-                  <span className="text-emerald-300 font-mono">{aspectScores.karma}%</span>
-                </div>
-                <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                  <div style={{ width: `${aspectScores.karma}%` }} className="bg-gradient-to-r from-emerald-600 to-teal-400 h-full rounded-full transition-all duration-500" />
-                </div>
-              </div>
-            </div>
-          </div>
+          <NumerologyAspectBars
+            aspectScores={aspectScores}
+            iconColorClass={theme.iconColor}
+            secondaryIconColorClass={theme.secondaryIconColor}
+          />
 
           {/* Pair Analysis Grid */}
-          <div className="space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-500/20 pb-3">
-              <h3 className="text-base sm:text-lg font-bold text-slate-200 flex items-center gap-2 min-w-0">
-                <Award className={`w-5 h-5 ${theme.iconColor} shrink-0`} />
-                <span className="truncate">ถอดรหัสคู่เลขในตัวเลข ({result.pairAnalyses.length} คู่)</span>
-              </h3>
-              <span className={`text-xs px-2.5 py-1 rounded-full ${theme.tagBg} font-semibold whitespace-nowrap shrink-0 self-start sm:self-auto`}>
-                แยกตามหมวดพลังงาน
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {result.pairAnalyses.map((pairItem, index) => {
-                const getCategoryStyle = (cat: string) => {
-                  switch (cat) {
-                    case 'wealth':
-                      return { badge: 'bg-amber-500/15 text-amber-300 border-amber-500/30', card: 'hover:border-amber-400/50 hover:shadow-[0_0_12px_rgba(245,158,11,0.2)]', icon: Coins };
-                    case 'love':
-                      return { badge: 'bg-pink-500/15 text-pink-300 border-pink-500/30', card: 'hover:border-pink-400/50 hover:shadow-[0_0_12px_rgba(236,72,153,0.2)]', icon: Heart };
-                    case 'charm':
-                      return { badge: 'bg-purple-500/15 text-purple-300 border-purple-500/30', card: 'hover:border-purple-400/50 hover:shadow-[0_0_12px_rgba(168,85,247,0.2)]', icon: Sparkles };
-                    case 'karma':
-                      return { badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', card: 'hover:border-emerald-400/50 hover:shadow-[0_0_12px_rgba(16,185,129,0.2)]', icon: ShieldCheck };
-                    case 'caution':
-                      return { badge: 'bg-orange-500/15 text-orange-300 border-orange-500/30', card: 'hover:border-orange-400/50 hover:shadow-[0_0_12px_rgba(249,115,22,0.2)]', icon: ShieldCheck };
-                    default:
-                      return { badge: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30', card: 'hover:border-cyan-400/50 hover:shadow-[0_0_12px_rgba(6,182,212,0.2)]', icon: Briefcase };
-                  }
-                };
-                const style = getCategoryStyle(pairItem.category);
-                const PairIcon = style.icon;
-
-                return (
-                  <div key={index} className={`p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/80 ${style.card} transition-all space-y-2 shadow-sm`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`text-lg font-mono font-extrabold ${style.badge} px-2.5 py-0.5 rounded border`}>
-                          {pairItem.pair}
-                        </span>
-                        <PairIcon className="w-3.5 h-3.5 text-slate-400" />
-                      </div>
-                      <span className="text-xs text-slate-400 font-semibold">คะแนน {pairItem.score}/10</span>
-                    </div>
-                    <p className="text-xs text-slate-300 leading-relaxed">{pairItem.meaning}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <NumerologyPairGrid
+            pairAnalyses={result.pairAnalyses}
+            tagBgStyle={theme.tagBg}
+            iconColorClass={theme.iconColor}
+          />
 
           {/* Markdown AI / Classic Prediction Section */}
           {predictionText && (
