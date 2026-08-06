@@ -32,65 +32,63 @@ export function getOpenAIClient(settings?: ApiSettings): OpenAI | null {
 }
 
 /**
- * Execute AI completion via Backend Proxy (/api/ai/completion) or direct client
+ * Execute AI completion:
+ * - Mode 'credit': Sends request to our Server (/api/ai/completion) to deduct 1 credit & use server key.
+ * - Mode 'custom': Connects directly from browser to the AI Provider (OpenAI / DeepSeek / etc.).
  */
 export async function requestAiCompletion(
   systemPrompt: string,
   userPrompt: string,
   settings: ApiSettings
 ): Promise<string> {
-  const isCreditMode = !settings.mode || settings.mode === 'credit';
+  const isCustomMode = settings.mode === 'custom';
 
-  // 1. Try Backend Proxy
-  try {
-    const res = await fetch('/api/ai/completion', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ systemPrompt, userPrompt, settings }),
+  // -------------------------------------------------------------
+  // Mode 1: Custom Mode -> Connect directly to provider from browser
+  // -------------------------------------------------------------
+  if (isCustomMode) {
+    const client = getOpenAIClient(settings);
+    if (!client) {
+      throw new Error('API Key หรือ Endpoint Configuration ไม่ถูกต้อง กรุณาตรวจสอบในหน้าตั้งค่า');
+    }
+
+    const completion = await client.chat.completions.create({
+      model: settings.model || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 5000,
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.result) {
-        // Dispatch custom event to notify UI of remaining credits if updated
-        if (typeof data.remainingCredits === 'number') {
-          window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: data.remainingCredits }));
-        }
-        return cleanAiResponse(data.result);
-      }
-    } else if (res.status === 402) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
-    }
-  } catch (backendError: any) {
-    if (backendError?.message?.includes('Credit')) {
-      throw backendError;
-    }
-    console.warn('Backend proxy unavailable, falling back to client-side API call:', backendError);
+    const rawContent = completion.choices[0]?.message?.content || '';
+    return cleanAiResponse(rawContent);
   }
 
-  // 2. Client-side Fallback (For Custom Mode when offline or no backend)
-  if (isCreditMode) {
-    throw new Error('ไม่สามารถเชื่อมต่อระบบ Credit Server ได้ในขณะนี้ กรุณาสลับไปใช้ Custom API Key');
-  }
-
-  const client = getOpenAIClient(settings);
-  if (!client) {
-    throw new Error('API Key หรือ Endpoint Configuration ไม่ถูกต้อง');
-  }
-
-  const completion = await client.chat.completions.create({
-    model: settings.model || 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 5000,
+  // -------------------------------------------------------------
+  // Mode 2: Credit Mode -> Route through our Server (/api/ai/completion)
+  // -------------------------------------------------------------
+  const res = await fetch('/api/ai/completion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ systemPrompt, userPrompt, settings }),
   });
 
-  const rawContent = completion.choices[0]?.message?.content || '';
-  return cleanAiResponse(rawContent);
+  if (res.ok) {
+    const data = await res.json();
+    if (data.result) {
+      if (typeof data.remainingCredits === 'number') {
+        window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: data.remainingCredits }));
+      }
+      return cleanAiResponse(data.result);
+    }
+  } else if (res.status === 402) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
+  }
+
+  throw new Error('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
 }
 
 // Sanitizer function to clean up AI thinking / prompt leakage
