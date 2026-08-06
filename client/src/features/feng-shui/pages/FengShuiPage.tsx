@@ -85,6 +85,7 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
     }
 
     setIsLoading(true);
+    setPredictionText('');
     try {
       const aiText = await analyzeFengShui(
         currentDayInfo.dayNameTh,
@@ -93,7 +94,10 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
         luckyLoveStr,
         unluckyStr,
         selectedSpace,
-        apiSettings
+        apiSettings,
+        (chunk) => {
+          setPredictionText((prev) => prev + chunk);
+        }
       );
       setPredictionText(aiText);
       setAiError(null);

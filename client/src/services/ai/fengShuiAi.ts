@@ -8,7 +8,8 @@ export async function analyzeFengShui(
   luckyLove: string,
   unluckyForbidden: string,
   spaceType: string = 'ภาพรวมที่อยู่อาศัย & โต๊ะทำงาน',
-  settings?: ApiSettings
+  settings?: ApiSettings,
+  onChunk?: (chunk: string) => void
 ): Promise<string> {
   const effectiveSettings = settings || DEFAULT_API_SETTINGS;
 
@@ -37,14 +38,14 @@ export async function analyzeFengShui(
 - พื้นที่ที่ต้องการจัดฮวงจุ้ย: ${spaceType}`;
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, effectiveSettings);
+    const content = await requestAiCompletion(systemPrompt, userPrompt, effectiveSettings, onChunk);
     if (content && content.trim()) {
       return content;
     }
     return generateFallbackFengShui(dayNameTh, luckyWork, luckyWealth, luckyLove, unluckyForbidden, spaceType);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed Feng Shui AI call:', error);
-    return generateFallbackFengShui(dayNameTh, luckyWork, luckyWealth, luckyLove, unluckyForbidden, spaceType);
+    throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ฮวงจุ้ย & สีมงคลได้ในขณะนี้');
   }
 }
 

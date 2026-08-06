@@ -7,7 +7,8 @@ export async function analyzeThaiLifeGraph(
   elementTh: string,
   peakAgeRange: string,
   summaryGuidance: string,
-  settings?: ApiSettings
+  settings?: ApiSettings,
+  onChunk?: (chunk: string) => void
 ): Promise<string> {
   const effectiveSettings = settings || DEFAULT_API_SETTINGS;
 
@@ -37,14 +38,14 @@ export async function analyzeThaiLifeGraph(
 - คำแนะนำภาพรวม: ${summaryGuidance}`;
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, effectiveSettings);
+    const content = await requestAiCompletion(systemPrompt, userPrompt, effectiveSettings, onChunk);
     if (content && content.trim()) {
       return content;
     }
     return generateFallbackThaiLifeGraph(birthDate, dayOfWeekTh, peakAgeRange, summaryGuidance);
-  } catch (error) {
-    console.error('Failed Thai Life Graph AI call:', error);
-    return generateFallbackThaiLifeGraph(birthDate, dayOfWeekTh, peakAgeRange, summaryGuidance);
+  } catch (error: any) {
+    console.error('Failed Thai Astrology AI call:', error);
+    throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ดวงไทยโบราณได้ในขณะนี้');
   }
 }
 

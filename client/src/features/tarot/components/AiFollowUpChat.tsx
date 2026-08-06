@@ -134,6 +134,11 @@ export const AiFollowUpChat: React.FC<AiFollowUpChatProps> = ({
                 >
                   {isUser ? (
                     <p className="whitespace-pre-wrap font-medium">{msg.content}</p>
+                  ) : !msg.content ? (
+                    <div className="flex items-center gap-2 text-amber-300 italic animate-pulse py-1">
+                      <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                      <span>หมอดู AI กำลังพิมพ์คำทำนาย...</span>
+                    </div>
                   ) : (
                     <div className="prose prose-invert max-w-none font-prompt text-slate-200 text-xs md:text-sm">
                       <ReactMarkdown
@@ -168,8 +173,8 @@ export const AiFollowUpChat: React.FC<AiFollowUpChatProps> = ({
             );
           })}
 
-          {/* Thinking / Sending indicator */}
-          {isSending && (
+          {/* Thinking / Sending indicator (only if last message is from user) */}
+          {isSending && chatHistory[chatHistory.length - 1]?.role === 'user' && (
             <div className="flex gap-3 justify-start items-center">
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-800 to-amber-600 flex items-center justify-center shrink-0 border border-amber-300/50 animate-spin">
                 <Sparkles className="w-4 h-4 text-amber-200" />

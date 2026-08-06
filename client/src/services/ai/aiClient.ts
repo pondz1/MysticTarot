@@ -1,6 +1,7 @@
 import type { ApiSettings } from '../../features/tarot/types/tarot';
 import { apiClient, ApiError } from '../apiClient';
-export { DEFAULT_API_SETTINGS, PROVIDER_PRESETS } from '../../constants/aiSettings';
+import { DEFAULT_API_SETTINGS, PROVIDER_PRESETS } from '../../constants/aiSettings';
+export { DEFAULT_API_SETTINGS, PROVIDER_PRESETS };
 
 export function getSessionId(): string {
   if (typeof window === 'undefined') return 'default_user';
@@ -35,9 +36,24 @@ export async function getOpenAIClient(settings?: ApiSettings) {
 export async function requestAiCompletion(
   systemPrompt: string,
   userPrompt: string,
-  settings?: ApiSettings
+  settings?: ApiSettings,
+  onChunk?: (chunk: string) => void
 ): Promise<string> {
-  // Mode 1: Custom API Key -> Direct Client API Call
+  const isStreamingEnabled = settings?.enableStreaming !== false;
+
+  // If streaming is ON, accumulate text from streamAiCompletion (which sends stream: true to server)
+  if (isStreamingEnabled) {
+    let fullText = '';
+    for await (const chunk of streamAiCompletion(systemPrompt, userPrompt, settings || DEFAULT_API_SETTINGS)) {
+      fullText += chunk;
+      if (onChunk) {
+        onChunk(chunk);
+      }
+    }
+    return cleanAiResponse(fullText);
+  }
+
+  // Mode 1: Custom API Key -> Direct Client Non-streaming Call
   if (settings && settings.mode === 'custom' && settings.apiKey) {
     const client = await getOpenAIClient(settings);
     if (!client) {
@@ -52,20 +68,20 @@ export async function requestAiCompletion(
       ],
       temperature: 0.7,
       max_tokens: 2000,
+      stream: false,
     });
 
     const rawContent = completion.choices[0]?.message?.content || '';
     return cleanAiResponse(rawContent);
   }
 
-  // -------------------------------------------------------------
-  // Mode 2: Credit Mode -> Route through our Server (/api/ai/completion)
-  // -------------------------------------------------------------
+  // Mode 2: Credit Mode -> Server Non-streaming Call (stream: false)
   try {
     const data = await apiClient.post<{ result?: string; remainingCredits?: number }>('/api/ai/completion', {
       systemPrompt,
       userPrompt,
       settings,
+      stream: false,
     });
 
     if (data.result) {
@@ -110,26 +126,98 @@ export async function* streamAiCompletion(
   userPrompt: string,
   settings: ApiSettings
 ): AsyncIterable<string> {
-  const client = await getOpenAIClient(settings);
-  if (!client) {
-    throw new Error('API key or endpoint configuration is invalid');
+  // If user disabled streaming in settings, fallback to non-streaming request
+  if (settings && settings.enableStreaming === false) {
+    const fullResult = await requestAiCompletion(systemPrompt, userPrompt, settings);
+    yield fullResult;
+    return;
   }
 
-  const stream = await client.chat.completions.create({
-    model: settings.model || 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 5000,
-    stream: true,
+  // Mode 1: Custom API Key -> Direct Client Streaming
+  if (settings && settings.mode === 'custom' && settings.apiKey) {
+    const client = await getOpenAIClient(settings);
+    if (!client) {
+      throw new Error('API Key ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการตั้งค่า');
+    }
+
+    const stream = await client.chat.completions.create({
+      model: settings.model || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 5000,
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      if (content) {
+        yield content;
+      }
+    }
+    return;
+  }
+
+  // Mode 2: Credit Mode -> Server SSE Streaming (/api/ai/completion with stream: true)
+  const token = localStorage.getItem('mystic_token');
+  const sessionId = getSessionId();
+  const response = await fetch('/api/ai/completion', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      'x-session-id': sessionId,
+    },
+    body: JSON.stringify({
+      systemPrompt,
+      userPrompt,
+      settings,
+      stream: true,
+    }),
   });
 
-  for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content || '';
-    if (content) {
-      yield content;
+  if (!response.ok) {
+    const errJson = await response.json().catch(() => ({}));
+    if (response.status === 402) {
+      throw new Error(errJson?.message || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
+    }
+    throw new Error(errJson?.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error('ไม่สามารถอ่านข้อมูลแบบ Stream จากเซิร์ฟเวอร์ได้');
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('data: ')) continue;
+      const dataStr = trimmed.replace(/^data:\s*/, '');
+      if (dataStr === '[DONE]') break;
+
+      try {
+        const parsed = JSON.parse(dataStr);
+        if (parsed.content) {
+          yield parsed.content;
+        }
+        if (typeof parsed.remainingCredits === 'number') {
+          window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: parsed.remainingCredits }));
+        }
+      } catch {
+        // Skip JSON parse error for incomplete SSE chunks
+      }
     }
   }
 }

@@ -89,8 +89,17 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
     }
 
     setIsLoading(true);
+    setPrediction('');
     try {
-      const res = await analyzeZodiacHoroscope(sign.nameTh, sign.elementTh, mode, apiSettings);
+      const res = await analyzeZodiacHoroscope(
+        sign.nameTh,
+        sign.elementTh,
+        mode,
+        apiSettings,
+        (chunk) => {
+          setPrediction((prev) => prev + chunk);
+        }
+      );
       setPrediction(res);
       setAiError(null);
     } catch (err: any) {

@@ -29,6 +29,7 @@ export interface ApiSettings {
   apiKey: string;
   baseUrl: string;
   model: string;
+  enableStreaming?: boolean;
 }
 
 export interface ChatMessage {

@@ -7,7 +7,8 @@ export async function analyzeTarotReading(
   drawnCards: DrawnCard[],
   spreadMode: SpreadMode,
   settings: ApiSettings,
-  deckFilter: 'all' | 'major' | 'minor' = 'all'
+  deckFilter: 'all' | 'major' | 'minor' = 'all',
+  onChunk?: (chunk: string) => void
 ): Promise<string> {
   const spreadConfig = getSpreadConfig(spreadMode);
 
@@ -54,7 +55,7 @@ export async function analyzeTarotReading(
   const userPrompt = buildInitialUserPrompt(question, drawnCards, spreadMode, deckFilter);
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, settings);
+    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk);
     if (content && content.trim()) {
       return content;
     }
@@ -187,8 +188,9 @@ export async function analyzeTarotFollowUp(params: {
   chatHistory: ChatMessage[];
   newQuestion: string;
   settings: ApiSettings;
+  onChunk?: (chunk: string) => void;
 }): Promise<string> {
-  const { question, drawnCards, spreadMode, initialResult, chatHistory, newQuestion, settings } = params;
+  const { question, drawnCards, spreadMode, initialResult, chatHistory, newQuestion, settings, onChunk } = params;
 
   const spreadConfig = getSpreadConfig(spreadMode);
 
@@ -217,7 +219,7 @@ export async function analyzeTarotFollowUp(params: {
   try {
     const historyText = chatHistory.map(m => `${m.role === 'user' ? 'ผู้ถาม' : 'หมอดู'}: ${m.content}`).join('\n');
     const combinedUserPrompt = `คำถามตั้งต้นของผู้ถาม:\n${initialUserPrompt}\n\nผลทำนายเริ่มต้น:\n${initialResult}\n\nประวัติคำถามตอบก่อนหน้า:\n${historyText}\n\nคำถามเพิ่มเติมใหม่: ${newQuestion}`;
-    const content = await requestAiCompletion(systemPrompt, combinedUserPrompt, settings);
+    const content = await requestAiCompletion(systemPrompt, combinedUserPrompt, settings, onChunk);
     if (content && content.trim()) {
       return content;
     }

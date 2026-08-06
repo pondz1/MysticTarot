@@ -5,7 +5,8 @@ export async function analyzeZodiacHoroscope(
   signNameTh: string,
   elementTh: string,
   timeframe: 'daily' | 'monthly',
-  settings: ApiSettings
+  settings: ApiSettings,
+  onChunk?: (chunk: string) => void
 ): Promise<string> {
   const systemPrompt = `คุณคือโหราจารย์ผู้หยั่งรู้ดวงดาว 12 ราศี วิเคราะห์ดวงชะตาสละสลวย ให้พลังบวกและข้อคิดแม่นยำ`;
   const userPrompt = `โปรดทำนายดวงชะตา ${timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'} สำหรับผู้เกิด "${signNameTh}" (${elementTh})
@@ -17,14 +18,14 @@ export async function analyzeZodiacHoroscope(
 5. 🌟 ข้อคิดชี้ทางประจำวัน`;
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, settings);
+    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk);
     if (content && content.trim()) {
       return content;
     }
     return generateFallbackZodiacHoroscope(signNameTh, timeframe);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed Zodiac AI call:', error);
-    return generateFallbackZodiacHoroscope(signNameTh, timeframe);
+    throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ดูดวงราศีได้ในขณะนี้');
   }
 }
 

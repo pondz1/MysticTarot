@@ -91,7 +91,16 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
     try {
       let analysis = '';
       if (useAi) {
-        analysis = await analyzeTarotReading(question, cards, spreadMode, apiSettings, deckFilter);
+        analysis = await analyzeTarotReading(
+          question,
+          cards,
+          spreadMode,
+          apiSettings,
+          deckFilter,
+          (chunk) => {
+            setReadingResult((prev) => prev + chunk);
+          }
+        );
       } else {
         analysis = generateFallbackReading(question, cards, spreadMode);
       }
@@ -141,7 +150,15 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
       timestamp: Date.now(),
     };
 
-    const updatedHistoryWithUser = [...chatHistory, userMsg];
+    const aiMsgId = (Date.now() + 1).toString();
+    const aiPlaceholderMsg: ChatMessage = {
+      id: aiMsgId,
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+    };
+
+    const updatedHistoryWithUser = [...chatHistory, userMsg, aiPlaceholderMsg];
     setChatHistory(updatedHistoryWithUser);
     setIsSendingFollowUp(true);
 
@@ -151,19 +168,21 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
         drawnCards,
         spreadMode,
         initialResult: readingResult,
-        chatHistory: updatedHistoryWithUser,
+        chatHistory: [...chatHistory, userMsg],
         newQuestion: userQuestion,
         settings: apiSettings,
+        onChunk: (chunk) => {
+          setChatHistory((prev) =>
+            prev.map((msg) =>
+              msg.id === aiMsgId ? { ...msg, content: msg.content + chunk } : msg
+            )
+          );
+        },
       });
 
-      const aiMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: aiResponseText,
-        timestamp: Date.now(),
-      };
-
-      const finalChatHistory = [...updatedHistoryWithUser, aiMsg];
+      const finalChatHistory = updatedHistoryWithUser.map((msg) =>
+        msg.id === aiMsgId ? { ...msg, content: aiResponseText } : msg
+      );
       setChatHistory(finalChatHistory);
 
       // Save updated reading with chat history

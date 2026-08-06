@@ -75,6 +75,7 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
     }
 
     setIsLoading(true);
+    setPredictionText('');
     try {
       const aiText = await analyzeThaiLifeGraph(
         birthDate,
@@ -82,7 +83,10 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
         mathRes.elementTh,
         mathRes.peakAgeRange,
         mathRes.summaryGuidance,
-        apiSettings
+        apiSettings,
+        (chunk) => {
+          setPredictionText((prev) => prev + chunk);
+        }
       );
       setPredictionText(aiText);
       setAiError(null);

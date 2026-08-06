@@ -97,6 +97,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
     }
 
     setIsAnalyzing(true);
+    setPredictionText('');
     try {
       const pairsSummary = mathResult.pairAnalyses
         .map((p) => `${p.pair} (${p.meaning})`)
@@ -108,7 +109,10 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
         mathResult.sumValue,
         mathResult.sumMeaning.title,
         pairsSummary,
-        apiSettings || { apiKey: '', baseUrl: '', model: '' }
+        apiSettings || { apiKey: '', baseUrl: '', model: '' },
+        (chunk) => {
+          setPredictionText((prev) => prev + chunk);
+        }
       );
       setPredictionText(aiText);
       setAiError(null);

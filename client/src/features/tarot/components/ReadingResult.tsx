@@ -41,8 +41,8 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto my-8 px-4">
-      {/* Loading state during AI analysis */}
-      {isAnalyzing && (
+      {/* Loading state during AI analysis (only when no text has arrived yet) */}
+      {isAnalyzing && !resultText && (
         <div className="flex flex-col items-center justify-center p-12 glass-panel-gold rounded-2xl text-center border border-amber-400/50 shadow-2xl animate-pulse">
           <div className="relative mb-6">
             <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-600 via-amber-500 to-indigo-600 animate-spin blur-md" />
@@ -59,8 +59,8 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
         </div>
       )}
 
-      {/* Finished Analysis Result */}
-      {!isAnalyzing && resultText && (
+      {/* Live Streaming or Finished Analysis Result */}
+      {resultText && (
         <div className="relative glass-panel-gold rounded-2xl p-6 md:p-8 border border-amber-400/40 shadow-2xl overflow-hidden">
           
           {/* Scroll Header Decorative Frame */}
@@ -181,6 +181,15 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
             >
               {resultText}
             </ReactMarkdown>
+
+            {/* Active Streaming Indicator */}
+            {isAnalyzing && (
+              <div className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-medium animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-spin" />
+                <span>หมอดู AI กำลังร่ายบททำนายเพิ่มเติม...</span>
+              </div>
+            )}
           </div>
 
           {/* AI Follow-up Chat Section */}

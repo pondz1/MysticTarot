@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { ApiSettings, AiConnectionMode } from '../../features/tarot/types/tarot';
 import { PROVIDER_PRESETS } from '../../services/aiService';
-import { Settings, X, Key, Globe, Cpu, Check, Sparkles, Coins } from 'lucide-react';
+import { Settings, X, Key, Globe, Cpu, Check, Sparkles, Coins, Zap } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface ApiSettingsModalProps {
@@ -24,6 +24,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   const [apiKey, setApiKey] = useState(settings.apiKey || '');
   const [baseUrl, setBaseUrl] = useState(settings.baseUrl || '');
   const [model, setModel] = useState(settings.model || '');
+  const [enableStreaming, setEnableStreaming] = useState<boolean>(settings.enableStreaming !== false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
       setBaseUrl(settings.baseUrl || '');
       setModel(settings.model || '');
       setMode(settings.mode || 'credit');
+      setEnableStreaming(settings.enableStreaming !== false);
     }
   }, [isOpen, settings]);
 
@@ -52,6 +54,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
       apiKey: apiKey.trim(),
       baseUrl: baseUrl.trim() || 'https://api.openai.com/v1',
       model: model.trim() || 'gpt-4o-mini',
+      enableStreaming,
     });
     setSavedSuccess(true);
     setTimeout(() => {
@@ -212,6 +215,36 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
             </div>
           </div>
         )}
+
+        {/* Streaming Response Toggle */}
+        <div className="my-4 pt-3 border-t border-amber-500/20">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-purple-950/60 border border-purple-500/30">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 shrink-0">
+                <Zap className="w-4 h-4" />
+              </div>
+              <div className="text-left">
+                <div className="text-xs font-semibold text-slate-100">
+                   Streaming Response Mode
+                </div>
+                <div className="text-[11px] text-purple-200/70 mt-0.5">
+                  {enableStreaming
+                    ? 'เปิดอยู่: แสดงตัวอักษรเรียลไทม์ขณะ AI กำลังคิดคำทำนาย'
+                    : 'ปิดอยู่: รอ AI คิดประมวลผลจนจบแล้วแสดงผลครั้งเดียว'}
+                </div>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-2">
+              <input
+                type="checkbox"
+                checked={enableStreaming}
+                onChange={(e) => setEnableStreaming(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+            </label>
+          </div>
+        </div>
 
         {/* Action Footer */}
         <form onSubmit={handleSave} className="flex justify-end gap-2 border-t border-amber-500/20 pt-3">

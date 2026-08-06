@@ -6,7 +6,8 @@ export async function analyzeNumerology(
   sumValue: number,
   sumTitle: string,
   pairsSummary: string,
-  settings: ApiSettings
+  settings: ApiSettings,
+  onChunk?: (chunk: string) => void
 ): Promise<string> {
   const systemPrompt = `คุณคือปรมาจารย์ผู้เชี่ยวชาญศาสตร์แห่งตัวเลขและเบอร์มงคล (Celestial Master Numerologist) มีสติปัญญา ลึกซึ้ง และทำนายภาษาไทยสละสลวย 100% (ห้ามใส่ Emoji ใดๆ ในหัวข้อ Heading)`;
   const userPrompt = `โปรดทำนายวิเคราะห์เชิงลึกสำหรับตัวเลข "${inputNumber}"
@@ -29,14 +30,14 @@ export async function analyzeNumerology(
 > **ข้อคิดคำแนะนำมงคลประจำชุดตัวเลขนี้**`;
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, settings);
+    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk);
     if (content && content.trim()) {
       return content;
     }
     return generateFallbackNumerology(inputNumber, sumValue, sumTitle);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed Numerology AI call:', error);
-    return generateFallbackNumerology(inputNumber, sumValue, sumTitle);
+    throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ถอดรหัสตัวเลขได้ในขณะนี้');
   }
 }
 

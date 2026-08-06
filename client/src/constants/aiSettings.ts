@@ -5,6 +5,7 @@ export const DEFAULT_API_SETTINGS: ApiSettings = {
   apiKey: '',
   baseUrl: 'https://api.openai.com/v1',
   model: 'gpt-4o-mini',
+  enableStreaming: true,
 };
 
 // Preset providers for quick configuration (Custom Mode)
