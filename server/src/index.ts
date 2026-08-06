@@ -25,7 +25,7 @@ app.use('/api/user', userRouter);
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
-    service: 'mystic-tarot-backend',
+    service: 'mystic-verse-backend',
     timestamp: new Date().toISOString(),
   });
 });
@@ -45,5 +45,5 @@ if (fs.existsSync(publicDir)) {
 }
 
 app.listen(PORT, () => {
-  console.log(`🔮 Mystic Tarot Backend server running on http://localhost:${PORT}`);
+  console.log(`🔮 MysticVerse Backend server running on http://localhost:${PORT}`);
 });

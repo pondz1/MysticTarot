@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for Mystic Tarot (Frontend + Express Backend)
+# Multi-stage Dockerfile for MysticVerse (Frontend + Express Backend)
 FROM node:22-alpine AS build
 
 WORKDIR /app

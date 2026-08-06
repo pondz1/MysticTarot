@@ -1,9 +1,9 @@
 services:
-  mystic-tarot:
+  mystic-verse:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mystic-tarot
+    container_name: mystic-verse
     restart: unless-stopped
     expose:
       - "3001"
@@ -13,7 +13,7 @@ services:
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://9router.jsd.my.id/v1}
       - OPENAI_MODEL=${OPENAI_MODEL:-tarot-cards}
     volumes:
-      - tarot-data:/app/server/data
+      - mysticverse-data:/app/server/data
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3001/api/health || exit 1"]
       interval: 10s
@@ -22,5 +22,5 @@ services:
       start_period: 5s
 
 volumes:
-  tarot-data:
+  mysticverse-data:
     driver: local
