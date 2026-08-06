@@ -124,7 +124,7 @@ export const MindfulHoldView: React.FC<MindfulHoldViewProps> = ({
         origin: { y: 0.6 },
         colors: ['#EAB308', '#A855F7', '#38BDF8'],
       });
-    } catch (e) {
+    } catch {
       // ignore
     }
   };
@@ -360,7 +360,7 @@ export const MindfulHoldView: React.FC<MindfulHoldViewProps> = ({
                     {/* Compact Hero Card Image */}
                     <div className="relative w-22 h-34 xs:w-26 xs:h-40 sm:w-32 sm:h-48 md:w-36 md:h-54 rounded-xl sm:rounded-2xl border-2 border-amber-400/80 bg-slate-900 shadow-[0_0_20px_rgba(234,179,8,0.4)] group-hover:shadow-[0_0_30px_rgba(234,179,8,0.7)] group-hover:border-amber-300 transition-all duration-300 overflow-hidden">
                       <img
-                        src="/cards/card_back.jpg"
+                        src="/cards/card_back.webp"
                         alt={sc.card.nameTh}
                         className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
                       />

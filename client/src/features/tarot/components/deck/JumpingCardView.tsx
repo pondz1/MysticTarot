@@ -85,7 +85,7 @@ export const JumpingCardView: React.FC<JumpingCardViewProps> = ({
           origin: { y: 0.6 },
           colors: ['#EAB308', '#A855F7', '#38BDF8'],
         });
-      } catch (e) {
+      } catch {
         // ignore
       }
     }, 850);
@@ -128,7 +128,7 @@ export const JumpingCardView: React.FC<JumpingCardViewProps> = ({
           origin: { y: 0.6 },
           colors: ['#EAB308', '#A855F7', '#38BDF8'],
         });
-      } catch (e) {
+      } catch {
         // ignore
       }
     }, 900);
@@ -168,12 +168,12 @@ export const JumpingCardView: React.FC<JumpingCardViewProps> = ({
 
             {/* Back Card Stack Layer 3 */}
             <div className="absolute inset-0 rounded-2xl border border-amber-400/30 bg-slate-900 transform translate-x-3 translate-y-3 rotate-6 opacity-60 overflow-hidden">
-              <img src="/cards/card_back.jpg" alt="Stack 3" className="w-full h-full object-cover rounded-2xl opacity-40" />
+              <img src="/cards/card_back.webp" alt="Stack 3" className="w-full h-full object-cover rounded-2xl opacity-40" />
             </div>
 
             {/* Back Card Stack Layer 2 */}
             <div className="absolute inset-0 rounded-2xl border border-amber-400/50 bg-slate-900 transform translate-x-1.5 translate-y-1.5 -rotate-3 opacity-80 overflow-hidden">
-              <img src="/cards/card_back.jpg" alt="Stack 2" className="w-full h-full object-cover rounded-2xl opacity-60" />
+              <img src="/cards/card_back.webp" alt="Stack 2" className="w-full h-full object-cover rounded-2xl opacity-60" />
             </div>
 
             {/* Top Deck Card */}
@@ -191,7 +191,7 @@ export const JumpingCardView: React.FC<JumpingCardViewProps> = ({
               className="absolute inset-0 rounded-2xl border-2 border-amber-400 bg-slate-900 shadow-[0_0_30px_rgba(234,179,8,0.5)] overflow-hidden cursor-pointer"
               onClick={handleJumpOneCard}
             >
-              <img src="/cards/card_back.jpg" alt="Spirit Deck" className="w-full h-full object-cover rounded-xl" />
+              <img src="/cards/card_back.webp" alt="Spirit Deck" className="w-full h-full object-cover rounded-xl" />
               <div className="absolute inset-0 bg-gradient-to-t from-purple-950/60 via-transparent to-transparent pointer-events-none" />
 
               {/* Center Glow Symbol */}
@@ -218,7 +218,7 @@ export const JumpingCardView: React.FC<JumpingCardViewProps> = ({
                   transition={{ duration: 0.85, ease: 'easeInOut' }}
                   className="absolute z-50 inset-0 rounded-2xl border-2 border-amber-300 bg-slate-900 shadow-[0_0_40px_rgba(234,179,8,1)] overflow-hidden pointer-events-none"
                 >
-                  <img src="/cards/card_back.jpg" alt="Leaping Card" className="w-full h-full object-cover rounded-xl" />
+                  <img src="/cards/card_back.webp" alt="Leaping Card" className="w-full h-full object-cover rounded-xl" />
                   <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/40 via-purple-500/40 to-amber-300/40 mix-blend-overlay animate-pulse" />
                 </motion.div>
               )}
@@ -282,7 +282,7 @@ export const JumpingCardView: React.FC<JumpingCardViewProps> = ({
                     {/* Compact Hero Card Image */}
                     <div className="relative w-22 h-34 xs:w-26 xs:h-40 sm:w-32 sm:h-48 md:w-36 md:h-54 rounded-xl sm:rounded-2xl border-2 border-amber-400/80 bg-slate-900 shadow-[0_0_20px_rgba(234,179,8,0.4)] group-hover:shadow-[0_0_30px_rgba(234,179,8,0.7)] group-hover:border-amber-300 transition-all duration-300 overflow-hidden">
                       <img
-                        src="/cards/card_back.jpg"
+                        src="/cards/card_back.webp"
                         alt={sc.card.nameTh}
                         className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
                       />

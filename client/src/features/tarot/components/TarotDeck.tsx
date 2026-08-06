@@ -136,7 +136,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           origin: { y: 0.65 },
           colors: ['#EAB308', '#A855F7', '#38BDF8'],
         });
-      } catch (e) {
+      } catch {
         // ignore
       }
     }, 1000);
@@ -210,7 +210,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         origin: { y: 0.6 },
         colors: ['#EAB308', '#A855F7', '#38BDF8'],
       });
-    } catch (e) {
+    } catch {
       // ignore
     }
 

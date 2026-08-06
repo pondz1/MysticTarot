@@ -82,7 +82,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({ apiSettings }) => 
     try {
       const res = await analyzeZodiacHoroscope(sign.nameTh, sign.elementTh, mode, apiSettings);
       setPrediction(res);
-    } catch (e) {
+    } catch {
       setPrediction(getZodiacClassicPrediction(sign, mode));
     } finally {
       setIsLoading(false);

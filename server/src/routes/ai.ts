@@ -32,9 +32,12 @@ aiRouter.post('/completion', async (req: Request, res: Response): Promise<void> 
     const isCreditMode = !settings || settings.mode === 'credit' || !settings.apiKey;
     let remainingCredits: number | undefined;
 
+    const headerSessionId = req.headers['x-session-id'];
+    const userId = typeof headerSessionId === 'string' && headerSessionId.trim() ? headerSessionId.trim() : 'default_user';
+
     // 1. If Credit Mode: Deduct Credit
     if (isCreditMode) {
-      const creditCheck = creditsDb.deductCredit('default_user');
+      const creditCheck = creditsDb.deductCredit(userId);
       if (!creditCheck.success) {
         res.status(402).json({
           error: 'Credit หมดแล้ว! กรุณาเติม Credit หรือเลือกสลับไปใช้ Custom API Key ของคุณเองในการตั้งค่า',
@@ -94,8 +97,10 @@ aiRouter.post('/completion', async (req: Request, res: Response): Promise<void> 
     res.json({ result, model, remainingCredits, usage: completion.usage });
   } catch (error: any) {
     console.error('AI completion error:', error);
-    res.status(500).json({
-      error: error?.message || 'Failed to complete AI request',
-    });
+    const userMessage = process.env.NODE_ENV === 'production'
+      ? 'ไม่สามารถประมวลผลคำขอ AI ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง'
+      : error?.message || 'Failed to complete AI request';
+    res.status(500).json({ error: userMessage });
   }
 });
+

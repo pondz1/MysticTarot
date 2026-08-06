@@ -48,15 +48,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const fetchCredits = async () => {
     try {
-      const res = await fetch('/api/user/credits');
+      const { getSessionId } = await import('../../services/ai/aiClient');
+      const res = await fetch('/api/user/credits', {
+        headers: { 'X-Session-ID': getSessionId() },
+      });
       if (res.ok) {
         const data = await res.json();
         setCredits(data.credits);
       }
-    } catch (e) {
+    } catch {
       // ignore offline
     }
   };
+
 
   const isHomeActive = location.pathname === '/';
   const isTarotActive = location.pathname.startsWith('/tarot');

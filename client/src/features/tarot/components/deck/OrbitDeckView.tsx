@@ -86,7 +86,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     try {
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch (err) {
+    } catch {
       // ignore
     }
   };
@@ -112,7 +112,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
     if (e) {
       try {
         (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch (err) {
+      } catch {
         // ignore
       }
     }
@@ -286,7 +286,7 @@ export const OrbitDeckView: React.FC<OrbitDeckViewProps> = ({
                 }`}
               >
                     <img
-                      src="/cards/card_back.jpg"
+                      src="/cards/card_back.webp"
                       alt="Tarot Back"
                       className="absolute inset-0 w-full h-full object-cover rounded-lg pointer-events-none"
                       onError={(e) => {

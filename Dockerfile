@@ -42,13 +42,18 @@ COPY --from=build /app/package.json ./
 COPY --from=build /app/server ./server
 
 WORKDIR /app/server
-RUN npm rebuild
+RUN npm rebuild && \
+    mkdir -p /app/server/data && \
+    chown -R node:node /app
 
 ENV PORT=3001
 ENV NODE_ENV=production
 
+USER node
+
 EXPOSE 3001
 
 CMD ["npm", "start"]
+
 
 

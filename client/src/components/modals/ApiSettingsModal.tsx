@@ -38,7 +38,10 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   const fetchCredits = async () => {
     setLoadingCredits(true);
     try {
-      const res = await fetch('/api/user/credits');
+      const { getSessionId } = await import('../../services/ai/aiClient');
+      const res = await fetch('/api/user/credits', {
+        headers: { 'X-Session-ID': getSessionId() },
+      });
       if (res.ok) {
         const data = await res.json();
         setCredits(data.credits);
@@ -52,21 +55,27 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
 
   const handleRefillCredits = async () => {
     try {
+      const { getSessionId } = await import('../../services/ai/aiClient');
       const res = await fetch('/api/user/refill', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Session-ID': getSessionId(),
+        },
         body: JSON.stringify({ amount: 10 }),
       });
       if (res.ok) {
         const data = await res.json();
         setCredits(data.credits);
         setRefillSuccess(true);
+        window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: data.credits }));
         setTimeout(() => setRefillSuccess(false), 2000);
       }
     } catch (e) {
       console.warn('Failed to refill credits:', e);
     }
   };
+
 
   if (!isOpen) return null;
 

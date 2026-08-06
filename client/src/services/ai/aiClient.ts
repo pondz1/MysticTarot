@@ -1,29 +1,26 @@
-import OpenAI from 'openai';
 import type { ApiSettings } from '../../features/tarot/types/tarot';
+export { DEFAULT_API_SETTINGS, PROVIDER_PRESETS } from '../../constants/aiSettings';
 
-export const DEFAULT_API_SETTINGS: ApiSettings = {
-  mode: 'credit',
-  apiKey: '',
-  baseUrl: 'https://api.openai.com/v1',
-  model: 'gpt-4o-mini',
-};
+export function getSessionId(): string {
+  if (typeof window === 'undefined') return 'default_user';
+  let sessionId = localStorage.getItem('mystic_session_id');
+  if (!sessionId) {
+    sessionId = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : 'sess_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+    localStorage.setItem('mystic_session_id', sessionId);
+  }
+  return sessionId;
+}
 
-// Preset providers for quick configuration (Custom Mode)
-export const PROVIDER_PRESETS: { name: string; baseUrl: string; model: string; apiKey?: string }[] = [
-  { name: 'OpenAI (Default)', baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
-  { name: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
-  { name: 'Groq', baseUrl: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' },
-  { name: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1', model: 'google/gemini-2.5-flash' },
-  { name: 'Local Ollama', baseUrl: 'http://localhost:11434/v1', model: 'llama3' },
-];
-
-export function getOpenAIClient(settings?: ApiSettings): OpenAI | null {
+export async function getOpenAIClient(settings?: ApiSettings) {
   if (!settings) return null;
   const isLocalHost = settings.baseUrl.includes('localhost') || settings.baseUrl.includes('127.0.0.1');
   if (!settings.apiKey && !isLocalHost) {
     return null;
   }
   const cleanBaseUrl = settings.baseUrl.replace(/\/+$/, '');
+  const { default: OpenAI } = await import('openai');
   return new OpenAI({
     apiKey: settings.apiKey || 'ollama',
     baseURL: cleanBaseUrl,
@@ -47,7 +44,7 @@ export async function requestAiCompletion(
   // Mode 1: Custom Mode -> Connect directly to provider from browser
   // -------------------------------------------------------------
   if (isCustomMode) {
-    const client = getOpenAIClient(settings);
+    const client = await getOpenAIClient(settings);
     if (!client) {
       throw new Error('API Key หรือ Endpoint Configuration ไม่ถูกต้อง กรุณาตรวจสอบในหน้าตั้งค่า');
     }
@@ -71,7 +68,10 @@ export async function requestAiCompletion(
   // -------------------------------------------------------------
   const res = await fetch('/api/ai/completion', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Session-ID': getSessionId(),
+    },
     body: JSON.stringify({ systemPrompt, userPrompt, settings }),
   });
 
@@ -117,7 +117,7 @@ export async function* streamAiCompletion(
   userPrompt: string,
   settings: ApiSettings
 ): AsyncIterable<string> {
-  const client = getOpenAIClient(settings);
+  const client = await getOpenAIClient(settings);
   if (!client) {
     throw new Error('API key or endpoint configuration is invalid');
   }
@@ -140,3 +140,4 @@ export async function* streamAiCompletion(
     }
   }
 }
+

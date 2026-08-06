@@ -85,7 +85,7 @@ export const AutoDeckView: React.FC<AutoDeckViewProps> = ({
               transition={{ delay: idx * 0.1 }}
               className="relative w-20 h-32 sm:w-24 sm:h-38 rounded-xl border border-amber-400/60 bg-slate-900 overflow-hidden shadow-lg flex flex-col items-center justify-center"
             >
-              <img src="/cards/card_back.jpg" alt="Back" className="w-full h-full object-cover rounded-xl" />
+              <img src="/cards/card_back.webp" alt="Back" className="w-full h-full object-cover rounded-xl" />
               <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center">
                 <CheckCircle2 className="w-3 h-3 fill-slate-950 text-amber-400" />
               </div>

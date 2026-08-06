@@ -145,7 +145,7 @@ export const FanDeckView: React.FC<FanDeckViewProps> = ({
                 }`}
             >
               <img
-                src="/cards/card_back.jpg"
+                src="/cards/card_back.webp"
                 alt="Tarot Back"
                 loading="eager"
                 decoding="async"

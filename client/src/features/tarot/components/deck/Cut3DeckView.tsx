@@ -147,7 +147,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
             origin: { y: 0.6 },
             colors: ['#EAB308', '#A855F7', '#38BDF8'],
           });
-        } catch (e) {
+        } catch {
           // ignore
         }
       }, 850);
@@ -188,7 +188,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
             origin: { y: 0.6 },
             colors: ['#EAB308', '#A855F7', '#38BDF8'],
           });
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
@@ -295,7 +295,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
                 }}
                 className="absolute w-14 h-22 sm:w-18 sm:h-26 rounded-xl border border-amber-400/80 bg-slate-900 shadow-[0_0_25px_rgba(234,179,8,0.9)] overflow-hidden"
               >
-                <img src="/cards/card_back.jpg" alt="Flying Card Left" className="w-full h-full object-cover rounded-xl" />
+                <img src="/cards/card_back.webp" alt="Flying Card Left" className="w-full h-full object-cover rounded-xl" />
                 <div className="absolute inset-0 bg-amber-400/20 mix-blend-overlay animate-pulse" />
               </motion.div>
 
@@ -318,7 +318,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
                 }}
                 className="absolute w-14 h-22 sm:w-18 sm:h-26 rounded-xl border border-purple-400/80 bg-slate-900 shadow-[0_0_25px_rgba(168,85,247,0.9)] overflow-hidden"
               >
-                <img src="/cards/card_back.jpg" alt="Flying Card Right" className="w-full h-full object-cover rounded-xl" />
+                <img src="/cards/card_back.webp" alt="Flying Card Right" className="w-full h-full object-cover rounded-xl" />
                 <div className="absolute inset-0 bg-purple-400/20 mix-blend-overlay animate-pulse" />
               </motion.div>
 
@@ -340,7 +340,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
                 }}
                 className="absolute w-14 h-22 sm:w-18 sm:h-26 rounded-xl border border-amber-300 bg-slate-900 shadow-[0_0_30px_rgba(234,179,8,1)] overflow-hidden"
               >
-                <img src="/cards/card_back.jpg" alt="Flying Card Center" className="w-full h-full object-cover rounded-xl" />
+                <img src="/cards/card_back.webp" alt="Flying Card Center" className="w-full h-full object-cover rounded-xl" />
                 <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/30 via-purple-500/30 to-amber-300/30 mix-blend-overlay animate-pulse" />
               </motion.div>
             </div>
@@ -417,7 +417,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
                     className="absolute inset-0 bg-slate-900 rounded-xl border border-amber-400/30 transform translate-x-3 translate-y-3 rotate-[5deg] opacity-50 shadow-md group-hover:translate-x-4 group-hover:translate-y-4 group-hover:rotate-[7deg] transition-transform duration-300"
                   >
                     <img
-                      src="/cards/card_back.jpg"
+                      src="/cards/card_back.webp"
                       alt="Back Layer 3"
                       className="w-full h-full object-cover rounded-xl opacity-30"
                     />
@@ -438,7 +438,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
                     className="absolute inset-0 bg-slate-900 rounded-xl border border-amber-400/40 transform translate-x-1.5 translate-y-1.5 rotate-[-3deg] opacity-75 shadow-md group-hover:translate-x-2 group-hover:translate-y-2 group-hover:rotate-[-4deg] transition-transform duration-300"
                   >
                     <img
-                      src="/cards/card_back.jpg"
+                      src="/cards/card_back.webp"
                       alt="Back Layer 2"
                       className="w-full h-full object-cover rounded-xl opacity-50"
                     />
@@ -461,7 +461,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
                     }`}
                   >
                     <img
-                      src="/cards/card_back.jpg"
+                      src="/cards/card_back.webp"
                       alt="Back Top"
                       className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
                     />
@@ -550,7 +550,7 @@ export const Cut3DeckView: React.FC<Cut3DeckViewProps> = ({
                     {/* Compact Hero Card Image */}
                     <div className="relative w-22 h-34 xs:w-26 xs:h-40 sm:w-32 sm:h-48 md:w-36 md:h-54 rounded-xl sm:rounded-2xl border-2 border-amber-400/80 bg-slate-900 shadow-[0_0_20px_rgba(234,179,8,0.4)] group-hover:shadow-[0_0_30px_rgba(234,179,8,0.7)] group-hover:border-amber-300 transition-all duration-300 overflow-hidden">
                       <img
-                        src="/cards/card_back.jpg"
+                        src="/cards/card_back.webp"
                         alt={sc.card.nameTh}
                         className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
                       />
