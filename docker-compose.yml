@@ -1,44 +1,26 @@
 services:
-  # Nginx Reverse Proxy (Frontend entry point)
-  proxy:
-    image: nginx:alpine
-    container_name: mystic-tarot-proxy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      mystic-tarot:
-        condition: service_healthy
-    networks:
-      - mystic-network
-
-  # Node.js Express Backend & Web Application
   mystic-tarot:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mystic-tarot-app
+    container_name: mystic-tarot
     restart: unless-stopped
-    expose:
-      - "3001"
+    ports:
+      - "3001:3001"
     environment:
       - PORT=3001
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://9router.jsd.my.id/v1}
       - OPENAI_MODEL=${OPENAI_MODEL:-tarot-cards}
     volumes:
-      - ./server/data:/app/server/data
+      - tarot-data:/app/server/data
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3001/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 5s
-    networks:
-      - mystic-network
 
-networks:
-  mystic-network:
-    driver: bridge
+volumes:
+  tarot-data:
+    driver: local
