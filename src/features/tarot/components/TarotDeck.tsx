@@ -3,9 +3,9 @@ import type { TarotCard } from '../data/tarotCards';
 import { TAROT_CARDS } from '../data/tarotCards';
 import type { DrawnCard, SpreadMode, SelectionMode } from '../types/tarot';
 import { getSpreadConfig } from '../data/tarotSpreads';
-import { Sparkles, RefreshCw, Crown, ChevronDown, Orbit } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+import { TarotDeckHeaderControls } from './deck/TarotDeckHeaderControls';
 import { FanDeckView } from './deck/FanDeckView';
 import { Cut3DeckView } from './deck/Cut3DeckView';
 import { OrbitDeckView } from './deck/OrbitDeckView';
@@ -25,7 +25,7 @@ interface TarotDeckProps {
 export const TarotDeck: React.FC<TarotDeckProps> = ({
   spreadMode,
   onCardsSelected,
-  isAnalyzing
+  isAnalyzing,
 }) => {
   const spreadConfig = getSpreadConfig(spreadMode);
   const targetCount = spreadConfig.cardCount;
@@ -134,7 +134,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
           particleCount: 35,
           spread: 55,
           origin: { y: 0.65 },
-          colors: ['#EAB308', '#A855F7', '#38BDF8']
+          colors: ['#EAB308', '#A855F7', '#38BDF8'],
         });
       } catch (e) {
         // ignore
@@ -157,7 +157,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       const remaining = selectedCards.filter((sc) => sc?.card?.id !== card.id);
       const reindexed = remaining.map((sc, idx) => ({
         ...sc,
-        position: getPositionName(idx)
+        position: getPositionName(idx),
       }));
       setSelectedCards(reindexed);
       return;
@@ -169,11 +169,11 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       const newCardEntry: DrawnCard = {
         card,
         isReversed,
-        position: getPositionName(selectedCards.length)
+        position: getPositionName(selectedCards.length),
       };
       const updated = [...selectedCards, newCardEntry].map((sc, idx) => ({
         ...sc,
-        position: getPositionName(idx)
+        position: getPositionName(idx),
       }));
       setSelectedCards(updated);
     } else {
@@ -182,11 +182,11 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       updated[replaceIndex] = {
         card,
         isReversed,
-        position: getPositionName(replaceIndex)
+        position: getPositionName(replaceIndex),
       };
       const reindexed = updated.map((sc, idx) => ({
         ...sc,
-        position: getPositionName(idx)
+        position: getPositionName(idx),
       }));
       setSelectedCards(reindexed);
     }
@@ -200,7 +200,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
       .filter((sc) => sc && sc.card)
       .map((sc, idx) => ({
         ...sc,
-        position: getPositionName(idx)
+        position: getPositionName(idx),
       }));
 
     try {
@@ -208,7 +208,7 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         particleCount: 60,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#EAB308', '#A855F7', '#38BDF8']
+        colors: ['#EAB308', '#A855F7', '#38BDF8'],
       });
     } catch (e) {
       // ignore
@@ -229,70 +229,23 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center my-2 sm:my-3">
-
-      {/* Header Controls & Status Badge Container */}
-      <div className="w-full max-w-full px-3 flex flex-col items-center gap-3 sm:gap-4 mb-4 sm:mb-5 text-center">
-        {/* Action Controls & Modal Trigger Buttons Row */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3.5 relative z-20">
-          {/* Mode Selector Modal Trigger Button */}
-          <button
-            type="button"
-            disabled={isShuffling || isAnalyzing || isSelectionActive}
-            onClick={() => setActiveModal('mode')}
-            title={isSelectionActive ? 'หากต้องการเปลี่ยนโหมด ให้กดล้างเลือกใหม่ก่อน' : 'เลือกรูปแบบเปิดไพ่'}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 hover:border-amber-400/80 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-semibold shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Orbit className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>{getModeLabel(selectionMode)}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-          </button>
-
-          {/* Filter Selector Modal Trigger Button */}
-          <button
-            type="button"
-            disabled={isShuffling || isAnalyzing || isSelectionActive}
-            onClick={() => setActiveModal('filter')}
-            title={isSelectionActive ? 'หากต้องการเปลี่ยนสำรับ ให้กดล้างเลือกใหม่ก่อน' : 'เลือกประเภทสำรับ'}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 hover:border-amber-400/80 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-semibold shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>{getFilterLabel(deckFilter)}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-          </button>
-
-          {!isSelectionActive && (
-            <button
-              type="button"
-              disabled={isShuffling || isAnalyzing}
-              onClick={handleShuffle}
-              className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3.5 py-1.5 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-100 disabled:opacity-40 transition-all cursor-pointer shadow-sm"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 text-amber-300 ${isShuffling ? 'animate-spin' : ''}`} />
-              <span>{isShuffling ? 'กำลังสับ...' : 'สับไพ่'}</span>
-            </button>
-          )}
-
-          {isSelectionActive && !isAnalyzing && (
-            <button
-              type="button"
-              onClick={handleResetSelection}
-              className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 transition-all cursor-pointer shadow-sm"
-            >
-              <span>ล้างเลือกใหม่</span>
-            </button>
-          )}
-        </div>
-
-        {/* Status Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full bg-purple-950/80 border border-amber-400/30 text-amber-200 text-xs sm:text-sm font-medium shadow-md">
-          <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow shrink-0" />
-          <span className="leading-tight">
-            {isSelectionComplete
-              ? `เลือกครบแล้ว (${targetCount}/${targetCount} ใบ)! กดยืนยันด้านล่าง`
-              : `แตะเลือกไพ่สำหรับ "${spreadConfig.titleTh}" (${selectedCards.length} / ${targetCount} ใบ)`}
-          </span>
-        </div>
-      </div>
+      {/* Header Controls & Status Badge */}
+      <TarotDeckHeaderControls
+        selectionMode={selectionMode}
+        deckFilter={deckFilter}
+        isShuffling={isShuffling}
+        isAnalyzing={isAnalyzing}
+        isSelectionActive={isSelectionActive}
+        isSelectionComplete={isSelectionComplete}
+        selectedCount={selectedCards.length}
+        targetCount={targetCount}
+        spreadTitleTh={spreadConfig.titleTh}
+        getModeLabel={getModeLabel}
+        getFilterLabel={getFilterLabel}
+        onOpenModal={(modal) => setActiveModal(modal)}
+        onShuffle={handleShuffle}
+        onReset={handleResetSelection}
+      />
 
       {/* Render Selected View Strategy */}
       {selectionMode === 'cut3' ? (
