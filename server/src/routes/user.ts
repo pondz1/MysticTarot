@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { creditsDb } from '../db.js';
 import { AuthRequest } from '../middleware/auth.js';
+import { CREDIT_RATES } from '../constants/creditRates.js';
 
 export const userRouter = Router();
 
@@ -24,11 +25,11 @@ userRouter.get('/credits', (req: AuthRequest, res: Response) => {
   } catch (error: any) {
     console.error('[User Router Error] /api/user/credits failed:', error);
     // Graceful fallback so production client never receives 500 status code
-    res.json({ credits: 10 });
+    res.json({ credits: CREDIT_RATES.INITIAL_USER_CREDITS });
   }
 });
 
-// POST refill credits (Restricted in production / capped to max 10)
+// POST refill credits (Restricted in production / capped to max INITIAL_USER_CREDITS)
 userRouter.post('/refill', (req: AuthRequest, res: Response) => {
   try {
     const adminToken = process.env.ADMIN_TOKEN;
@@ -43,9 +44,9 @@ userRouter.post('/refill', (req: AuthRequest, res: Response) => {
     }
 
     const userId = getSessionId(req);
-    const rawAmount = typeof req.body.amount === 'number' ? req.body.amount : 10;
-    // Cap amount between 1 and 10 to prevent infinite refill abuse
-    const amount = Math.min(Math.max(1, rawAmount), 10);
+    const rawAmount = typeof req.body.amount === 'number' ? req.body.amount : CREDIT_RATES.INITIAL_USER_CREDITS;
+    // Cap amount between 1 and INITIAL_USER_CREDITS to prevent infinite refill abuse
+    const amount = Math.min(Math.max(1, rawAmount), CREDIT_RATES.INITIAL_USER_CREDITS);
     const credits = creditsDb.refillCredits(userId, amount);
     res.json({ success: true, credits });
   } catch (error: any) {
@@ -53,4 +54,5 @@ userRouter.post('/refill', (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: 'Failed to refill credits' });
   }
 });
+
 

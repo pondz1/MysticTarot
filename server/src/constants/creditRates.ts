@@ -1,0 +1,45 @@
+/**
+ * Configuration & Rates for Token-to-Credit calculation
+ */
+export const CREDIT_RATES = {
+  // Base token unit (1,000 tokens)
+  TOKENS_BASE_UNIT: 1000,
+
+  // Weighted credit rates per 1,000 tokens (aligned with LLM API cost ratio)
+  INPUT_TOKEN_RATE_PER_1K: 1,   // 1 Credit per 1,000 Prompt (Input) Tokens
+  OUTPUT_TOKEN_RATE_PER_1K: 4,  // 4 Credits per 1,000 Completion (Output) Tokens
+
+  // Minimum credits deducted per AI completion call
+  MIN_CREDITS_PER_REQUEST: 1,
+
+  // Initial free credits granted to new users
+  INITIAL_USER_CREDITS: 10,
+} as const;
+
+export interface TokenUsageInfo {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens?: number;
+}
+
+/**
+ * Calculates credits used based on token usage.
+ * Uses weighted rates for Prompt (Input) & Completion (Output) tokens, rounded up to the nearest integer.
+ */
+export function calculateCreditsFromTokens(usage?: TokenUsageInfo): number {
+  if (!usage) {
+    return CREDIT_RATES.MIN_CREDITS_PER_REQUEST;
+  }
+
+  const promptTokens = usage.prompt_tokens || 0;
+  const completionTokens = usage.completion_tokens || 0;
+
+  // Calculate weighted credits
+  const promptCredits = (promptTokens / CREDIT_RATES.TOKENS_BASE_UNIT) * CREDIT_RATES.INPUT_TOKEN_RATE_PER_1K;
+  const completionCredits = (completionTokens / CREDIT_RATES.TOKENS_BASE_UNIT) * CREDIT_RATES.OUTPUT_TOKEN_RATE_PER_1K;
+  const totalCalculated = promptCredits + completionCredits;
+
+  // Round up to nearest integer (minimum 1 credit)
+  const creditsUsed = Math.ceil(totalCalculated);
+  return Math.max(CREDIT_RATES.MIN_CREDITS_PER_REQUEST, creditsUsed);
+}

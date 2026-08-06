@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { eq, desc, sql } from 'drizzle-orm';
 import { users, readings, userCredits, type ReadingSelect } from './schema.js';
+import { CREDIT_RATES } from './constants/creditRates.js';
 
 // Standard DB directory configuration (defaults to ./data in working directory)
 const dbDir = process.env.DATA_DIR
@@ -181,18 +182,18 @@ export const creditsDb = {
   getCredits(userId: string = 'default_user'): number {
     const row = db.select({ credits: userCredits.credits }).from(userCredits).where(eq(userCredits.userId, userId)).get();
     if (!row) {
-      db.insert(userCredits).values({ userId, credits: 10 }).run();
-      return 10;
+      db.insert(userCredits).values({ userId, credits: CREDIT_RATES.INITIAL_USER_CREDITS }).run();
+      return CREDIT_RATES.INITIAL_USER_CREDITS;
     }
     return row.credits;
   },
 
-  deductCredit(userId: string = 'default_user'): { success: boolean; remainingCredits: number } {
+  deductCredit(userId: string = 'default_user', amount: number = 1): { success: boolean; remainingCredits: number } {
     const current = this.getCredits(userId);
-    if (current <= 0) {
-      return { success: false, remainingCredits: 0 };
+    if (current < amount) {
+      return { success: false, remainingCredits: current };
     }
-    const remainingCredits = current - 1;
+    const remainingCredits = Math.max(0, current - amount);
     db.update(userCredits)
       .set({ credits: remainingCredits, updatedAt: sql`CURRENT_TIMESTAMP` })
       .where(eq(userCredits.userId, userId))
@@ -200,7 +201,7 @@ export const creditsDb = {
     return { success: true, remainingCredits };
   },
 
-  refillCredits(userId: string = 'default_user', amount: number = 10): number {
+  refillCredits(userId: string = 'default_user', amount: number = CREDIT_RATES.INITIAL_USER_CREDITS): number {
     const current = this.getCredits(userId);
     const updated = current + amount;
     db.update(userCredits)
@@ -210,3 +211,4 @@ export const creditsDb = {
     return updated;
   },
 };
+
