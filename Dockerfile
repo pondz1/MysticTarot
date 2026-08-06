@@ -1,25 +1,37 @@
-# Stage 1: Build Vite React App
+# Multi-stage Dockerfile for Mystic Tarot (Frontend + Express Backend)
 FROM node:22-alpine AS build
 
 WORKDIR /app
 
-# Copy package files & install dependencies
-COPY package.json package-lock.json ./
-RUN npm ci
+# Install build dependencies for native modules (e.g. better-sqlite3)
+RUN apk add --no-co-cache python3 make g++
 
-# Copy source code & build production bundle
+# Copy root and subpackage dependencies
+COPY package.json ./
+COPY client/package.json ./client/
+COPY server/package.json ./server/
+
+RUN npm run install:all
+
+# Copy source code and build client + server
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve static files with Nginx
-FROM nginx:alpine AS production
+# Stage 2: Production runtime
+FROM node:22-alpine AS production
 
-# Copy custom Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
 
-# Copy production static build artifacts
-COPY --from=build /app/dist /usr/share/nginx/html
+# Install runtime dependencies for native modules
+RUN apk add --no-co-cache python3 make g++
 
-EXPOSE 80
+COPY --from=build /app/package.json ./
+COPY --from=build /app/server ./server
 
-CMD ["nginx", "-g", "daemon off;"]
+WORKDIR /app/server
+ENV PORT=3001
+ENV NODE_ENV=production
+
+EXPOSE 3001
+
+CMD ["npm", "start"]

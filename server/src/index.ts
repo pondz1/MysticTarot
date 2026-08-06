@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 import { aiRouter } from './routes/ai.js';
 import { readingsRouter } from './routes/readings.js';
 
@@ -13,7 +15,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Routes
+// API Routes
 app.use('/api/ai', aiRouter);
 app.use('/api/readings', readingsRouter);
 
@@ -25,6 +27,20 @@ app.get('/api/health', (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Serve compiled static frontend assets from 'public' directory
+const publicDir = path.resolve(process.cwd(), 'public');
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+
+  // SPA fallback for non-API routes
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    res.sendFile(path.join(publicDir, 'index.html'));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`🔮 Mystic Tarot Backend server running on http://localhost:${PORT}`);
