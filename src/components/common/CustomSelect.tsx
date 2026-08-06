@@ -75,9 +75,17 @@ export function CustomSelect<T = string | number>({
 }: CustomSelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const selectedOptionRef = useRef<HTMLButtonElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
   const accent = ACCENT_STYLES[accentColor] || ACCENT_STYLES.emerald;
+
+  // Auto-scroll dropdown list to the selected item when opened
+  useEffect(() => {
+    if (isOpen && selectedOptionRef.current) {
+      selectedOptionRef.current.scrollIntoView({ block: 'nearest' });
+    }
+  }, [isOpen]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -140,6 +148,7 @@ export function CustomSelect<T = string | number>({
               return (
                 <button
                   key={idx}
+                  ref={isSelected ? selectedOptionRef : null}
                   type="button"
                   onClick={() => handleSelect(opt.value)}
                   className={`w-full flex items-center justify-between gap-2.5 px-4 py-2.5 text-xs sm:text-sm text-left transition-colors cursor-pointer ${
