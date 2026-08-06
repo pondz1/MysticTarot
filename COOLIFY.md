@@ -17,6 +17,7 @@
    - `OPENAI_API_KEY` = `sk-dce7f4d0918d74dd-ocq0dk-310c8c1d` (หรือ Key ของคุณ)
    - `OPENAI_BASE_URL` = `https://9router.jsd.my.id/v1`
    - `OPENAI_MODEL` = `tarot-cards`
+   - `JWT_SECRET` = `mystic_verse_jwt_secret_super_key_2026` (รหัส Secret สำหรับออก JWT Token)
 6. ในส่วน **Persistent Storage (Volumes)** เพิ่ม Volume เพื่อรักษาข้อมูลประวัติการทำนายใน SQLite:
    - **Source Path / Volume Name**: `mysticverse-data`
    - **Destination Path**: `/app/server/data`
