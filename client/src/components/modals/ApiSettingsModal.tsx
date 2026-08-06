@@ -3,7 +3,7 @@ import type { ApiSettings, AiConnectionMode } from '../../features/tarot/types/t
 import { PROVIDER_PRESETS } from '../../services/aiService';
 import { Settings, X, Key, Globe, Cpu, Check, Sparkles, Coins, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { authService } from '../../services/authService';
+import { apiClient } from '../../services/apiClient';
 
 interface ApiSettingsModalProps {
   isOpen: boolean;
@@ -23,8 +23,8 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   const { credits: authCredits, refillCredits } = useAuth();
   const [mode, setMode] = useState<AiConnectionMode>(initialTab || settings.mode || 'credit');
   const [apiKey, setApiKey] = useState(settings.apiKey || '');
-  const [baseUrl, setBaseUrl] = useState(settings.baseUrl || 'https://api.openai.com/v1');
-  const [model, setModel] = useState(settings.model || 'gpt-4o-mini');
+  const [baseUrl, setBaseUrl] = useState(settings.baseUrl || '');
+  const [model, setModel] = useState(settings.model || '');
   const [credits, setCredits] = useState<number | null>(authCredits);
   const [loadingCredits, setLoadingCredits] = useState<boolean>(false);
   const [refillSuccess, setRefillSuccess] = useState<boolean>(false);
@@ -32,10 +32,10 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setMode(initialTab || settings.mode || 'credit');
       setApiKey(settings.apiKey || '');
-      setBaseUrl(settings.baseUrl || 'https://api.openai.com/v1');
-      setModel(settings.model || 'gpt-4o-mini');
+      setBaseUrl(settings.baseUrl || '');
+      setModel(settings.model || '');
+      setMode(initialTab || settings.mode || 'credit');
       fetchCredits();
     }
   }, [isOpen, settings, initialTab]);
@@ -47,11 +47,8 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   const fetchCredits = async () => {
     setLoadingCredits(true);
     try {
-      const res = await fetch('/api/user/credits', {
-        headers: { ...authService.getAuthHeaders() },
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const data = await apiClient.get<{ credits?: number }>('/api/user/credits');
+      if (typeof data.credits === 'number') {
         setCredits(data.credits);
       }
     } catch (e) {

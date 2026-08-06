@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { creditsDb } from '../db.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { CREDIT_RATES } from '../constants/creditRates.js';
+import { sendSuccess, sendError } from '../utils/response.js';
 
 export const userRouter = Router();
 
@@ -21,11 +22,11 @@ userRouter.get('/credits', (req: AuthRequest, res: Response) => {
   try {
     const userId = getSessionId(req);
     const credits = creditsDb.getCredits(userId);
-    res.json({ credits });
+    sendSuccess(res, { credits });
   } catch (error: any) {
     console.error('[User Router Error] /api/user/credits failed:', error);
     // Graceful fallback so production client never receives 500 status code
-    res.json({ credits: CREDIT_RATES.INITIAL_USER_CREDITS });
+    sendSuccess(res, { credits: CREDIT_RATES.INITIAL_USER_CREDITS });
   }
 });
 
@@ -38,7 +39,7 @@ userRouter.post('/refill', (req: AuthRequest, res: Response) => {
     // In production, require admin token if ADMIN_TOKEN is set, otherwise block refill
     if (process.env.NODE_ENV === 'production') {
       if (!adminToken || requestAdminToken !== adminToken) {
-        res.status(403).json({ error: 'Refill endpoint is disabled in production' });
+        sendError(res, 'Refill endpoint is disabled in production', 403, 'FORBIDDEN');
         return;
       }
     }
@@ -48,11 +49,12 @@ userRouter.post('/refill', (req: AuthRequest, res: Response) => {
     // Cap amount between 1 and INITIAL_USER_CREDITS to prevent infinite refill abuse
     const amount = Math.min(Math.max(1, rawAmount), CREDIT_RATES.INITIAL_USER_CREDITS);
     const credits = creditsDb.refillCredits(userId, amount);
-    res.json({ success: true, credits });
+    sendSuccess(res, { credits });
   } catch (error: any) {
     console.error('[User Router Error] /api/user/refill failed:', error);
-    res.status(500).json({ error: 'Failed to refill credits' });
+    sendError(res, 'Failed to refill credits', 500);
   }
 });
+
 
 

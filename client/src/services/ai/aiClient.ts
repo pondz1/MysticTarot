@@ -1,5 +1,5 @@
 import type { ApiSettings } from '../../features/tarot/types/tarot';
-import { authService } from '../authService';
+import { apiClient, ApiError } from '../apiClient';
 export { DEFAULT_API_SETTINGS, PROVIDER_PRESETS } from '../../constants/aiSettings';
 
 export function getSessionId(): string {
@@ -58,27 +58,24 @@ export async function requestAiCompletion(
   // -------------------------------------------------------------
   // Mode 2: Credit Mode -> Route through our Server (/api/ai/completion)
   // -------------------------------------------------------------
-  const res = await fetch('/api/ai/completion', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Session-ID': getSessionId(),
-      ...authService.getAuthHeaders(),
-    },
-    body: JSON.stringify({ systemPrompt, userPrompt, settings }),
-  });
+  try {
+    const data = await apiClient.post<{ result?: string; remainingCredits?: number }>('/api/ai/completion', {
+      systemPrompt,
+      userPrompt,
+      settings,
+    });
 
-  if (res.ok) {
-    const data = await res.json();
     if (data.result) {
       if (typeof data.remainingCredits === 'number') {
         window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: data.remainingCredits }));
       }
       return cleanAiResponse(data.result);
     }
-  } else if (res.status === 402) {
-    const errorData = await res.json();
-    throw new Error(errorData.error || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
+  } catch (err: any) {
+    if (err instanceof ApiError && err.status === 402) {
+      throw new Error(err.message || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
+    }
+    throw new Error(err?.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
   }
 
   throw new Error('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');

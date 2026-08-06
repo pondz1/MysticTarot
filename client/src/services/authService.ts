@@ -1,3 +1,5 @@
+import { apiClient } from './apiClient';
+
 export interface User {
   id: string;
   device_id: string;
@@ -57,25 +59,23 @@ export const authService = {
   async guestLogin(deviceId?: string): Promise<AuthStateResponse> {
     const targetDeviceId = deviceId || this.getDeviceId();
 
-    const response = await fetch('/api/auth/guest-login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ deviceId: targetDeviceId }),
-    });
+    try {
+      const data = await apiClient.post<AuthStateResponse>('/api/auth/guest-login', {
+        deviceId: targetDeviceId,
+      });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error || 'Failed to authenticate as guest');
+      if (data.token) {
+        this.setToken(data.token);
+      }
+
+      return {
+        token: data.token,
+        user: data.user,
+        credits: data.credits,
+      };
+    } catch (err: any) {
+      throw new Error(err?.message || 'Failed to authenticate as guest');
     }
-
-    const data: AuthStateResponse = await response.json();
-    if (data.token) {
-      this.setToken(data.token);
-    }
-
-    return data;
   },
 
   /**
@@ -87,23 +87,17 @@ export const authService = {
       throw new Error('No JWT token stored');
     }
 
-    const response = await fetch('/api/auth/me', {
-      headers: {
-        ...this.getAuthHeaders(),
-      },
-    });
-
-    if (!response.ok) {
+    try {
+      const data = await apiClient.get<AuthStateResponse>('/api/auth/me');
+      return {
+        token,
+        user: data.user,
+        credits: data.credits,
+      };
+    } catch (err: any) {
       this.clearToken();
-      throw new Error('Session expired or invalid token');
+      throw new Error(err?.message || 'Session expired or invalid token');
     }
-
-    const data = await response.json();
-    return {
-      token,
-      user: data.user,
-      credits: data.credits,
-    };
   },
 
   /**

@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { usersDb, creditsDb } from '../db.js';
 import { JWT_SECRET, AuthRequest, requireAuth } from '../middleware/auth.js';
+import { sendSuccess, sendError } from '../utils/response.js';
 
 export const authRouter = Router();
 
@@ -11,7 +12,7 @@ authRouter.post('/guest-login', (req: AuthRequest, res: Response): void => {
     const { deviceId } = req.body;
 
     if (!deviceId || typeof deviceId !== 'string' || !deviceId.trim()) {
-      res.status(400).json({ error: 'deviceId is required' });
+      sendError(res, 'deviceId is required', 400);
       return;
     }
 
@@ -29,14 +30,14 @@ authRouter.post('/guest-login', (req: AuthRequest, res: Response): void => {
       { expiresIn: '30d' }
     );
 
-    res.json({
+    sendSuccess(res, {
       token,
       user,
       credits,
     });
   } catch (error: any) {
     console.error('[Auth Router Error] /guest-login failed:', error);
-    res.status(500).json({ error: 'Failed to process guest login' });
+    sendError(res, 'Failed to process guest login', 500);
   }
 });
 
@@ -44,23 +45,24 @@ authRouter.post('/guest-login', (req: AuthRequest, res: Response): void => {
 authRouter.get('/me', requireAuth, (req: AuthRequest, res: Response): void => {
   try {
     if (!req.user?.userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      sendError(res, 'Unauthorized', 401, 'UNAUTHORIZED');
       return;
     }
 
     const user = usersDb.getById(req.user.userId);
     if (!user) {
-      res.status(404).json({ error: 'User not found' });
+      sendError(res, 'User not found', 404, 'NOT_FOUND');
       return;
     }
 
     const credits = creditsDb.getCredits(user.id);
-    res.json({
+    sendSuccess(res, {
       user,
       credits,
     });
   } catch (error: any) {
     console.error('[Auth Router Error] /me failed:', error);
-    res.status(500).json({ error: 'Failed to fetch user details' });
+    sendError(res, 'Failed to fetch user details', 500);
   }
 });
+

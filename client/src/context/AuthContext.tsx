@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { authService, type User } from '../services/authService';
+import { apiClient } from '../services/apiClient';
 
 interface AuthContextType {
   user: User | null;
@@ -36,15 +37,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshCredits = useCallback(async (): Promise<number | undefined> => {
     try {
-      const res = await fetch('/api/user/credits', {
-        headers: { ...authService.getAuthHeaders() },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (typeof data.credits === 'number') {
-          setCredits(data.credits);
-          return data.credits;
-        }
+      const data = await apiClient.get<{ credits?: number }>('/api/user/credits');
+      if (typeof data.credits === 'number') {
+        setCredits(data.credits);
+        return data.credits;
       }
     } catch (e) {
       console.warn('Failed to refresh credits:', e);
@@ -55,22 +51,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refillCredits = useCallback(
     async (amount: number = 10): Promise<number | undefined> => {
       try {
-        const res = await fetch('/api/user/refill', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...authService.getAuthHeaders(),
-          },
-          body: JSON.stringify({ amount }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (typeof data.credits === 'number') {
-            setCredits(data.credits);
-            window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: data.credits }));
-            return data.credits;
-          }
+        const data = await apiClient.post<{ credits?: number }>('/api/user/refill', { amount });
+        if (typeof data.credits === 'number') {
+          setCredits(data.credits);
+          window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: data.credits }));
+          return data.credits;
         }
       } catch (e) {
         console.warn('Failed to refill credits:', e);

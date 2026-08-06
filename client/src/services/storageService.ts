@@ -1,6 +1,6 @@
 import type { ApiSettings, SavedReading, SelectionMode, SpreadMode } from '../features/tarot/types/tarot';
 import { DEFAULT_API_SETTINGS } from '../constants/aiSettings';
-import { authService } from './authService';
+import { apiClient } from './apiClient';
 
 const SETTINGS_KEY = 'tarot_api_settings';
 const HISTORY_KEY = 'tarot_saved_readings';
@@ -56,11 +56,9 @@ export const storageService = {
    */
   async fetchSavedReadingsAsync(): Promise<SavedReading[]> {
     try {
-      const res = await fetch('/api/readings', {
-        headers: { ...authService.getAuthHeaders() },
-      });
-      if (res.ok) {
-        const readings: SavedReading[] = await res.json();
+      const data = await apiClient.get<SavedReading[]>('/api/readings');
+      const readings: SavedReading[] = Array.isArray(data) ? data : (data as any).data || [];
+      if (Array.isArray(readings)) {
         localStorage.setItem(HISTORY_KEY, JSON.stringify(readings));
         return readings;
       }
@@ -88,14 +86,7 @@ export const storageService = {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
 
     // Async sync to Backend database
-    fetch('/api/readings', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authService.getAuthHeaders(),
-      },
-      body: JSON.stringify(reading),
-    }).catch((err) => console.warn('Failed to sync reading to backend database:', err));
+    apiClient.post('/api/readings', reading).catch((err: any) => console.warn('Failed to sync reading to backend database:', err));
 
     return updated;
   },
@@ -103,10 +94,7 @@ export const storageService = {
   clearSavedReadings(): void {
     localStorage.removeItem(HISTORY_KEY);
 
-    fetch('/api/readings', {
-      method: 'DELETE',
-      headers: { ...authService.getAuthHeaders() },
-    }).catch((err) => console.warn('Failed to clear readings on backend:', err));
+    apiClient.delete('/api/readings').catch((err: any) => console.warn('Failed to clear readings on backend:', err));
   },
 
   // Deck Preferences Storage

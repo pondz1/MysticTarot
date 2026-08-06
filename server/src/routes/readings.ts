@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { readingsDb } from '../db.js';
+import { sendSuccess, sendError } from '../utils/response.js';
 
 export const readingsRouter = Router();
 
@@ -17,7 +18,7 @@ readingsRouter.get('/', (_req: Request, res: Response) => {
 
     res.json(readings);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error.message, 500);
   }
 });
 
@@ -27,12 +28,12 @@ readingsRouter.get('/:id', (req: Request, res: Response): void => {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const row = readingsDb.getById(id);
     if (!row) {
-      res.status(404).json({ error: 'Reading not found' });
+      sendError(res, 'Reading not found', 404);
       return;
     }
     res.json(JSON.parse(row.data));
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error.message, 500);
   }
 });
 
@@ -41,7 +42,7 @@ readingsRouter.post('/', (req: Request, res: Response): void => {
   try {
     const reading = req.body;
     if (!reading || !reading.id) {
-      res.status(400).json({ error: 'Reading object with id is required' });
+      sendError(res, 'Reading object with id is required', 400);
       return;
     }
 
@@ -52,9 +53,9 @@ readingsRouter.post('/', (req: Request, res: Response): void => {
 
     readingsDb.save(reading.id, timestamp, question, spreadMode, dataStr);
 
-    res.json({ success: true, reading });
+    sendSuccess(res, { reading });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error.message, 500);
   }
 });
 
@@ -64,12 +65,12 @@ readingsRouter.delete('/:id', (req: Request, res: Response): void => {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const deleted = readingsDb.delete(id);
     if (!deleted) {
-      res.status(404).json({ error: 'Reading not found' });
+      sendError(res, 'Reading not found', 404);
       return;
     }
-    res.json({ success: true, id });
+    sendSuccess(res, { id });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error.message, 500);
   }
 });
 
@@ -77,8 +78,9 @@ readingsRouter.delete('/:id', (req: Request, res: Response): void => {
 readingsRouter.delete('/', (_req: Request, res: Response) => {
   try {
     readingsDb.clearAll();
-    res.json({ success: true });
+    sendSuccess(res);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error.message, 500);
   }
 });
+

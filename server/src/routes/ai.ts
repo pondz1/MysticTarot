@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { creditsDb } from '../db.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { calculateCreditsFromTokens, CREDIT_RATES } from '../constants/creditRates.js';
+import { sendSuccess, sendError } from '../utils/response.js';
 
 export const aiRouter = Router();
 
@@ -27,7 +28,7 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
     const { systemPrompt, userPrompt, settings, stream } = req.body;
 
     if (!userPrompt) {
-      res.status(400).json({ error: 'userPrompt is required' });
+      sendError(res, 'userPrompt is required', 400);
       return;
     }
 
@@ -43,10 +44,13 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
     if (isCreditMode) {
       const currentCredits = creditsDb.getCredits(userId);
       if (currentCredits < CREDIT_RATES.MIN_CREDITS_PER_REQUEST) {
-        res.status(402).json({
-          error: 'Credit หมดแล้ว! กรุณาเติม Credit หรือเลือกสลับไปใช้ Custom API Key ของคุณเองในการตั้งค่า',
-          credits: currentCredits,
-        });
+        sendError(
+          res,
+          'Credit หมดแล้ว! กรุณาเติม Credit หรือเลือกสลับไปใช้ Custom API Key ของคุณเองในการตั้งค่า',
+          402,
+          'INSUFFICIENT_CREDITS',
+          { credits: currentCredits }
+        );
         return;
       }
     }
@@ -118,14 +122,15 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       remainingCredits = creditResult.remainingCredits;
     }
 
-    res.json({ result, model, remainingCredits, creditsDeducted, usage: completion.usage });
+    sendSuccess(res, { result, model, remainingCredits, creditsDeducted, usage: completion.usage });
   } catch (error: any) {
     console.error('AI completion error:', error);
     const userMessage = process.env.NODE_ENV === 'production'
       ? 'ไม่สามารถประมวลผลคำขอ AI ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง'
       : error?.message || 'Failed to complete AI request';
-    res.status(500).json({ error: userMessage });
+    sendError(res, userMessage, 500);
   }
 });
+
 
 
