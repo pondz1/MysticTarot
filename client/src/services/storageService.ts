@@ -1,4 +1,5 @@
-import type { ApiSettings, SavedReading, SelectionMode, SpreadMode } from '../features/tarot/types/tarot';
+import type { SelectionMode, SpreadMode } from '../features/tarot/types/tarot';
+import type { ApiSettings, SavedReading } from '../types';
 import { DEFAULT_API_SETTINGS } from '../constants/aiSettings';
 import { apiClient } from './apiClient';
 
@@ -95,6 +96,16 @@ export const storageService = {
     localStorage.removeItem(HISTORY_KEY);
 
     apiClient.delete('/api/readings').catch((err: any) => console.warn('Failed to clear readings on backend:', err));
+  },
+
+  deleteReading(id: string): SavedReading[] {
+    const current = this.getSavedReadings();
+    const updated = current.filter((r) => r.id !== id);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+
+    apiClient.delete(`/api/readings/${id}`).catch((err: any) => console.warn('Failed to delete reading on backend:', err));
+
+    return updated;
   },
 
   // Deck Preferences Storage

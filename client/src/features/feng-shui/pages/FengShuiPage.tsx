@@ -15,7 +15,9 @@ import {
   Feather,
   Layout,
 } from 'lucide-react';
-import type { ApiSettings } from '../../tarot/types/tarot';
+import type { ApiSettings, SavedReading } from '../../../types';
+import { storageService } from '../../../services/storageService';
+import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { analyzeFengShui, generateFallbackFengShui } from '../../../services/aiService';
 import { CustomSelect } from '../../../components/common/CustomSelect';
@@ -30,6 +32,7 @@ interface FengShuiPageProps {
   apiSettings: ApiSettings;
   onOpenSettings?: () => void;
   onOpenCreditCenter?: () => void;
+  onSaveHistory?: (readings: SavedReading[]) => void;
 }
 
 const SPACE_OPTIONS = [
@@ -44,6 +47,7 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
   apiSettings,
   onOpenSettings,
   onOpenCreditCenter,
+  onSaveHistory,
 }) => {
   const theme = MODULE_THEMES['feng-shui'];
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
@@ -101,6 +105,24 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
       );
       setPredictionText(aiText);
       setAiError(null);
+
+      // Auto save AI Feng Shui reading to history
+      if (aiText) {
+        const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
+        const newEntry: SavedReading = {
+          id: Date.now().toString(),
+          timestamp: Date.now(),
+          category: 'feng-shui',
+          title: `วิเคราะห์ฮวงจุ้ย: ${selectedSpace}`,
+          subtitle: `วัน${currentDayInfo.dayNameTh}`,
+          question: `ฮวงจุ้ย ${selectedSpace} (วัน${currentDayInfo.dayNameTh})`,
+          resultText: aiText,
+          meta: { space: selectedSpace, dayName: currentDayInfo.dayNameTh },
+          creditsUsed: isCustomKey ? 0 : getLastCreditsDeducted(),
+        };
+        const updated = storageService.saveReading(newEntry);
+        if (onSaveHistory) onSaveHistory(updated);
+      }
     } catch (err: any) {
       console.error('Failed AI completion in FengShuiPage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ฮวงจุ้ย & สีมงคลได้ในขณะนี้';

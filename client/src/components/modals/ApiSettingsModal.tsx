@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { ApiSettings, AiConnectionMode } from '../../features/tarot/types/tarot';
+import type { ApiSettings, AiConnectionMode } from '../../types';
 import { PROVIDER_PRESETS } from '../../services/aiService';
 import { Settings, X, Key, Globe, Cpu, Check, Sparkles, Coins, Zap } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

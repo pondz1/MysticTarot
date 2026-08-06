@@ -26,8 +26,10 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
-import type { ApiSettings } from '../../tarot/types/tarot';
+import type { ApiSettings, SavedReading } from '../../../types';
 import { analyzeZodiacHoroscope } from '../../../services/aiService';
+import { storageService } from '../../../services/storageService';
+import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 
 import { BirthdateZodiacFinder } from '../components/BirthdateZodiacFinder';
@@ -40,12 +42,14 @@ interface HoroscopePageProps {
   apiSettings: ApiSettings;
   onOpenSettings?: () => void;
   onOpenCreditCenter?: () => void;
+  onSaveHistory?: (readings: SavedReading[]) => void;
 }
 
 export const HoroscopePage: React.FC<HoroscopePageProps> = ({
   apiSettings,
   onOpenSettings,
   onOpenCreditCenter,
+  onSaveHistory,
 }) => {
   const theme = MODULE_THEMES.horoscope;
   const [selectedSign, setSelectedSign] = useState<ZodiacSign>(ZODIAC_SIGNS[0]);
@@ -102,6 +106,24 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
       );
       setPrediction(res);
       setAiError(null);
+
+      // Auto save AI Horoscope reading to history
+      if (res) {
+        const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
+        const newEntry: SavedReading = {
+          id: Date.now().toString(),
+          timestamp: Date.now(),
+          category: 'horoscope',
+          title: `ดวง${sign.nameTh} (${mode === 'daily' ? 'ประจำวัน' : 'รายเดือน'})`,
+          subtitle: `ราศี${sign.nameTh} (${sign.dateRange})`,
+          question: `ดวงชะตาราศี${sign.nameTh} (${mode === 'daily' ? 'ประจำวัน' : 'รายเดือน'})`,
+          resultText: res,
+          meta: { signId: sign.id, signName: sign.nameTh, timeframe: mode },
+          creditsUsed: isCustomKey ? 0 : getLastCreditsDeducted(),
+        };
+        const updated = storageService.saveReading(newEntry);
+        if (onSaveHistory) onSaveHistory(updated);
+      }
     } catch (err: any) {
       console.error('Failed AI completion in HoroscopePage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ดูดวงราศีได้ในขณะนี้';

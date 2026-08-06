@@ -1,4 +1,4 @@
-import type { ApiSettings } from '../../features/tarot/types/tarot';
+import type { ApiSettings } from '../../types';
 import { requestAiCompletion } from './aiClient';
 
 export async function analyzeNumerology(

@@ -1,8 +1,14 @@
-import type { ApiSettings } from '../../features/tarot/types/tarot';
+import type { ApiSettings } from '../../types';
 import { apiClient, ApiError } from '../apiClient';
 import { authService } from '../authService';
 import { DEFAULT_API_SETTINGS, PROVIDER_PRESETS } from '../../constants/aiSettings';
 export { DEFAULT_API_SETTINGS, PROVIDER_PRESETS };
+
+let lastCreditsDeducted: number = 1;
+
+export function getLastCreditsDeducted(): number {
+  return lastCreditsDeducted;
+}
 
 export function getSessionId(): string {
   if (typeof window === 'undefined') return 'default_user';
@@ -56,6 +62,7 @@ export async function requestAiCompletion(
 
   // Mode 1: Custom API Key -> Direct Client Non-streaming Call
   if (settings && settings.mode === 'custom' && settings.apiKey) {
+    lastCreditsDeducted = 0;
     const client = await getOpenAIClient(settings);
     if (!client) {
       throw new Error('API Key ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการตั้งค่า');
@@ -78,7 +85,7 @@ export async function requestAiCompletion(
 
   // Mode 2: Credit Mode -> Server Non-streaming Call (stream: false)
   try {
-    const data = await apiClient.post<{ result?: string; remainingCredits?: number }>('/api/ai/completion', {
+    const data = await apiClient.post<{ result?: string; remainingCredits?: number; creditsDeducted?: number }>('/api/ai/completion', {
       systemPrompt,
       userPrompt,
       settings,
@@ -86,6 +93,9 @@ export async function requestAiCompletion(
     });
 
     if (data.result) {
+      if (typeof data.creditsDeducted === 'number') {
+        lastCreditsDeducted = data.creditsDeducted;
+      }
       if (typeof data.remainingCredits === 'number') {
         window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: data.remainingCredits }));
       }
@@ -220,6 +230,9 @@ export async function* streamAiCompletion(
         const parsed = JSON.parse(dataStr);
         if (parsed.content) {
           yield parsed.content;
+        }
+        if (typeof parsed.creditsDeducted === 'number') {
+          lastCreditsDeducted = parsed.creditsDeducted;
         }
         if (typeof parsed.remainingCredits === 'number') {
           window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: parsed.remainingCredits }));

@@ -15,7 +15,9 @@ import {
   Stethoscope,
   Feather,
 } from 'lucide-react';
-import type { ApiSettings } from '../../tarot/types/tarot';
+import type { ApiSettings, SavedReading } from '../../../types';
+import { storageService } from '../../../services/storageService';
+import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { analyzeThaiLifeGraph, generateFallbackThaiLifeGraph } from '../../../services/aiService';
 
@@ -29,12 +31,14 @@ interface ThaiAstrologyPageProps {
   apiSettings: ApiSettings;
   onOpenSettings?: () => void;
   onOpenCreditCenter?: () => void;
+  onSaveHistory?: (readings: SavedReading[]) => void;
 }
 
 export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
   apiSettings,
   onOpenSettings,
   onOpenCreditCenter,
+  onSaveHistory,
 }) => {
   const theme = MODULE_THEMES['thai-astrology'];
   const [birthDate, setBirthDate] = useState<string>('1995-06-15');
@@ -90,6 +94,24 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
       );
       setPredictionText(aiText);
       setAiError(null);
+
+      // Auto save AI Thai Astrology reading to history
+      if (aiText && mathRes) {
+        const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
+        const newEntry: SavedReading = {
+          id: Date.now().toString(),
+          timestamp: Date.now(),
+          category: 'thai-astrology',
+          title: `กราฟชีวิต & โหราศาสตร์ไทย`,
+          subtitle: `วันเกิด ${birthDate} (วัน${mathRes.dayOfWeekTh})`,
+          question: `กราฟชีวิต วันเกิด ${birthDate}`,
+          resultText: aiText,
+          meta: { birthDate, dayOfWeek: mathRes.dayOfWeekTh, peakAgeRange: mathRes.peakAgeRange },
+          creditsUsed: isCustomKey ? 0 : getLastCreditsDeducted(),
+        };
+        const updated = storageService.saveReading(newEntry);
+        if (onSaveHistory) onSaveHistory(updated);
+      }
     } catch (err: any) {
       console.error('Failed AI completion in ThaiAstrologyPage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ดวงไทยโบราณได้ในขณะนี้';

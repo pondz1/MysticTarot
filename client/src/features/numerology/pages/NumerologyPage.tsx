@@ -19,8 +19,10 @@ import {
   Heart,
   Briefcase,
 } from 'lucide-react';
-import type { ApiSettings } from '../../tarot/types/tarot';
+import type { ApiSettings, SavedReading } from '../../../types';
 import { analyzeNumerology, generateFallbackNumerology } from '../../../services/aiService';
+import { storageService } from '../../../services/storageService';
+import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 
 import { NumerologyPresets, type SampleNumberItem } from '../components/NumerologyPresets';
@@ -34,6 +36,7 @@ interface NumerologyPageProps {
   apiSettings?: ApiSettings;
   onOpenSettings?: () => void;
   onOpenCreditCenter?: () => void;
+  onSaveHistory?: (readings: SavedReading[]) => void;
 }
 
 const SAMPLE_NUMBERS: SampleNumberItem[] = [
@@ -48,6 +51,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
   apiSettings,
   onOpenSettings,
   onOpenCreditCenter,
+  onSaveHistory,
 }) => {
   const theme = MODULE_THEMES.numerology;
   const [phoneNumber, setPhoneNumber] = useState<string>('0958889999');
@@ -116,6 +120,25 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
       );
       setPredictionText(aiText);
       setAiError(null);
+
+      // Auto save AI Numerology reading to history
+      if (aiText && mathResult) {
+        const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
+        const typeLabel = numberType === 'phone' ? 'เบอร์โทรศัพท์' : numberType === 'car' ? 'ทะเบียนรถ' : numberType === 'house' ? 'บ้านเลขที่' : 'เลขบัตร/บัญชี';
+        const newEntry: SavedReading = {
+          id: Date.now().toString(),
+          timestamp: Date.now(),
+          category: 'numerology',
+          title: `วิเคราะห์${typeLabel}: ${mathResult.cleanDigits || numStr}`,
+          subtitle: `ผลรวม ${mathResult.sumValue} (${mathResult.sumMeaning.title})`,
+          question: `วิเคราะห์${typeLabel} ${mathResult.cleanDigits || numStr}`,
+          resultText: aiText,
+          meta: { number: numStr, cleanDigits: mathResult.cleanDigits, sumValue: mathResult.sumValue, sumTitle: mathResult.sumMeaning.title, numberType },
+          creditsUsed: isCustomKey ? 0 : getLastCreditsDeducted(),
+        };
+        const updated = storageService.saveReading(newEntry);
+        if (onSaveHistory) onSaveHistory(updated);
+      }
     } catch (err: any) {
       console.error('Failed AI completion in NumerologyPage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ถอดรหัสตัวเลขได้ในขณะนี้';

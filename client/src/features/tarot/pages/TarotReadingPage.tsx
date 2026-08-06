@@ -8,6 +8,7 @@ import { ReadingResult } from '../components/ReadingResult';
 import type { ApiSettings, ChatMessage, DrawnCard, SavedReading, SpreadMode } from '../types/tarot';
 import { analyzeTarotReading, analyzeTarotFollowUp, generateFallbackReading } from '../../../services/aiService';
 import { storageService } from '../../../services/storageService';
+import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
 import type { TarotCard } from '../data/tarotCards';
 import { Sparkles } from 'lucide-react';
 import { TarotSubNav } from '../components/TarotSubNav';
@@ -70,7 +71,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
       const match = savedReadings.find((r) => r.id === id);
       if (match) {
         setQuestion(match.question || '');
-        setSpreadModeState(match.spreadMode);
+        if (match.spreadMode) setSpreadModeState(match.spreadMode);
         setDrawnCards(match.drawnCards || []);
         setReadingResult(match.resultText || '');
         setChatHistory(match.chatHistory || []);
@@ -108,14 +109,19 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
       setAiError(null);
 
       // Auto save reading
+      const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
       const newEntry: SavedReading = {
         id: newId,
         timestamp: Date.now(),
+        category: 'tarot',
+        title: `ไพ่ยิปซี (${spreadMode === 'single' ? 'ไพ่ 1 ใบ' : 'ไพ่ 3 ใบ'})`,
+        subtitle: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
         question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
         spreadMode,
         drawnCards: cards,
         resultText: analysis,
         chatHistory: [],
+        creditsUsed: isCustomKey ? 0 : getLastCreditsDeducted(),
       };
 
       const updated = storageService.saveReading(newEntry);

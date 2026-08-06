@@ -1,4 +1,4 @@
-import type { ApiSettings } from '../features/tarot/types/tarot';
+import type { ApiSettings } from '../types';
 
 export const DEFAULT_API_SETTINGS: ApiSettings = {
   mode: 'credit',

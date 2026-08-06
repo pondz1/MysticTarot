@@ -22,30 +22,11 @@ export interface DrawnCard {
   position: string;
 }
 
-export type AiConnectionMode = 'credit' | 'custom';
-
-export interface ApiSettings {
-  mode?: AiConnectionMode;
-  apiKey: string;
-  baseUrl: string;
-  model: string;
-  enableStreaming?: boolean;
-}
-
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp?: number;
-}
-
-export interface SavedReading {
-  id: string;
-  timestamp: number | string;
-  question: string;
-  spreadMode: SpreadMode;
-  drawnCards: DrawnCard[];
-  resultText: string;
-  chatHistory?: ChatMessage[];
-}
-
+// Re-export common platform types for backward compatibility
+export type {
+  AiConnectionMode,
+  ApiSettings,
+  ChatMessage,
+  HistoryCategory,
+  SavedReading,
+} from '../../../types';

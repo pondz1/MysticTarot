@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
@@ -9,7 +9,7 @@ import { HistoryModal } from './components/modals/HistoryModal';
 import { Sparkles } from 'lucide-react';
 
 import { HomePage } from './pages/HomePage';
-import type { ApiSettings, SavedReading } from './features/tarot/types/tarot';
+import type { ApiSettings, SavedReading } from './types';
 import { storageService } from './services/storageService';
 import type { TarotCard } from './features/tarot/data/tarotCards';
 
@@ -63,6 +63,15 @@ export function App() {
   // Persistent Saved Readings in localStorage via storageService
   const [savedReadings, setSavedReadings] = useState<SavedReading[]>(() => storageService.getSavedReadings());
 
+  // Async sync saved readings from backend on mount
+  useEffect(() => {
+    storageService.fetchSavedReadingsAsync().then((items) => {
+      if (items && Array.isArray(items)) {
+        setSavedReadings(items);
+      }
+    });
+  }, []);
+
   // Save API Settings handler
   const handleSaveApiSettings = (newSettings: ApiSettings) => {
     setApiSettings(newSettings);
@@ -73,6 +82,12 @@ export function App() {
   const handleClearHistory = () => {
     storageService.clearSavedReadings();
     setSavedReadings([]);
+  };
+
+  // Delete single reading from history
+  const handleDeleteReading = (id: string) => {
+    const updated = storageService.deleteReading(id);
+    setSavedReadings(updated);
   };
 
   // Load a reading from history
@@ -140,6 +155,7 @@ export function App() {
                   apiSettings={apiSettings}
                   onOpenSettings={handleOpenSettings}
                   onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                  onSaveHistory={setSavedReadings}
                 />
               }
             />
@@ -152,6 +168,7 @@ export function App() {
                   apiSettings={apiSettings}
                   onOpenSettings={handleOpenSettings}
                   onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                  onSaveHistory={setSavedReadings}
                 />
               }
             />
@@ -164,6 +181,7 @@ export function App() {
                   apiSettings={apiSettings}
                   onOpenSettings={handleOpenSettings}
                   onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                  onSaveHistory={setSavedReadings}
                 />
               }
             />
@@ -176,6 +194,7 @@ export function App() {
                   apiSettings={apiSettings}
                   onOpenSettings={handleOpenSettings}
                   onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                  onSaveHistory={setSavedReadings}
                 />
               }
             />
@@ -217,6 +236,7 @@ export function App() {
         savedReadings={savedReadings}
         onLoadReading={handleLoadHistoryReading}
         onClearHistory={handleClearHistory}
+        onDeleteReading={handleDeleteReading}
       />
 
     </div>
