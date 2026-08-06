@@ -1,6 +1,9 @@
 import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import { eq, desc, sql } from 'drizzle-orm';
+import { users, readings, userCredits, type ReadingSelect } from './schema.js';
 
 // Standard DB directory configuration (defaults to ./data in working directory)
 const dbDir = process.env.DATA_DIR
@@ -12,13 +15,13 @@ if (!fs.existsSync(dbDir)) {
 }
 
 const dbPath = path.join(dbDir, 'tarot.db');
-export const db = new Database(dbPath);
+export const sqlite = new Database(dbPath);
 
 // Enable WAL mode for high performance & concurrency
-db.pragma('journal_mode = WAL');
+sqlite.pragma('journal_mode = WAL');
 
-// Initialize database schema
-db.exec(`
+// Initialize database schema tables if not exist
+sqlite.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     device_id TEXT UNIQUE NOT NULL,
@@ -43,6 +46,9 @@ db.exec(`
   );
 `);
 
+// Drizzle ORM Instance
+export const db = drizzle(sqlite, { schema: { users, readings, userCredits } });
+
 export interface DBUser {
   id: string;
   device_id: string;
@@ -53,13 +59,27 @@ export interface DBUser {
 
 export const usersDb = {
   getById(id: string): DBUser | undefined {
-    const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
-    return stmt.get(id) as DBUser | undefined;
+    const result = db.select().from(users).where(eq(users.id, id)).get();
+    if (!result) return undefined;
+    return {
+      id: result.id,
+      device_id: result.deviceId,
+      role: result.role,
+      created_at: result.createdAt || undefined,
+      updated_at: result.updatedAt || undefined,
+    };
   },
 
   getByDeviceId(deviceId: string): DBUser | undefined {
-    const stmt = db.prepare('SELECT * FROM users WHERE device_id = ?');
-    return stmt.get(deviceId) as DBUser | undefined;
+    const result = db.select().from(users).where(eq(users.deviceId, deviceId)).get();
+    if (!result) return undefined;
+    return {
+      id: result.id,
+      device_id: result.deviceId,
+      role: result.role,
+      created_at: result.createdAt || undefined,
+      updated_at: result.updatedAt || undefined,
+    };
   },
 
   findOrCreateByDeviceId(deviceId: string): DBUser {
@@ -70,16 +90,14 @@ export const usersDb = {
 
     const newId = `usr_${Math.random().toString(36).substring(2, 10)}_${Date.now().toString(36)}`;
     try {
-      const stmt = db.prepare(`
-        INSERT INTO users (id, device_id, role)
-        VALUES (?, ?, 'guest')
-      `);
-      stmt.run(newId, deviceId);
+      db.insert(users).values({
+        id: newId,
+        deviceId: deviceId,
+        role: 'guest',
+      }).run();
     } catch {
       const recheck = this.getByDeviceId(deviceId);
-      if (recheck) {
-        return recheck;
-      }
+      if (recheck) return recheck;
     }
 
     // Initialize default credits (10) for new user
@@ -104,46 +122,66 @@ export interface DBReading {
 
 export const readingsDb = {
   getAll(): DBReading[] {
-    const stmt = db.prepare('SELECT * FROM readings ORDER BY timestamp DESC');
-    return stmt.all() as DBReading[];
+    const rows = db.select().from(readings).orderBy(desc(readings.timestamp)).all();
+    return rows.map((r: ReadingSelect) => ({
+      id: r.id,
+      timestamp: r.timestamp,
+      question: r.question || '',
+      spread_mode: r.spreadMode || 'three',
+      data: r.data,
+      created_at: r.createdAt || undefined,
+    }));
   },
 
   getById(id: string): DBReading | undefined {
-    const stmt = db.prepare('SELECT * FROM readings WHERE id = ?');
-    return stmt.get(id) as DBReading | undefined;
+    const r = db.select().from(readings).where(eq(readings.id, id)).get();
+    if (!r) return undefined;
+    return {
+      id: r.id,
+      timestamp: r.timestamp,
+      question: r.question || '',
+      spread_mode: r.spreadMode || 'three',
+      data: r.data,
+      created_at: r.createdAt || undefined,
+    };
   },
 
   save(id: string, timestamp: number, question: string, spreadMode: string, data: string): void {
-    const stmt = db.prepare(`
-      INSERT INTO readings (id, timestamp, question, spread_mode, data)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(id) DO UPDATE SET
-        timestamp = excluded.timestamp,
-        question = excluded.question,
-        spread_mode = excluded.spread_mode,
-        data = excluded.data
-    `);
-    stmt.run(id, timestamp, question, spreadMode, data);
+    db.insert(readings)
+      .values({
+        id,
+        timestamp,
+        question,
+        spreadMode,
+        data,
+      })
+      .onConflictDoUpdate({
+        target: readings.id,
+        set: {
+          timestamp,
+          question,
+          spreadMode,
+          data,
+        },
+      })
+      .run();
   },
 
   delete(id: string): boolean {
-    const stmt = db.prepare('DELETE FROM readings WHERE id = ?');
-    const result = stmt.run(id);
+    const result = db.delete(readings).where(eq(readings.id, id)).run();
     return result.changes > 0;
   },
 
   clearAll(): void {
-    const stmt = db.prepare('DELETE FROM readings');
-    stmt.run();
-  }
+    db.delete(readings).run();
+  },
 };
 
 export const creditsDb = {
   getCredits(userId: string = 'default_user'): number {
-    const stmt = db.prepare('SELECT credits FROM user_credits WHERE user_id = ?');
-    const row = stmt.get(userId) as { credits: number } | undefined;
+    const row = db.select({ credits: userCredits.credits }).from(userCredits).where(eq(userCredits.userId, userId)).get();
     if (!row) {
-      db.prepare('INSERT INTO user_credits (user_id, credits) VALUES (?, 10)').run(userId);
+      db.insert(userCredits).values({ userId, credits: 10 }).run();
       return 10;
     }
     return row.credits;
@@ -155,14 +193,20 @@ export const creditsDb = {
       return { success: false, remainingCredits: 0 };
     }
     const remainingCredits = current - 1;
-    db.prepare('UPDATE user_credits SET credits = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?').run(remainingCredits, userId);
+    db.update(userCredits)
+      .set({ credits: remainingCredits, updatedAt: sql`CURRENT_TIMESTAMP` })
+      .where(eq(userCredits.userId, userId))
+      .run();
     return { success: true, remainingCredits };
   },
 
   refillCredits(userId: string = 'default_user', amount: number = 10): number {
     const current = this.getCredits(userId);
     const updated = current + amount;
-    db.prepare('UPDATE user_credits SET credits = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?').run(updated, userId);
+    db.update(userCredits)
+      .set({ credits: updated, updatedAt: sql`CURRENT_TIMESTAMP` })
+      .where(eq(userCredits.userId, userId))
+      .run();
     return updated;
-  }
+  },
 };
