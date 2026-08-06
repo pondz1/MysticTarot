@@ -35,8 +35,8 @@ FROM node:22-alpine AS production
 
 WORKDIR /app
 
-# Install runtime dependencies for native modules
-RUN apk add --no-cache python3 make g++
+# Install runtime dependencies for native modules and su-exec for privilege dropping
+RUN apk add --no-cache python3 make g++ su-exec
 
 COPY --from=build /app/package.json ./
 COPY --from=build /app/server ./server
@@ -44,15 +44,15 @@ COPY --from=build /app/server ./server
 WORKDIR /app/server
 RUN npm rebuild && \
     mkdir -p /app/server/data && \
-    chown -R node:node /app
+    chown -R node:node /app && \
+    chmod +x /app/server/docker-entrypoint.sh
 
 ENV PORT=3001
 ENV NODE_ENV=production
 
-USER node
-
 EXPOSE 3001
 
+ENTRYPOINT ["/app/server/docker-entrypoint.sh"]
 CMD ["npm", "start"]
 
 

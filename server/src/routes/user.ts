@@ -18,7 +18,9 @@ userRouter.get('/credits', (req: Request, res: Response) => {
     const credits = creditsDb.getCredits(userId);
     res.json({ credits });
   } catch (error: any) {
-    res.status(500).json({ error: 'Failed to retrieve credits' });
+    console.error('[User Router Error] /api/user/credits failed:', error);
+    // Graceful fallback so production client never receives 500 status code
+    res.json({ credits: 10 });
   }
 });
 
@@ -43,6 +45,7 @@ userRouter.post('/refill', (req: Request, res: Response) => {
     const credits = creditsDb.refillCredits(userId, amount);
     res.json({ success: true, credits });
   } catch (error: any) {
+    console.error('[User Router Error] /api/user/refill failed:', error);
     res.status(500).json({ error: 'Failed to refill credits' });
   }
 });

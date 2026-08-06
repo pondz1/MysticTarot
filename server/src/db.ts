@@ -2,7 +2,11 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const dbDir = path.resolve(process.cwd(), 'data');
+// Standard DB directory configuration (defaults to ./data in working directory)
+const dbDir = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR)
+  : path.resolve(process.cwd(), 'data');
+
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
@@ -10,7 +14,7 @@ if (!fs.existsSync(dbDir)) {
 const dbPath = path.join(dbDir, 'tarot.db');
 export const db = new Database(dbPath);
 
-// Enable WAL mode for performance
+// Enable WAL mode for high performance & concurrency
 db.pragma('journal_mode = WAL');
 
 // Initialize database schema
