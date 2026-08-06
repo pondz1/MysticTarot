@@ -3,6 +3,7 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 ENV NODE_ENV=development
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Build arguments from Coolify / CI
 ARG PORT
@@ -13,16 +14,18 @@ ARG OPENAI_MODEL
 # Install build dependencies for native modules (e.g. better-sqlite3)
 RUN apk add --no-cache python3 make g++
 
-# Copy root and subpackage dependencies
+# Copy package files
 COPY package.json ./
 COPY client/package.json ./client/
 COPY server/package.json ./server/
 
-# Install all dependencies including devDependencies for build tools (vite, tsc, tailwind)
+# Install all dependencies including devDependencies for build tools
 RUN npm install --include=dev && npm install --prefix client --include=dev && npm install --prefix server --include=dev
 
-# Copy source code and build client + server
+# Copy source code
 COPY . .
+
+# Build client (Vite) into server/public, and compile server (TypeScript)
 RUN npm run build
 
 # Stage 2: Production runtime
