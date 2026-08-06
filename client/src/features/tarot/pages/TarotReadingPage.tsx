@@ -126,6 +126,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
       console.error('Failed AI completion in TarotReadingPage:', err);
       const msg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ได้ในขณะนี้';
       setAiError(msg);
+      setReadingResult('');
     } finally {
       setIsAnalyzing(false);
     }

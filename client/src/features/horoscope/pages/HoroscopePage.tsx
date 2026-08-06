@@ -106,6 +106,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
       console.error('Failed AI completion in HoroscopePage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ดูดวงราศีได้ในขณะนี้';
       setAiError(errMsg);
+      setPrediction('');
     } finally {
       setIsLoading(false);
     }
@@ -367,7 +368,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
             </span>
           </div>
 
-          {isLoading ? (
+          {isLoading && !prediction ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
               <Sparkles className={`w-8 h-8 ${theme.iconColor} animate-spin`} />
               <p className="text-sm">กำลังประมวลผลคำทำนาย...</p>
@@ -470,6 +471,15 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
                 >
                   {prediction}
                 </ReactMarkdown>
+
+                {/* Active Streaming Badge */}
+                {isLoading && (
+                  <div className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-purple-500/20 border border-purple-400/40 text-purple-300 text-xs font-medium animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
+                    <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-spin" />
+                    <span>AI กำลังเปิดคัมภีร์ดวงดาววิเคราะห์คำทำนายเพิ่มเติม...</span>
+                  </div>
+                )}
               </div>
             </div>
           ) : (

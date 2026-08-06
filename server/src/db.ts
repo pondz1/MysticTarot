@@ -198,10 +198,10 @@ export const creditsDb = {
 
   deductCredit(userId: string = 'default_user', amount: number = 1): { success: boolean; remainingCredits: number } {
     const current = this.getCredits(userId);
-    if (current < amount) {
+    if (current <= 0) {
       return { success: false, remainingCredits: current };
     }
-    const remainingCredits = Math.max(0, current - amount);
+    const remainingCredits = current - amount;
     db.update(userCredits)
       .set({ credits: remainingCredits, updatedAt: sql`CURRENT_TIMESTAMP` })
       .where(eq(userCredits.userId, userId))

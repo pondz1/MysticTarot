@@ -120,6 +120,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
       console.error('Failed AI completion in NumerologyPage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ถอดรหัสตัวเลขได้ในขณะนี้';
       setAiError(errMsg);
+      setPredictionText('');
     } finally {
       setIsAnalyzing(false);
     }
@@ -372,6 +373,24 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
             />
           )}
 
+          {/* Initial AI Loading State before stream text arrives */}
+          {isAnalyzing && !predictionText && (
+            <div className="flex flex-col items-center justify-center p-10 rounded-2xl bg-slate-950/90 border border-cyan-500/40 shadow-xl text-center space-y-4 animate-pulse">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-600 via-teal-500 to-indigo-600 animate-spin blur-md" />
+                <div className="absolute inset-1.5 rounded-full bg-slate-950 flex items-center justify-center border border-cyan-300">
+                  <Sparkles className="w-7 h-7 text-cyan-300 animate-bounce" />
+                </div>
+              </div>
+              <h4 className="text-base sm:text-lg font-bold text-cyan-300">
+                นักถอดรหัสตัวเลข AI กำลังวิเคราะห์อิทธิพลตัวเลข...
+              </h4>
+              <p className="text-xs text-cyan-200/70 max-w-sm">
+                กำลังเชื่อมโยงผลรวมและคู่เลขมงคลกับพลังงานชีวิต โปรดรอสักครู่
+              </p>
+            </div>
+          )}
+
           {/* Markdown AI / Classic Prediction Section */}
           {predictionText && (
             <div className="relative rounded-2xl p-6 sm:p-8 bg-slate-950/95 border border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.15)] overflow-hidden space-y-5 animate-fade-in backdrop-blur-xl ring-1 ring-cyan-500/20">
@@ -460,6 +479,15 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
                 >
                   {predictionText}
                 </ReactMarkdown>
+
+                {/* Active Streaming Badge */}
+                {isAnalyzing && (
+                  <div className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-xs font-medium animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-300 animate-spin" />
+                    <span>AI กำลังถอดรหัสคู่พลังงานตัวเลขเพิ่มเติม...</span>
+                  </div>
+                )}
               </div>
             </div>
           )}

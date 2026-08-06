@@ -75,10 +75,6 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
     const model = activeSettings?.model || serverSettings.model;
 
     if (stream) {
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-
       const streamResponse = await client.chat.completions.create({
         model,
         messages: [
@@ -88,10 +84,14 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         temperature: 0.7,
         max_tokens: 5000,
         stream: true,
-        stream_options: { include_usage: true },
       });
 
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
       let finalUsage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | undefined;
+      let estimatedTokens = 0;
 
       for await (const chunk of streamResponse) {
         if (chunk.usage) {
@@ -99,13 +99,15 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         }
         const content = chunk.choices[0]?.delta?.content || '';
         if (content) {
+          estimatedTokens += Math.ceil(content.length / 3);
           res.write(`data: ${JSON.stringify({ content })}\n\n`);
         }
       }
 
-      // Deduct credits after stream completes based on actual usage
+      // Deduct credits after stream completes
       if (isCreditMode) {
-        const creditsToDeduct = calculateCreditsFromTokens(finalUsage);
+        const usageToUse = finalUsage || { completion_tokens: estimatedTokens, prompt_tokens: 500 };
+        const creditsToDeduct = calculateCreditsFromTokens(usageToUse);
         const creditResult = creditsDb.deductCredit(userId, creditsToDeduct);
         remainingCredits = creditResult.remainingCredits;
         res.write(`data: ${JSON.stringify({ remainingCredits, creditsDeducted: creditsToDeduct })}\n\n`);

@@ -59,15 +59,10 @@ export async function analyzeTarotReading(
     if (content && content.trim()) {
       return content;
     }
-    return generateFallbackReading(question, drawnCards, spreadMode);
-  } catch (error) {
-    console.error('Failed AI request:', error);
-    return generateFallbackReading(
-      question,
-      drawnCards,
-      spreadMode,
-      `⚠️ (ข้อความระบบ: ${error instanceof Error ? error.message : 'API Error'} - ระบบใช้ Smart AI Reader อัตโนมัติ)\n\n`
-    );
+    throw new Error('ไม่สามารถรับคำตอบจาก AI ได้ในขณะนี้');
+  } catch (error: any) {
+    console.error('Failed Tarot AI call:', error);
+    throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ทำนายไพ่ยิปซีได้ในขณะนี้');
   }
 }
 

@@ -94,6 +94,7 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
       console.error('Failed AI completion in ThaiAstrologyPage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ดวงไทยโบราณได้ในขณะนี้';
       setAiError(errMsg);
+      setPredictionText('');
     } finally {
       setIsLoading(false);
     }
@@ -236,6 +237,24 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
             />
           )}
 
+          {/* Initial AI Loading State before stream text arrives */}
+          {isLoading && !predictionText && (
+            <div className="flex flex-col items-center justify-center p-10 rounded-2xl bg-slate-950/90 border border-rose-500/40 shadow-xl text-center space-y-4 animate-pulse">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-rose-600 via-amber-500 to-purple-600 animate-spin blur-md" />
+                <div className="absolute inset-1.5 rounded-full bg-slate-950 flex items-center justify-center border border-rose-300">
+                  <Sparkles className="w-7 h-7 text-rose-300 animate-bounce" />
+                </div>
+              </div>
+              <h4 className="text-base sm:text-lg font-bold text-rose-300">
+                โหราจารย์ AI กำลังผูกดวงชะตากราฟชีวิตโบราณ...
+              </h4>
+              <p className="text-xs text-rose-200/70 max-w-sm">
+                กำลังคำนวณจังหวะชีวิต 9 ช่วงอายุและช่วงพีคสูงสุด โปรดรอสักครู่
+              </p>
+            </div>
+          )}
+
           {/* AI / Classic Prediction Content View */}
           {predictionText && (
             <div className="relative rounded-2xl p-5 sm:p-7 bg-slate-900/95 border border-rose-500/40 shadow-2xl shadow-rose-900/20 overflow-hidden space-y-4 animate-fade-in">
@@ -330,6 +349,15 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
                 >
                   {predictionText}
                 </ReactMarkdown>
+
+                {/* Active Streaming Badge */}
+                {isLoading && (
+                  <div className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-medium animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" />
+                    <Sparkles className="w-3.5 h-3.5 text-rose-300 animate-spin" />
+                    <span>AI กำลังวิเคราะห์จังหวะดวงชะตากราฟชีวิตเพิ่มเติม...</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
