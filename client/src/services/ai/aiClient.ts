@@ -1,5 +1,6 @@
 import type { ApiSettings } from '../../features/tarot/types/tarot';
 import { apiClient, ApiError } from '../apiClient';
+import { authService } from '../authService';
 import { DEFAULT_API_SETTINGS, PROVIDER_PRESETS } from '../../constants/aiSettings';
 export { DEFAULT_API_SETTINGS, PROVIDER_PRESETS };
 
@@ -91,8 +92,13 @@ export async function requestAiCompletion(
       return cleanAiResponse(data.result);
     }
   } catch (err: any) {
-    if (err instanceof ApiError && err.status === 402) {
-      throw new Error(err.message || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
+    if (err instanceof ApiError) {
+      if (typeof err.response?.credits === 'number') {
+        window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: err.response.credits }));
+      }
+      if (err.status === 402) {
+        throw new Error(err.message || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
+      }
     }
     throw new Error(err?.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
   }
@@ -161,7 +167,7 @@ export async function* streamAiCompletion(
   }
 
   // Mode 2: Credit Mode -> Server SSE Streaming (/api/ai/completion with stream: true)
-  const token = localStorage.getItem('mystic_token');
+  const token = authService.getToken();
   const sessionId = getSessionId();
   const response = await fetch('/api/ai/completion', {
     method: 'POST',
@@ -180,10 +186,13 @@ export async function* streamAiCompletion(
 
   if (!response.ok) {
     const errJson = await response.json().catch(() => ({}));
-    if (response.status === 402) {
-      throw new Error(errJson?.message || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
+    if (typeof errJson?.credits === 'number') {
+      window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: errJson.credits }));
     }
-    throw new Error(errJson?.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
+    if (response.status === 402) {
+      throw new Error(errJson?.error || errJson?.message || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
+    }
+    throw new Error(errJson?.error || errJson?.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
   }
 
   const reader = response.body?.getReader();

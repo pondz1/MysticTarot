@@ -154,6 +154,19 @@ userRouter.post('/topup-simulate', (req: AuthRequest, res: Response) => {
   }
 });
 
+// POST /api/user/reset-credits (Dev reset credit balance)
+userRouter.post('/reset-credits', (req: AuthRequest, res: Response) => {
+  try {
+    const userId = getSessionId(req);
+    const { amount = 0 } = req.body;
+    const credits = creditsDb.resetCredits(userId, Number(amount) || 0);
+    sendSuccess(res, { credits, message: `รีเซ็ต Credit เป็น ${credits} CR สำเร็จ` });
+  } catch (error: any) {
+    console.error('[User Router Error] /api/user/reset-credits failed:', error);
+    sendError(res, 'Failed to reset credits', 500);
+  }
+});
+
 
 
 

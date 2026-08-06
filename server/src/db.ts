@@ -219,6 +219,14 @@ export const creditsDb = {
     return updated;
   },
 
+  resetCredits(userId: string = 'default_user', targetCredits: number = 0): number {
+    db.update(userCredits)
+      .set({ credits: targetCredits, updatedAt: sql`CURRENT_TIMESTAMP` })
+      .where(eq(userCredits.userId, userId))
+      .run();
+    return targetCredits;
+  },
+
   getDailyStatus(userId: string = 'default_user'): { canClaim: boolean; lastClaimedAt: string | null; nextAvailableMs: number } {
     const row = db.select({ lastDailyRefill: userCredits.lastDailyRefill }).from(userCredits).where(eq(userCredits.userId, userId)).get();
     if (!row || !row.lastDailyRefill) {

@@ -68,7 +68,8 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
 
       if (typeof res.credits === 'number') {
         const updatedCredits = res.credits;
-        setSuccessInfo({ added: totalCredits, total: updatedCredits });
+        const actualAdded = typeof res.added === 'number' ? res.added : totalCredits;
+        setSuccessInfo({ added: actualAdded, total: updatedCredits });
         window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: updatedCredits }));
         refreshCredits();
         if (onSuccess) onSuccess(updatedCredits);
