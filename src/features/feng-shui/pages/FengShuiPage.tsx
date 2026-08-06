@@ -4,9 +4,6 @@ import remarkGfm from 'remark-gfm';
 import { DAILY_LUCKY_COLORS_TABLE, DAILY_AUSPICIOUS_DIRECTIONS_MAP, getDynamicFengShuiTips } from '../data/fengShuiData';
 import {
   Compass,
-  Palette,
-  Home,
-  CheckCircle2,
   Sparkles,
   BookOpen,
   Copy,
@@ -21,12 +18,15 @@ import {
 import type { ApiSettings } from '../../tarot/types/tarot';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { analyzeFengShui, generateFallbackFengShui } from '../../../services/aiService';
+import { CustomSelect } from '../../../components/common/CustomSelect';
+
+import { FengShuiColorGrid } from '../components/FengShuiColorGrid';
+import { FengShuiDirections } from '../components/FengShuiDirections';
+import { FengShuiTips } from '../components/FengShuiTips';
 
 interface FengShuiPageProps {
   apiSettings?: ApiSettings;
 }
-
-import { CustomSelect } from '../../../components/common/CustomSelect';
 
 const SPACE_OPTIONS = [
   { id: 'desk', label: 'โต๊ะทำงาน / มุมทำงาน' },
@@ -102,6 +102,9 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
       setIsLoading(false);
     }
   };
+
+  const currentDirections = DAILY_AUSPICIOUS_DIRECTIONS_MAP[selectedDayIndex] || DAILY_AUSPICIOUS_DIRECTIONS_MAP[0];
+  const currentTips = getDynamicFengShuiTips(selectedDayIndex, selectedSpace);
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-16">
@@ -258,51 +261,12 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
       </div>
 
       {/* Daily Color Grid Card */}
-      <div className={`relative z-10 ${theme.cardBg} rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6`}>
-        <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
-          <div className={`w-10 h-10 rounded-xl ${theme.badgeBg} flex items-center justify-center shadow-xs`}>
-            <Palette className={`w-5 h-5 ${theme.iconColor}`} />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-emerald-200">ตารางสีมงคลประจำ{currentDayInfo.dayNameTh}</h2>
-            <p className="text-xs text-slate-400">เลือกแต่งกายด้วยสีมงคลดึงดูดพลังงานบวกในแต่ละด้าน</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-emerald-500/30 space-y-2 shadow-xs">
-            <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
-              <Briefcase className="w-3.5 h-3.5 text-blue-400" />
-              <span>การงานเลื่อนขั้น:</span>
-            </span>
-            <div className="text-sm font-bold text-slate-200">{currentDayInfo.luckyWork.join(', ')}</div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-amber-500/30 space-y-2 shadow-xs">
-            <span className="text-xs font-semibold text-amber-400 flex items-center gap-1.5">
-              <Coins className="w-3.5 h-3.5 text-amber-400" />
-              <span>การเงินโชคลาภ:</span>
-            </span>
-            <div className="text-sm font-bold text-slate-200">{currentDayInfo.luckyWealth.join(', ')}</div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-pink-500/30 space-y-2 shadow-xs">
-            <span className="text-xs font-semibold text-pink-400 flex items-center gap-1.5">
-              <Heart className="w-3.5 h-3.5 text-pink-400" />
-              <span>ความรักเมตตา:</span>
-            </span>
-            <div className="text-sm font-bold text-slate-200">{currentDayInfo.luckyLove.join(', ')}</div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-950/90 border border-rose-800/60 space-y-2 bg-rose-950/15 shadow-xs">
-            <span className="text-xs font-semibold text-rose-400 flex items-center gap-1.5">
-              <Stethoscope className="w-3.5 h-3.5 text-rose-400" />
-              <span>สีต้องห้าม/ฉุดดวง:</span>
-            </span>
-            <div className="text-sm font-bold text-rose-300">{currentDayInfo.unluckyForbidden.join(', ')}</div>
-          </div>
-        </div>
-      </div>
+      <FengShuiColorGrid
+        currentDayInfo={currentDayInfo}
+        cardBgStyle={theme.cardBg}
+        badgeBgStyle={theme.badgeBg}
+        iconColorClass={theme.iconColor}
+      />
 
       {/* Prediction Markdown Output Display */}
       {predictionText && (
@@ -403,88 +367,19 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({ apiSettings }) => {
       )}
 
       {/* Dynamic Auspicious Directions */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-          <h2 className="text-base sm:text-xl font-bold text-slate-200 flex items-start sm:items-center gap-2">
-            <Compass className={`w-5 h-5 ${theme.iconColor} shrink-0 mt-0.5 sm:mt-0`} />
-            <span className="leading-snug">
-              ทิศมงคลประจำ{currentDayInfo.dayNameTh} <span className="text-xs sm:text-sm font-normal text-slate-400 block sm:inline">(Auspicious Directions)</span>
-            </span>
-          </h2>
-          <span className="text-xs text-slate-400 font-medium">
-            อัปเดตทิศมงคลและทิศกาลกิณีตามวันประจำสัปดาห์
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {(DAILY_AUSPICIOUS_DIRECTIONS_MAP[selectedDayIndex] || DAILY_AUSPICIOUS_DIRECTIONS_MAP[0]).map((dir, idx) => {
-            const isAvoid = dir.category === 'avoid';
-            const isWork = dir.category === 'work';
-            const isWealth = dir.category === 'wealth';
-            const isLove = dir.category === 'love';
-
-            const cardBorder = isAvoid
-              ? 'border-rose-900/60 bg-rose-950/10 hover:border-rose-500/50'
-              : isWork
-              ? 'border-blue-500/30 hover:border-blue-400/60 bg-slate-900/80'
-              : isWealth
-              ? 'border-amber-500/30 hover:border-amber-400/60 bg-slate-900/80'
-              : 'border-pink-500/30 hover:border-pink-400/60 bg-slate-900/80';
-
-            const titleColor = isAvoid
-              ? 'text-rose-300'
-              : isWork
-              ? 'text-blue-300'
-              : isWealth
-              ? 'text-amber-300'
-              : 'text-pink-300';
-
-            return (
-              <div key={idx} className={`p-5 rounded-2xl border space-y-2.5 transition-all shadow-xs ${cardBorder}`}>
-                <div className="flex items-center justify-between">
-                  <span className={`font-bold text-base flex items-center gap-2 ${titleColor}`}>
-                    {isWork && <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />}
-                    {isWealth && <Coins className="w-4 h-4 text-amber-400 shrink-0" />}
-                    {isLove && <Heart className="w-4 h-4 text-pink-400 shrink-0" />}
-                    {isAvoid && <Stethoscope className="w-4 h-4 text-rose-400 shrink-0" />}
-                    <span>{dir.directionTh}</span>
-                  </span>
-                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 ${isAvoid ? 'bg-rose-950 text-rose-300 border-rose-800' : 'bg-slate-950 text-emerald-300 border-slate-700'}`}>
-                    {dir.angle}
-                  </span>
-                </div>
-                <span className={`text-xs font-semibold block ${isAvoid ? 'text-rose-400' : 'text-emerald-400'}`}>{dir.energyType}</span>
-                <p className="text-xs text-slate-300 leading-relaxed">{dir.benefit}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <FengShuiDirections
+        directions={currentDirections}
+        dayNameTh={currentDayInfo.dayNameTh}
+        iconColorClass={theme.iconColor}
+      />
 
       {/* Dynamic Feng Shui Tips per Day & Space */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-          <h2 className="text-base sm:text-xl font-bold text-slate-200 flex items-start sm:items-center gap-2">
-            <Home className={`w-5 h-5 ${theme.iconColor} shrink-0 mt-0.5 sm:mt-0`} />
-            <span className="leading-snug">เคล็ดลับจัดฮวงจุ้ย ({selectedSpace}) ประจำ{currentDayInfo.dayNameTh}</span>
-          </h2>
-          <span className="text-xs text-slate-400 font-medium">
-            แนะนำวิธีปรับพลังงานชี่รับทรัพย์ตามตำแหน่งพื้นที่และวันเกิด
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {getDynamicFengShuiTips(selectedDayIndex, selectedSpace).map((tip, idx) => (
-            <div key={idx} className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2 hover:border-emerald-500/40 transition-all shadow-xs">
-              <h3 className="font-bold text-emerald-300 text-sm flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>{tip.title}</span>
-              </h3>
-              <p className="text-xs text-slate-300 leading-relaxed">{tip.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <FengShuiTips
+        tips={currentTips}
+        selectedSpace={selectedSpace}
+        dayNameTh={currentDayInfo.dayNameTh}
+        iconColorClass={theme.iconColor}
+      />
     </div>
   );
 };
