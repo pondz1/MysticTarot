@@ -1,12 +1,11 @@
 import React, { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { calculateLifeGraph, DAYS_OF_WEEK } from '../data/thaiAstrologyData';
+import { calculateLifeGraph } from '../data/thaiAstrologyData';
 import type { ThaiLifeChartResult } from '../types/thaiAstrology';
 import {
   Sparkles,
   Calendar,
-  TrendingUp,
   BookOpen,
   Copy,
   Check,
@@ -19,7 +18,10 @@ import {
 import type { ApiSettings } from '../../tarot/types/tarot';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { analyzeThaiLifeGraph, generateFallbackThaiLifeGraph } from '../../../services/aiService';
-import { CustomSelect } from '../../../components/common/CustomSelect';
+
+import { ThaiAstrologyForm } from '../components/ThaiAstrologyForm';
+import { LifeGraphVisualizer } from '../components/LifeGraphVisualizer';
+import { LifeStageBreakdown } from '../components/LifeStageBreakdown';
 
 interface ThaiAstrologyPageProps {
   apiSettings?: ApiSettings;
@@ -165,41 +167,17 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({ apiSetting
       </div>
 
       {/* Birth Input Form */}
-      <div className={`relative z-20 ${theme.cardBg} rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6`}>
-        <form onSubmit={(e) => handleCalculate(e, useAi)} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-slate-300">วัน/เดือน/ปี เกิด (ค.ศ.):</label>
-            <input
-              type="date"
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-              className="w-full h-[46px] px-4 rounded-xl sm:rounded-2xl bg-slate-950/90 border border-slate-800 text-white focus:outline-none focus:border-rose-400 text-sm font-mono shadow-md"
-            />
-          </div>
-          <div>
-            <CustomSelect
-              label="เกิดตรงกับวัน:"
-              options={DAYS_OF_WEEK.map((d, idx) => ({
-                value: idx,
-                label: `${d.nameTh} (${d.element})`,
-              }))}
-              value={dayIndex}
-              onChange={(val) => setDayIndex(Number(val))}
-              accentColor="rose"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full h-[46px] px-6 rounded-xl sm:rounded-2xl ${theme.primaryBtn} font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            <Sparkles className="w-4 h-4 animate-pulse" />
-            <span>{useAi ? 'คำนวณกราฟชีวิตด้วย AI' : 'คำนวณกราฟชีวิต'}</span>
-          </button>
-        </form>
-      </div>
+      <ThaiAstrologyForm
+        birthDate={birthDate}
+        setBirthDate={setBirthDate}
+        dayIndex={dayIndex}
+        setDayIndex={setDayIndex}
+        onSubmit={(e) => handleCalculate(e, useAi)}
+        isLoading={isLoading}
+        useAi={useAi}
+        cardBgStyle={theme.cardBg}
+        primaryBtnStyle={theme.primaryBtn}
+      />
 
       {/* Result Display */}
       {result && (
@@ -216,63 +194,16 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({ apiSetting
           </div>
 
           {/* Interactive Life Graph Visualizer */}
-          <div className="space-y-4">
-            <h3 className="text-base sm:text-lg font-bold text-slate-200 flex items-start sm:items-center gap-2">
-              <TrendingUp className={`w-5 h-5 ${theme.iconColor} shrink-0 mt-0.5 sm:mt-0`} />
-              <span className="leading-snug">
-                ระดับดวงชะตามุมมองกราฟชีวิต <span className="text-xs sm:text-sm font-normal text-slate-400 block sm:inline">(Life Graph Curve)</span>
-              </span>
-            </h3>
-
-            <div className="grid grid-cols-4 md:grid-cols-8 gap-1.5 sm:gap-2 pt-4">
-              {result.lifeGraphPoints.map((stage, idx) => (
-                <div key={idx} className="flex flex-col items-center gap-2 group">
-                  <span className="text-xs font-bold text-amber-300 font-mono">{stage.score}%</span>
-                  <div className="w-full bg-slate-950 h-36 rounded-xl border border-slate-800 p-1 flex items-end shadow-inner">
-                    <div
-                      style={{ height: `${stage.score}%` }}
-                      className={`w-full rounded-lg transition-all duration-500 ${
-                        stage.score >= 80
-                          ? 'bg-gradient-to-t from-rose-600 via-pink-500 to-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
-                          : stage.score >= 60
-                          ? 'bg-gradient-to-t from-rose-700 to-orange-400'
-                          : 'bg-gradient-to-t from-slate-700 to-rose-600'
-                      }`}
-                    />
-                  </div>
-                  <div className="text-[11px] font-semibold text-slate-300 text-center">{stage.ageRange}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <LifeGraphVisualizer
+            lifeGraphPoints={result.lifeGraphPoints}
+            iconColorClass={theme.iconColor}
+          />
 
           {/* Stage Details Breakdown */}
-          <div className="space-y-3">
-            <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-              <Sparkles className={`w-5 h-5 ${theme.secondaryIconColor}`} />
-              <span>เจาะลึกรายละเอียดแต่ละช่วงชีวิต</span>
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {result.lifeGraphPoints.map((stage, idx) => (
-                <div key={idx} className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-rose-500/40 transition-all space-y-2 shadow-xs">
-                  <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1.5 sm:gap-2 border-b border-slate-800 pb-2">
-                    <span className="font-bold text-rose-300 text-xs sm:text-sm leading-snug">{stage.ageRange}: {stage.stageName}</span>
-                    <span className="text-[11px] sm:text-xs font-mono font-semibold px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800/80 whitespace-nowrap shrink-0 self-start xs:self-auto">
-                      คะแนนดวง {stage.score}/100
-                    </span>
-                  </div>
-                  <div className="text-xs text-slate-200 space-y-1">
-                    <p><b className="text-blue-300">การงาน:</b> {stage.careerStatus}</p>
-                    <p><b className="text-amber-300">การเงิน:</b> {stage.wealthStatus}</p>
-                    <p><b className="text-pink-300">ความรัก:</b> {stage.loveStatus}</p>
-                  </div>
-                  <p className="text-[11px] text-amber-300/90 pt-1 border-t border-slate-800/60 mt-1">
-                    <b>คำแนะนำ:</b> {stage.advice}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <LifeStageBreakdown
+            lifeGraphPoints={result.lifeGraphPoints}
+            secondaryIconColor={theme.secondaryIconColor}
+          />
 
           {/* AI / Classic Prediction Content View */}
           {predictionText && (
