@@ -146,7 +146,9 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
       onClose={onClose}
       titleId="history-modal-title"
       maxWidthClass="max-w-3xl"
-      panelClassName="max-h-[88vh] glass-panel-gold rounded-2xl p-4 sm:p-6 border border-amber-400/50 shadow-2xl flex flex-col overflow-hidden overscroll-contain"
+      align="center"
+      scrollPanel={false}
+      panelClassName="glass-panel-gold rounded-2xl p-4 sm:p-6 border border-amber-400/50 shadow-2xl flex flex-col overflow-hidden min-h-0 h-[min(88dvh,88vh)]"
     >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-3 shrink-0">

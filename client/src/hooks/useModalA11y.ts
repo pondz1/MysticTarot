@@ -17,11 +17,20 @@ function getFocusable(container: HTMLElement): HTMLElement[] {
 
 /** Nested modals: only unlock body when the last modal closes. */
 let bodyLockCount = 0;
+/** Preserve page scroll so opening a modal does not jump to the top. */
+let lockedScrollY = 0;
 
 function lockBodyScroll(): void {
   if (typeof document === 'undefined') return;
   if (bodyLockCount === 0) {
-    document.body.style.overflow = 'hidden';
+    lockedScrollY = window.scrollY || window.pageYOffset || 0;
+    const body = document.body;
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${lockedScrollY}px`;
+    body.style.left = '0';
+    body.style.right = '0';
+    body.style.width = '100%';
   }
   bodyLockCount += 1;
 }
@@ -30,7 +39,15 @@ function unlockBodyScroll(): void {
   if (typeof document === 'undefined') return;
   bodyLockCount = Math.max(0, bodyLockCount - 1);
   if (bodyLockCount === 0) {
-    document.body.style.overflow = '';
+    const body = document.body;
+    body.style.overflow = '';
+    body.style.position = '';
+    body.style.top = '';
+    body.style.left = '';
+    body.style.right = '';
+    body.style.width = '';
+    window.scrollTo(0, lockedScrollY);
+    lockedScrollY = 0;
   }
 }
 

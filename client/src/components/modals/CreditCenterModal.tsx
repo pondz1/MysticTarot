@@ -239,8 +239,8 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
         onClose={handleClose}
         titleId="credit-center-title"
         maxWidthClass="max-w-lg"
-        panelClassName="glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl max-h-[min(90vh,900px)] overflow-y-auto overscroll-contain"
-        align="start"
+        panelClassName="glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl"
+        align="center"
       >
         {/* Header — close via X only */}
         <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-4">

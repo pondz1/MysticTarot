@@ -68,7 +68,8 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
       onClose={onClose}
       titleId="api-settings-title"
       maxWidthClass="max-w-lg"
-      panelClassName="glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto overscroll-contain"
+      align="center"
+      panelClassName="glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl"
     >
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-4">

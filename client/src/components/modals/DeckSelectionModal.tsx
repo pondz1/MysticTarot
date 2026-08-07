@@ -134,15 +134,22 @@ export const DeckSelectionModal: React.FC<DeckSelectionModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       titleId="deck-selection-title"
+      ariaLabel={type === 'mode' ? 'เลือกรูปแบบการคลี่ไพ่' : 'เลือกประเภทสำรับไพ่'}
       maxWidthClass="max-w-xl"
       zClass="z-[100]"
-      panelClassName="max-h-[90vh] glass-panel-gold rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-amber-400/50 shadow-2xl overflow-y-auto overscroll-contain select-none"
+      align="center"
+      panelClassName="glass-panel-gold rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-amber-400/45 shadow-2xl select-none text-slate-100"
     >
-          {/* Header */}
-          <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-400/20">
-            <div className="flex items-center gap-2 min-w-0">
-              <Sparkles className="w-5 h-5 text-amber-400 shrink-0" aria-hidden="true" />
-              <h2 id="deck-selection-title" className="text-base sm:text-lg font-bold text-amber-100 truncate">
+          {/* Header — mystic gold chrome */}
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-400/25">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-2 rounded-xl bg-amber-500/15 border border-amber-400/35 text-amber-300 shrink-0">
+                <Sparkles className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <h2
+                id="deck-selection-title"
+                className="text-base sm:text-lg font-bold text-amber-100 font-serif-mystic truncate"
+              >
                 {type === 'mode' ? 'เลือกรูปแบบการคลี่ไพ่' : 'เลือกประเภทสำรับไพ่'}
               </h2>
             </div>
@@ -151,13 +158,13 @@ export const DeckSelectionModal: React.FC<DeckSelectionModalProps> = ({
               type="button"
               onClick={onClose}
               aria-label="ปิดหน้าต่าง"
-              className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              className="p-2 rounded-full text-slate-400 hover:text-amber-100 hover:bg-slate-800/80 border border-transparent hover:border-amber-400/20 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
               <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
-          <p className="text-xs text-slate-400 mb-4 sm:mb-5">
+          <p className="text-xs text-slate-400 mb-4 sm:mb-5 leading-relaxed">
             {type === 'mode'
               ? 'เลือกสไตล์การเปิดไพ่ที่ใช่สำหรับคุณ'
               : 'เลือกจำนวนไพ่ในสำรับตามที่ต้องการ'}

@@ -23,7 +23,8 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
       onClose={onClose}
       titleId="card-detail-title"
       maxWidthClass="max-w-2xl"
-      panelClassName="max-h-[90vh] glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-y-auto overscroll-contain"
+      align="center"
+      panelClassName="glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl"
     >
       {/* Close / Back Header Buttons */}
       <div className="flex items-center justify-between mb-4 pb-2 border-b border-amber-500/20">

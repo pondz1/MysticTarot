@@ -1,84 +1,91 @@
-import React, { useRef, type ReactNode } from 'react';
-import { useModalA11y } from '../../hooks/useModalA11y';
+import React, { type ReactNode } from 'react';
+import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
+import { cn } from '../../lib/utils';
 
 interface ModalShellProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Accessible name — use titleId pointing at visible heading, or ariaLabel */
   titleId?: string;
   ariaLabel?: string;
   children: ReactNode;
-  /** Panel max width class, e.g. max-w-lg */
   maxWidthClass?: string;
-  /** Extra classes on the dialog panel */
   panelClassName?: string;
-  /** Backdrop z-index class */
   zClass?: string;
-  /** Close when clicking backdrop (default true) */
   closeOnBackdrop?: boolean;
-  /**
-   * When false, keep dialog mounted but disable Esc / focus trap
-   * (use while a nested modal is open on top).
-   * Body scroll lock stays until isOpen becomes false.
-   */
   enableA11y?: boolean;
-  /**
-   * Vertical alignment of the panel inside the viewport.
-   * - center: short dialogs
-   * - start: tall dialogs (avoids re-center jump when content height changes)
-   */
+  /** API compat — centering always via Radix fixed + translate */
   align?: 'center' | 'start';
+  scrollPanel?: boolean;
+}
+
+function resolveZ(zClass: string): { overlay: string; content: string } {
+  if (zClass.includes('100')) {
+    return { overlay: 'z-[100]', content: 'z-[101]' };
+  }
+  if (zClass.includes('60')) {
+    return { overlay: 'z-[60]', content: 'z-[61]' };
+  }
+  return { overlay: 'z-50', content: 'z-50' };
 }
 
 /**
- * Shared modal chrome: dialog role, aria-modal, focus trap, Esc, scroll lock, overscroll contain.
+ * Radix Dialog shell — portal + true center.
+ * Theme surface (glass-panel-gold, borders) comes from panelClassName only.
  */
 export const ModalShell: React.FC<ModalShellProps> = ({
   isOpen,
   onClose,
   titleId,
-  ariaLabel,
+  ariaLabel = 'Dialog',
   children,
   maxWidthClass = 'max-w-lg',
   panelClassName = '',
   zClass = 'z-50',
   closeOnBackdrop = true,
   enableA11y = true,
-  align = 'start',
+  scrollPanel = true,
 }) => {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  useModalA11y(isOpen, onClose, dialogRef, { trapFocus: enableA11y });
-
-  if (!isOpen) return null;
-
-  const alignClass = align === 'center' ? 'items-center' : 'items-start';
+  const { overlay, content } = resolveZ(zClass);
 
   return (
-    <div
-      className={`fixed inset-0 ${zClass} overflow-y-auto overscroll-contain bg-black/80 backdrop-blur-sm`}
-      onClick={closeOnBackdrop ? onClose : undefined}
-      role="presentation"
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      modal
     >
-      {/*
-        items-start + top padding: tall content (QR 2:3) won't re-center on re-render.
-        animate-fade-in removed from shell — re-mount animation on parent re-render felt like jump.
-      */}
-      <div
-        className={`flex min-h-full ${alignClass} justify-center p-3 sm:p-4 pt-6 sm:pt-10 pb-10`}
+      <DialogContent
+        onEscapeKeyDown={(e) => {
+          if (!enableA11y) e.preventDefault();
+        }}
+        onPointerDownOutside={(e) => {
+          if (!closeOnBackdrop) e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          if (!closeOnBackdrop) e.preventDefault();
+        }}
+        aria-describedby={undefined}
+        aria-labelledby={titleId}
+        overlayClassName={cn(overlay, 'bg-black/75 backdrop-blur-[2px]')}
+        className={cn(
+          content,
+          'w-[calc(100vw-1.5rem)] sm:w-full max-w-[calc(100vw-1.5rem)]',
+          maxWidthClass,
+          scrollPanel
+            ? 'max-h-[min(90dvh,90vh)] overflow-y-auto overscroll-contain'
+            : 'max-h-[min(90dvh,90vh)] overflow-hidden',
+          // Layout only — do NOT set bg/border here (would fight glass-panel-gold)
+          'outline-none',
+          // Default mystic panel if caller forgets panelClassName
+          !panelClassName.includes('glass-panel') &&
+            'glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl',
+          panelClassName
+        )}
       >
-        <div
-          ref={dialogRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={titleId}
-          aria-label={!titleId ? ariaLabel : undefined}
-          tabIndex={-1}
-          className={`relative w-full ${maxWidthClass} outline-none ${panelClassName}`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {children}
-        </div>
-      </div>
-    </div>
+        <DialogTitle className="sr-only">{ariaLabel}</DialogTitle>
+        {children}
+      </DialogContent>
+    </Dialog>
   );
 };
