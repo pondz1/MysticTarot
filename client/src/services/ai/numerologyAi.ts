@@ -1,5 +1,11 @@
 import type { ApiSettings, SavedReading } from '../../types';
 import { requestAiCompletion } from './aiClient';
+import {
+  MARKDOWN_OUTPUT_RULES,
+  buildStructureBlock,
+  lifeAspectSections,
+  buildFallbackMarkdown,
+} from './markdownFormat';
 
 export async function analyzeNumerology(
   digitsStr: string,
@@ -10,24 +16,30 @@ export async function analyzeNumerology(
   onChunk?: (chunk: string) => void,
   historyEntry?: Partial<SavedReading>
 ): Promise<string> {
-  const systemPrompt = `คุณคือปรมาจารย์แห่งศาสตร์ถอดรหัสตัวเลขและเบอร์มงคล โปรดวิเคราะห์อิทธิพลของตัวเลขอย่างลึกซึ้ง แม่นยำ ทรงพลัง และให้ข้อคิดในการใช้ชีวิต (ใช้ภาษาไทยสละสลวย 100%)
+  const structure = buildStructureBlock(
+    lifeAspectSections({
+      overviewHeading: 'ภาพรวมพลังงานตัวเลข',
+      overviewGuide: `วิเคราะห์ผลรวม ${sumValue} (${sumTitle}) และโทนพลังงานของชุดเลข ${digitsStr}`,
+      workGuide: 'อิทธิพลต่อการงาน ธุรกิจ ตำแหน่งหน้าที่ และการเจรจา',
+      moneyGuide: 'สภาพคล่อง โชคลาภ การหมุนเงินและการดึงดูดทรัพย์',
+      loveGuide: 'เสน่ห์ มิตรภาพ ผู้ใหญ่อุปถัมภ์ และความสัมพันธ์',
+      adviceGuide: 'วิธีใช้พลังงานตัวเลขให้เกิดประโยชน์ 2–4 ข้อแบบ bullet',
+    })
+  );
 
-โครงสร้างบทวิเคราะห์ในรูปแบบ Markdown (ใช้หัวข้อ ##):
-## 🔢 พลังงานรวมของชุดตัวเลข (ผลรวม ${sumValue}: ${sumTitle})
-(วิเคราะห์อิทธิพลโดยรวมของผลรวม และพลังงานหลักที่ส่งผลต่อเจ้าของเลข)
+  const systemPrompt = `คุณคือผู้เชี่ยวชาญเลขศาสตร์และเบอร์มงคล วิเคราะห์ตัวเลขอย่างชัดเจน แม่นยำ และให้ข้อคิดใช้ได้จริง
 
-## 💼 อิทธิพลต่อการงาน & ธุรกิจ
-(วิเคราะห์ว่าคู่เลขในชุดนี้ส่งเสริมงาน การค้า หรือตำแหน่งหน้าที่อย่างไร)
+กฎ:
+1. ภาษาไทยสละสลวย อ่านง่าย ตรงประเด็น
+2. อ้างอิงผลรวมและคู่เลขที่ให้มา ห้ามแต่งตัวเลขใหม่
+3. ไม่รับประกันความมั่งคั่งแน่นอน
 
-## 💰 อิทธิพลต่อการเงิน & โชคลาภ
-(วิเคราะห์สภาพคล่อง การหมุนเงิน ลาภลอย หรือการดึงดูดทรัพย์)
+${MARKDOWN_OUTPUT_RULES}
 
-## ❤️ อิทธิพลต่อเสน่ห์ & ความสัมพันธ์
-(วิเคราะห์มิตรภาพ เสน่ห์ ผู้ใหญ่อุปถัมภ์ และความรัก)
+${structure}`;
 
-> 💡 **ข้อแนะนำการใช้พลังงานตัวเลข:** (ข้อคิดสะกิดใจสร้างเสริมบารมี)`;
-
-  const userPrompt = `โปรดวิเคราะห์ชุดตัวเลข "${digitsStr}" ซึ่งมีผลรวม ${sumValue} (${sumTitle}) และมีคู่เลขสำคัญ ได้แก่: ${pairsSummary}`;
+  const userPrompt = `โปรดวิเคราะห์ชุดตัวเลข "${digitsStr}" ผลรวม ${sumValue} (${sumTitle}) คู่เลขสำคัญ: ${pairsSummary}
+ตอบตามโครงสร้าง markdown ที่กำหนด`;
 
   try {
     const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk, historyEntry);
@@ -41,18 +53,34 @@ export async function analyzeNumerology(
   }
 }
 
-export function generateFallbackNumerology(inputNumber: string, sumValue: number, sumTitle: string): string {
-  return `## ภาพรวมพลังงานแห่งตัวเลข: ${inputNumber} (ผลรวม ${sumValue})
-ผลรวมตัวเลข **${sumValue}** นับเป็นชุดเลขพลังงานมงคลสูง (${sumTitle}) ช่วยส่งเสริมพลังชีวิตให้มีความก้าวหน้าและสมดุล
-
-## การงาน & สติปัญญา
-ส่งเสริมไหวพริบ ความคิดสร้างสรรค์ มีผู้ใหญ่อุปถัมภ์ค้ำชูในการทำงาน การเจรจาต่อรองประสบความสำเร็จ
-
-## การเงิน & โชคลาภ
-การเงินไหลเวียนคล่องตัว มีโชคลาภเข้ามาต่อเนื่อง เหมาะแก่การลงทุนค้าขายและขยายกิจการ
-
-## ความรัก & เมตตามหานิยม
-มีเสน่ห์ดึงดูดผู้คน ได้รับความเอ็นดูและความเมตตาจากมิตรสหายและคนใกล้ชิด
-
-> **คำแนะนำมงคล:** ตัวเลขคือพลังหนุนนำ สติและการลงมือทำคือคีย์สำคัญสู่ความสำเร็จอย่างยั่งยืน`;
+export function generateFallbackNumerology(
+  inputNumber: string,
+  sumValue: number,
+  sumTitle: string
+): string {
+  return buildFallbackMarkdown(
+    [
+      {
+        heading: 'ภาพรวมพลังงานตัวเลข',
+        body: `ชุดเลข **${inputNumber}** มีผลรวม **${sumValue}** (${sumTitle}) ส่งเสริมพลังชีวิตให้ก้าวหน้าและสมดุล หากใช้อย่างมีสติ`,
+      },
+      {
+        heading: 'การงานและการเรียน',
+        body: 'ส่งเสริมไหวพริบและความคิดสร้างสรรค์ มีแนวโน้มได้รับความไว้วางใจในการเจรจาและงานที่ต้องใช้สติปัญญา',
+      },
+      {
+        heading: 'การเงินและโชคลาภ',
+        body: 'การเงินไหลเวียนได้ดี เหมาะกับการค้าและการวางแผนรายรับ-รายจ่ายอย่างมีระบบ',
+      },
+      {
+        heading: 'ความรักและความสัมพันธ์',
+        body: 'มีเสน่ห์ดึงดูด ได้รับความเอ็นดูจากคนรอบข้าง มิตรภาพเกื้อกูล',
+      },
+      {
+        heading: 'คำแนะนำ',
+        body: '- ใช้ตัวเลขเป็นแรงหนุน ไม่ใช่ที่พึ่งเดียว\n- ลงมือทำสม่ำเสมอคู่กับการวางแผน\n- รักษาเครดิตและความสัมพันธ์ระยะยาว',
+      },
+    ],
+    'ตัวเลขหนุนนำ — สติและการลงมือทำคือกุญแจสู่ผลลัพธ์ยั่งยืน'
+  );
 }

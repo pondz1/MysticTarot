@@ -1,5 +1,10 @@
 import type { ApiSettings, SavedReading } from '../../types';
 import { requestAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
+import {
+  MARKDOWN_OUTPUT_RULES,
+  buildStructureBlock,
+  buildFallbackMarkdown,
+} from './markdownFormat';
 
 export async function analyzeFengShui(
   dayNameTh: string,
@@ -14,27 +19,59 @@ export async function analyzeFengShui(
 ): Promise<string> {
   const activeSettings = settings || DEFAULT_API_SETTINGS;
 
-  const systemPrompt = `คุณคือปรมาจารย์แห่งศาสตร์ฮวงจุ้ยและสีมงคล (Feng Shui & Auspicious Master) โปรดวิเคราะห์ทิศมงคลและการจัดฮวงจุ้ยเพื่อเปิดรับพลังงานดี (ใช้ภาษาไทยสละสลวย 100%)
+  const structure = buildStructureBlock([
+    {
+      heading: 'ภาพรวมฮวงจุ้ยและสีมงคล',
+      guide: `สรุปพลังงานวัน${dayNameTh} สำหรับพื้นที่ ${selectedSpace} 2–4 ประโยค`,
+    },
+    {
+      heading: 'การงานและพื้นที่ทำงาน',
+      guide: `จัดพื้นที่ ${selectedSpace} เสริมงาน โดยอิงสีมงคลการงาน: ${luckyWork}`,
+    },
+    {
+      heading: 'การเงินและโชคลาภ',
+      guide: `จัดพื้นที่/สีเสริมโชคลาภ อิงสีมงคลการเงิน: ${luckyWealth}`,
+    },
+    {
+      heading: 'ความรักและเมตตา',
+      guide: `เสริมเสน่ห์และความสัมพันธ์ อิงสีมงคลความรัก: ${luckyLove}`,
+    },
+    {
+      heading: 'สิ่งที่ควรหลีกเลี่ยง',
+      guide: `สี/ทิศ/พฤติกรรมที่ควรเลี่ยง อิงสีอัปมงคล: ${unluckyForbidden}`,
+    },
+    {
+      heading: 'คำแนะนำ',
+      guide: 'action ปรับพื้นที่ได้ทันที 2–4 ข้อแบบ bullet',
+    },
+  ]);
 
-โครงสร้างบทวิเคราะห์ในรูปแบบ Markdown (ใช้หัวข้อ ##):
-## 🧭 พลังงานฮวงจุ้ย & สีมงคลประจำวัน${dayNameTh} (สำหรับ ${selectedSpace})
-(วิเคราะห์พลังงานธาตุประจำวันและการจัดองศาทิศทางเพื่อปรับพลังงานพื้นที่)
+  const systemPrompt = `คุณคือผู้เชี่ยวชาญฮวงจุ้ยและสีมงคล ให้คำแนะนำปฏิบัติได้จริง ชัดเจน และสุภาพ
 
-## 💼 การจัดฮวงจุ้ยเสริมการงาน & ธุรกิจ
-(คำแนะนำจัดพื้นที่ ${selectedSpace} เสริมสีมงคลการงาน: ${luckyWork})
+กฎ:
+1. ภาษาไทยสละสลวย อ่านง่าย ตรงประเด็น
+2. อิงสีมงคล/อัปมงคลและพื้นที่ที่ระบุ ห้ามแต่งข้อมูลวันเอง
+3. เน้นสิ่งที่ทำได้ทันทีในบ้านหรือที่ทำงาน
 
-## 💰 การจัดฮวงจุ้ยเสริมโชคลาภ & ความมั่งคั่ง
-(คำแนะนำจัดพื้นที่ ${selectedSpace} เสริมสีมงคลการเงิน: ${luckyWealth})
+${MARKDOWN_OUTPUT_RULES}
 
-## 🚫 สิ่งที่ควรหลีกเลี่ยง & ทิศอัปมงคล
-(คำแนะนำหลีกเลี่ยงสิ่งต้องห้ามและสีอัปมงคล: ${unluckyForbidden})
+${structure}`;
 
-> 🌿 **เคล็ดลับปรับฮวงจุ้ยด่วน:** (เคล็ดลับง่ายๆ ที่ลงมือทำได้ทันที)`;
-
-  const userPrompt = `โปรดวิเคราะห์การจัดฮวงจุ้ยสำหรับ "${selectedSpace}" ประจำวัน "${dayNameTh}" โดยมีสีมงคลการงาน: ${luckyWork}, สีมงคลการเงิน: ${luckyWealth}, สีมงคลความรัก: ${luckyLove}, และสีอัปมงคลต้องห้าม: ${unluckyForbidden}`;
+  const userPrompt = `วิเคราะห์ฮวงจุ้ยพื้นที่ "${selectedSpace}" ประจำวัน "${dayNameTh}"
+สีมงคลงาน: ${luckyWork}
+สีมงคลเงิน: ${luckyWealth}
+สีมงคลรัก: ${luckyLove}
+สีควรหลีก: ${unluckyForbidden}
+ตอบตามโครงสร้าง markdown ที่กำหนด`;
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, activeSettings, onChunk, historyEntry);
+    const content = await requestAiCompletion(
+      systemPrompt,
+      userPrompt,
+      activeSettings,
+      onChunk,
+      historyEntry
+    );
     if (content && content.trim()) {
       return content;
     }
@@ -53,20 +90,33 @@ export function generateFallbackFengShui(
   unluckyForbidden: string,
   spaceType: string
 ): string {
-  return `## เคล็ดลับฮวงจุ้ย & สีมงคลประจำ${dayNameTh}
-การเลือกสวมใส่เสื้อผ้าและจัดวางพลังงานในพื้นที่ **${spaceType}** ประจำ${dayNameTh} ช่วยดึงดูดพลังงานโชคลาภและสิริมงคล
-
-## สีเสื้อมงคลเสริมการงาน: ${luckyWork}
-ช่วยเพิ่มความน่าเชื่อถือ เสริมอำนาจบารมี และได้รับการสนับสนุนจากผู้ร่วมงาน
-
-## สีเสื้อมงคลเสริมการเงิน: ${luckyWealth}
-ดึงดูดเงินทองและโชคลาภทางการค้า เหมาะสำหรับการเจรจาธุรกิจและปิดการขาย
-
-## สีเสื้อมงคลเสริมความรัก: ${luckyLove}
-เสริมเสน่ห์เมตตามหานิยม ความสัมพันธ์ราบรื่น อ่อนโยนและได้รับความเอ็นดู
-
-## สีต้องห้ามประจำวัน: ${unluckyForbidden}
-ควรหลีกเลี่ยงการสวมใส่เสื้อผ้าสี **${unluckyForbidden}** ในวันนี้ เพื่อป้องกันพลังงานขัดข้อง
-
-> **เคล็ดลับซินแส:** "เปิดหน้าต่างรับแสงแดดยามเช้า จัดโต๊ะทำงานให้เป็นระเบียบ เพื่อเปิดทางให้พลังงานชี่ (Chi) ไหลเวียนรับทรัพย์อย่างสมบูรณ์"`;
+  return buildFallbackMarkdown(
+    [
+      {
+        heading: 'ภาพรวมฮวงจุ้ยและสีมงคล',
+        body: `ประจำ**${dayNameTh}** พื้นที่ **${spaceType}** เหมาะกับการปรับสีและการจัดวางเล็กน้อยเพื่อให้พลังงานไหลเวียนรับโชคลาภ`,
+      },
+      {
+        heading: 'การงานและพื้นที่ทำงาน',
+        body: `สีมงคลงาน **${luckyWork}** ช่วยเสริมความน่าเชื่อถือและสมาธิ จัดโต๊ะให้โล่ง หันรับแสงธรรมชาติถ้าทำได้`,
+      },
+      {
+        heading: 'การเงินและโชคลาภ',
+        body: `สีมงคลการเงิน **${luckyWealth}** เหมาะกับการเจรจาและการรับทรัพย์ เก็บพื้นที่ให้สะอาดเป็นระเบียบ`,
+      },
+      {
+        heading: 'ความรักและเมตตา',
+        body: `สีมงคลความรัก **${luckyLove}** เสริมเสน่ห์และความอ่อนโยนในความสัมพันธ์`,
+      },
+      {
+        heading: 'สิ่งที่ควรหลีกเลี่ยง',
+        body: `ควรเลี่ยงสี **${unluckyForbidden}** ในวันนี้ และอย่ากองของรกบริเวณทางเข้าหรือมุมทำงาน`,
+      },
+      {
+        heading: 'คำแนะนำ',
+        body: '- เปิดหน้าต่างรับแสงยามเช้า\n- จัดโต๊ะทำงานให้เป็นระเบียบ\n- ใช้สีมงคลในเครื่องแต่งกายหรือของตกแต่งเล็กน้อย',
+      },
+    ],
+    'จัดพื้นที่ให้โล่ง สะอาด และมีแสง — พลังงานดีเริ่มจากสิ่งที่ทำได้ทันที'
+  );
 }
