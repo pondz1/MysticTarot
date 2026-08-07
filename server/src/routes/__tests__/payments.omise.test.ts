@@ -64,6 +64,7 @@ describe('Omise top-up payments', () => {
     process.env.OMISE_SECRET_KEY = 'skey_test_fake';
     process.env.OMISE_PUBLIC_KEY = 'pkey_test_fake';
 
+    // Starter Pack: ฿20 / 60 CR (PromptPay minimum)
     const chargeId = `chrg_test_pp_${Date.now()}`;
     const fetchMock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
       const u = String(url);
@@ -73,7 +74,7 @@ describe('Omise top-up payments', () => {
             object: 'source',
             id: `src_test_pp_${Date.now()}`,
             type: 'promptpay',
-            amount: 2900,
+            amount: 2000,
             currency: 'thb',
           }),
           { status: 200 }
@@ -85,7 +86,7 @@ describe('Omise top-up payments', () => {
             object: 'charge',
             id: chargeId,
             status: 'pending',
-            amount: 2900,
+            amount: 2000,
             currency: 'thb',
             paid: false,
             source: {
@@ -121,7 +122,7 @@ describe('Omise top-up payments', () => {
     // Direct Omise download_uri for <img src>
     expect(res.body.qrImageUrl).toContain('qr.png');
     expect(res.body.status).toBe('pending');
-    expect(res.body.credits).toBe(20);
+    expect(res.body.credits).toBe(60);
     expect(creditsDb.getCredits(userId)).toBe(5); // not fulfilled yet
   });
 
@@ -139,8 +140,8 @@ describe('Omise top-up payments', () => {
       userId,
       packageId: 'pkg_starter',
       packageName: 'Starter Pack',
-      credits: 20,
-      amountSatang: 2900,
+      credits: 60,
+      amountSatang: 2000,
       method: 'promptpay',
       omiseChargeId: chargeId,
       status: 'pending',
@@ -154,7 +155,7 @@ describe('Omise top-up payments', () => {
             object: 'charge',
             id: chargeId,
             status: 'successful',
-            amount: 2900,
+            amount: 2000,
             currency: 'thb',
             paid: true,
           }),
@@ -170,8 +171,8 @@ describe('Omise top-up payments', () => {
     expect(res1.status).toBe(200);
     expect(res1.body.status).toBe('fulfilled');
     expect(res1.body.newlyFulfilled).toBe(true);
-    expect(res1.body.creditsBalance).toBe(30);
-    expect(creditsDb.getCredits(userId)).toBe(30);
+    expect(res1.body.creditsBalance).toBe(70);
+    expect(creditsDb.getCredits(userId)).toBe(70);
 
     // Second poll must not double-credit
     const res2 = await request(app)
@@ -180,7 +181,7 @@ describe('Omise top-up payments', () => {
 
     expect(res2.body.status).toBe('fulfilled');
     expect(res2.body.newlyFulfilled).toBe(false);
-    expect(creditsDb.getCredits(userId)).toBe(30);
+    expect(creditsDb.getCredits(userId)).toBe(70);
   });
 
   it('webhook charge.complete fulfills order (legacy ?secret=)', async () => {
@@ -197,8 +198,8 @@ describe('Omise top-up payments', () => {
       userId,
       packageId: 'pkg_popular',
       packageName: 'Popular Pack',
-      credits: 55,
-      amountSatang: 5900,
+      credits: 130,
+      amountSatang: 3900,
       method: 'promptpay',
       omiseChargeId: chargeId,
       status: 'pending',
@@ -212,7 +213,7 @@ describe('Omise top-up payments', () => {
             object: 'charge',
             id: chargeId,
             status: 'successful',
-            amount: 5900,
+            amount: 3900,
             currency: 'thb',
             paid: true,
           }),
@@ -227,13 +228,13 @@ describe('Omise top-up payments', () => {
         object: 'event',
         id: 'evnt_1',
         key: 'charge.complete',
-        data: { id: chargeId, object: 'charge', status: 'successful', amount: 5900 },
+        data: { id: chargeId, object: 'charge', status: 'successful', amount: 3900 },
       });
 
     expect(res.status).toBe(200);
     expect(res.body.newlyFulfilled).toBe(true);
     expect(paymentsDb.getById(order.id)?.status).toBe('fulfilled');
-    expect(creditsDb.getCredits(userId)).toBe(55);
+    expect(creditsDb.getCredits(userId)).toBe(130);
   });
 
   it('webhook accepts Omise-Signature HMAC headers', async () => {
@@ -250,8 +251,8 @@ describe('Omise top-up payments', () => {
       userId,
       packageId: 'pkg_starter',
       packageName: 'Starter Pack',
-      credits: 20,
-      amountSatang: 2900,
+      credits: 60,
+      amountSatang: 2000,
       method: 'promptpay',
       omiseChargeId: chargeId,
       status: 'pending',
@@ -265,7 +266,7 @@ describe('Omise top-up payments', () => {
             object: 'charge',
             id: chargeId,
             status: 'successful',
-            amount: 2900,
+            amount: 2000,
             currency: 'thb',
             paid: true,
           }),
@@ -278,7 +279,7 @@ describe('Omise top-up payments', () => {
       object: 'event',
       id: 'evnt_sig',
       key: 'charge.complete',
-      data: { id: chargeId, object: 'charge', status: 'successful', amount: 2900 },
+      data: { id: chargeId, object: 'charge', status: 'successful', amount: 2000 },
     };
     const raw = JSON.stringify(body);
     const timestamp = String(Math.floor(Date.now() / 1000));

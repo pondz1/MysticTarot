@@ -376,7 +376,7 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
                   </div>
                   <div className="text-[10px] text-slate-400">
                     {omiseLive
-                      ? 'PromptPay / บัตร · แพ็ก 20–310 หน่วย'
+                      ? 'PromptPay / บัตร · แพ็ก 60–600 หน่วย'
                       : 'ทดสอบ UI — ไม่ตัดเงินจริง'}
                   </div>
                 </div>

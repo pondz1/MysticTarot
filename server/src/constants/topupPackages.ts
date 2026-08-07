@@ -8,37 +8,42 @@ export interface TopUpPackage {
   popular?: boolean;
 }
 
+/**
+ * Launch pricing: fair starter + clear upsell ladder.
+ * ~9–10 cr per AI reading. All packs ≥ ฿20 → PromptPay eligible.
+ */
 export const TOPUP_PACKAGES: TopUpPackage[] = [
   {
     id: 'pkg_starter',
     name: 'Starter Pack',
-    baseCredits: 20,
+    baseCredits: 60,
     bonusCredits: 0,
-    priceThb: 29,
+    priceThb: 20,
+    badge: '🌱 เริ่มต้น',
   },
   {
     id: 'pkg_popular',
     name: 'Popular Pack',
-    baseCredits: 50,
-    bonusCredits: 5,
-    priceThb: 59,
+    baseCredits: 100,
+    bonusCredits: 30,
+    priceThb: 39,
     badge: '🔥 ขายดีที่สุด',
     popular: true,
   },
   {
     id: 'pkg_pro',
     name: 'Pro Pack',
-    baseCredits: 100,
-    bonusCredits: 20,
-    priceThb: 99,
+    baseCredits: 200,
+    bonusCredits: 80,
+    priceThb: 69,
     badge: '✨ คุ้มค่า',
   },
   {
     id: 'pkg_ultimate',
     name: 'Ultimate Pack',
-    baseCredits: 250,
-    bonusCredits: 60,
-    priceThb: 199,
-    badge: '🚀 โบนัส +24%',
+    baseCredits: 400,
+    bonusCredits: 200,
+    priceThb: 129,
+    badge: '🚀 โบนัส +50%',
   },
 ];

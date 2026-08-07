@@ -55,7 +55,8 @@ export interface TokenUsageInfo {
 
 /**
  * Calculates credits used based on token usage.
- * Uses weighted rates for Prompt (Input) & Completion (Output) tokens, rounded up to the nearest integer.
+ * Weighted rates for Prompt (Input) & Completion (Output), then floor to whole credits
+ * so fractional remainder is not charged against the customer (min 1).
  */
 export function calculateCreditsFromTokens(usage?: TokenUsageInfo): number {
   if (!usage) {
@@ -65,12 +66,14 @@ export function calculateCreditsFromTokens(usage?: TokenUsageInfo): number {
   const promptTokens = usage.prompt_tokens || 0;
   const completionTokens = usage.completion_tokens || 0;
 
-  // Calculate weighted credits
-  const promptCredits = (promptTokens / CREDIT_RATES.TOKENS_BASE_UNIT) * CREDIT_RATES.INPUT_TOKEN_RATE_PER_1K;
-  const completionCredits = (completionTokens / CREDIT_RATES.TOKENS_BASE_UNIT) * CREDIT_RATES.OUTPUT_TOKEN_RATE_PER_1K;
+  // Weighted cost: input 1 cr/1k + output 4 cr/1k
+  const promptCredits =
+    (promptTokens / CREDIT_RATES.TOKENS_BASE_UNIT) * CREDIT_RATES.INPUT_TOKEN_RATE_PER_1K;
+  const completionCredits =
+    (completionTokens / CREDIT_RATES.TOKENS_BASE_UNIT) * CREDIT_RATES.OUTPUT_TOKEN_RATE_PER_1K;
   const totalCalculated = promptCredits + completionCredits;
 
-  // Round up to nearest integer (minimum 1 credit)
-  const creditsUsed = Math.ceil(totalCalculated);
+  // Floor: do not charge partial credits upward (e.g. 9.13 → 9, not 10)
+  const creditsUsed = Math.floor(totalCalculated);
   return Math.max(CREDIT_RATES.MIN_CREDITS_PER_REQUEST, creditsUsed);
 }

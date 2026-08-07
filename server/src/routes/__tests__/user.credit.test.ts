@@ -59,9 +59,9 @@ describe('Credit top-up routes', () => {
       .send({ packageId: 'pkg_starter', amount: 9999 });
 
     expect(res.status).toBe(200);
-    expect(res.body.added).toBe(20); // not 9999
+    expect(res.body.added).toBe(60); // Starter = 60 CR, not client-supplied 9999
     expect(res.body.simulated).toBe(true);
-    expect(res.body.credits).toBe(30);
+    expect(res.body.credits).toBe(70);
   });
 
   it('POST /api/user/topup-simulate is disabled in production without ENABLE_TOPUP_SIMULATOR', async () => {

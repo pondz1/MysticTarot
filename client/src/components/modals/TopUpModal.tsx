@@ -37,34 +37,45 @@ export interface TopUpPackage {
   popular?: boolean;
 }
 
+/** Keep in sync with server/src/constants/topupPackages.ts */
 const FALLBACK_PACKAGES: TopUpPackage[] = [
-  { id: 'pkg_starter', name: 'Starter Pack', baseCredits: 20, bonusCredits: 0, priceThb: 29 },
+  {
+    id: 'pkg_starter',
+    name: 'Starter Pack',
+    baseCredits: 60,
+    bonusCredits: 0,
+    priceThb: 20,
+    badge: '🌱 เริ่มต้น',
+  },
   {
     id: 'pkg_popular',
     name: 'Popular Pack',
-    baseCredits: 50,
-    bonusCredits: 5,
-    priceThb: 59,
+    baseCredits: 100,
+    bonusCredits: 30,
+    priceThb: 39,
     badge: '🔥 ขายดีที่สุด',
     popular: true,
   },
   {
     id: 'pkg_pro',
     name: 'Pro Pack',
-    baseCredits: 100,
-    bonusCredits: 20,
-    priceThb: 99,
+    baseCredits: 200,
+    bonusCredits: 80,
+    priceThb: 69,
     badge: '✨ คุ้มค่า',
   },
   {
     id: 'pkg_ultimate',
     name: 'Ultimate Pack',
-    baseCredits: 250,
-    bonusCredits: 60,
-    priceThb: 199,
-    badge: '🚀 โบนัส +24%',
+    baseCredits: 400,
+    bonusCredits: 200,
+    priceThb: 129,
+    badge: '🚀 โบนัส +50%',
   },
 ];
+
+/** Omise PromptPay minimum (THB) — matches server payments route */
+const PROMPTPAY_MIN_THB = 20;
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -236,8 +247,24 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
   const totalCredits =
     (selectedPkg?.baseCredits || 0) + (selectedPkg?.bonusCredits || 0);
 
+  const promptPayAllowed =
+    (selectedPkg?.priceThb ?? 0) >= PROMPTPAY_MIN_THB;
+
+  const selectPackage = (pkg: TopUpPackage) => {
+    setSelectedPkg(pkg);
+    // Omise PromptPay minimum ฿20 — force card on cheaper packs
+    if (pkg.priceThb < PROMPTPAY_MIN_THB && paymentMethod === 'promptpay') {
+      setPaymentMethod('card');
+    }
+  };
+
   const handleOmisePay = async () => {
     if (!selectedPkg || isProcessing || !omiseEnabled) return;
+    if (paymentMethod === 'promptpay' && selectedPkg.priceThb < PROMPTPAY_MIN_THB) {
+      setErrorMsg(`แพ็กนี้ใช้บัตรเท่านั้น (PromptPay ขั้นต่ำ ฿${PROMPTPAY_MIN_THB})`);
+      setPaymentMethod('card');
+      return;
+    }
     setIsProcessing(true);
     setErrorMsg(null);
 
@@ -608,7 +635,7 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
                     <button
                       key={pkg.id}
                       type="button"
-                      onClick={() => setSelectedPkg(pkg)}
+                      onClick={() => selectPackage(pkg)}
                       className={`relative flex flex-col p-3 rounded-xl border text-left transition-all cursor-pointer ${
                         isSelected
                           ? 'bg-amber-500/20 border-amber-400 shadow-md shadow-amber-500/20'
@@ -651,11 +678,21 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('promptpay')}
-                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold cursor-pointer ${
-                    paymentMethod === 'promptpay'
-                      ? 'bg-amber-500/20 border-amber-400 text-amber-300'
-                      : 'bg-purple-950/40 border-purple-500/20 text-purple-300'
+                  onClick={() => {
+                    if (promptPayAllowed) setPaymentMethod('promptpay');
+                  }}
+                  disabled={!promptPayAllowed}
+                  title={
+                    promptPayAllowed
+                      ? 'ชำระด้วย PromptPay QR'
+                      : `PromptPay ขั้นต่ำ ฿${PROMPTPAY_MIN_THB} — ใช้บัตรสำหรับแพ็กนี้`
+                  }
+                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold ${
+                    !promptPayAllowed
+                      ? 'opacity-40 cursor-not-allowed bg-purple-950/30 border-purple-800/30 text-purple-500'
+                      : paymentMethod === 'promptpay'
+                        ? 'bg-amber-500/20 border-amber-400 text-amber-300 cursor-pointer'
+                        : 'bg-purple-950/40 border-purple-500/20 text-purple-300 cursor-pointer'
                   }`}
                 >
                   <QrCode className="w-4 h-4 text-amber-400" />
@@ -674,6 +711,12 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
                   บัตรเครดิต/เดบิต
                 </button>
               </div>
+              {!promptPayAllowed && selectedPkg && (
+                <p className="text-[10px] text-amber-200/80 mb-3 -mt-1">
+                  แพ็ก ฿{selectedPkg.priceThb} ใช้บัตรเท่านั้น (PromptPay ขั้นต่ำ ฿
+                  {PROMPTPAY_MIN_THB})
+                </p>
+              )}
 
               {omiseEnabled && paymentMethod === 'card' && (
                 <div className="p-3.5 rounded-xl bg-purple-950/80 border border-amber-500/30 flex flex-col gap-3">

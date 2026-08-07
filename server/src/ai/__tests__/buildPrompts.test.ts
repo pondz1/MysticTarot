@@ -110,4 +110,15 @@ describe('calculateCreditsFromTokens', () => {
     expect(calculateCreditsFromTokens({ prompt_tokens: 1000, completion_tokens: 0 })).toBe(1);
     expect(calculateCreditsFromTokens({ prompt_tokens: 0, completion_tokens: 1000 })).toBe(4);
   });
+
+  it('floors fractional total so customers are not rounded up', () => {
+    // 4517*1/1000 + 1153*4/1000 = 4.517 + 4.612 = 9.129 → floor 9
+    expect(
+      calculateCreditsFromTokens({ prompt_tokens: 4517, completion_tokens: 1153 })
+    ).toBe(9);
+  });
+
+  it('still charges at least 1 credit for tiny usage', () => {
+    expect(calculateCreditsFromTokens({ prompt_tokens: 10, completion_tokens: 5 })).toBe(1);
+  });
 });
