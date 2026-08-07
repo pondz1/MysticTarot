@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Coins, X, Check, QrCode, CreditCard, Sparkles, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 import { useAuth } from '../../context/AuthContext';
+import { ModalShell } from '../common/ModalShell';
 
 export interface TopUpPackage {
   id: string;
@@ -52,8 +53,6 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const totalCredits = (selectedPkg?.baseCredits || 20) + (selectedPkg?.bonusCredits || 0);
 
   const handleSimulatePayment = async () => {
@@ -87,27 +86,34 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-lg glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
-        
+    <ModalShell
+      isOpen={isOpen}
+      onClose={handleClose}
+      titleId="topup-modal-title"
+      maxWidthClass="max-w-lg"
+      zClass="z-[60]"
+      panelClassName="glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto overscroll-contain"
+    >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300">
-              <Coins className="w-5 h-5 animate-bounce-slow" />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 shrink-0">
+              <Coins className="w-5 h-5" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-base font-bold font-serif-mystic text-gold-gradient">
-                แพ็กเกจเติม เครดิต AI
+              <h3 id="topup-modal-title" className="text-base font-bold text-amber-100">
+                แพ็กเกจเติมเครดิต AI
               </h3>
-              <p className="text-[11px] text-purple-300">เลือกแพ็กเกจและช่องทางชำระเงินที่ต้องการ</p>
+              <p className="text-[11px] text-slate-400">เลือกแพ็กเกจและช่องทางชำระเงิน</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={handleClose}
-            className="p-1.5 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
+            aria-label="ปิดหน้าต่างเติมเครดิต"
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -278,7 +284,6 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
             </div>
           </>
         )}
-      </div>
-    </div>
+    </ModalShell>
   );
 };

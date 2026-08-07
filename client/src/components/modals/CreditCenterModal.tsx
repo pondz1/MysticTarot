@@ -3,6 +3,7 @@ import { Coins, X, Gift, Ticket, CreditCard, Sparkles, Zap, ShieldCheck } from '
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../services/apiClient';
 import { TopUpSimulatorModal } from './TopUpSimulatorModal';
+import { ModalShell } from '../common/ModalShell';
 
 interface CreditCenterModalProps {
   isOpen: boolean;
@@ -97,13 +98,17 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-        <div className="relative w-full max-w-lg glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-hidden my-8 max-h-[90vh] overflow-y-auto">
-          
+      <ModalShell
+        isOpen={isOpen}
+        onClose={onClose}
+        titleId="credit-center-title"
+        maxWidthClass="max-w-lg"
+        panelClassName="glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto overscroll-contain"
+        closeOnBackdrop={!isTopUpModalOpen}
+        enableA11y={!isTopUpModalOpen}
+      >
           {/* Modal Header */}
           <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-3">
             <div className="flex items-center gap-2 min-w-0">
@@ -111,7 +116,7 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
                 <Coins className="w-5 h-5" aria-hidden="true" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-base font-bold text-amber-100">
+                <h3 id="credit-center-title" className="text-base font-bold text-amber-100">
                   เครดิต AI
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-snug">
@@ -265,16 +270,13 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-purple-950 transition-all shadow-md cursor-pointer"
+              className="px-5 py-2 min-h-[40px] rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-colors shadow-md cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
             >
-              ปิดหน้าต่าง
+              ปิด
             </button>
           </div>
+      </ModalShell>
 
-        </div>
-      </div>
-
-      {/* Top Up Packages Modal */}
       <TopUpSimulatorModal
         isOpen={isTopUpModalOpen}
         onClose={() => setIsTopUpModalOpen(false)}

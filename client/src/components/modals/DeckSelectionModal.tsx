@@ -1,7 +1,7 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, Layers, Scissors, Orbit, Sparkles, Crown, LayoutGrid, Check, Flame, Compass } from 'lucide-react';
 import type { SelectionMode } from '../../features/tarot/types/tarot';
+import { ModalShell } from '../common/ModalShell';
 
 export interface ModeOptionInfo {
   id: SelectionMode;
@@ -129,41 +129,38 @@ export const DeckSelectionModal: React.FC<DeckSelectionModalProps> = ({
   onSelectFilter,
   onClose,
 }) => {
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in select-none">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-xl max-h-[90vh] glass-panel-gold rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-amber-400/50 shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-y-auto"
-        >
+    <ModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      titleId="deck-selection-title"
+      maxWidthClass="max-w-xl"
+      zClass="z-[100]"
+      panelClassName="max-h-[90vh] glass-panel-gold rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-amber-400/50 shadow-2xl overflow-y-auto overscroll-contain select-none"
+    >
           {/* Header */}
           <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-400/20">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              <h2 className="text-base sm:text-lg md:text-xl font-bold font-serif-mystic text-gold-gradient">
+            <div className="flex items-center gap-2 min-w-0">
+              <Sparkles className="w-5 h-5 text-amber-400 shrink-0" aria-hidden="true" />
+              <h2 id="deck-selection-title" className="text-base sm:text-lg font-bold text-amber-100 truncate">
                 {type === 'mode' ? 'เลือกรูปแบบการคลี่ไพ่' : 'เลือกประเภทสำรับไพ่'}
               </h2>
             </div>
 
             <button
+              type="button"
               onClick={onClose}
-              className="p-1.5 rounded-full text-purple-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
-              title="ปิดหน้าต่าง"
+              aria-label="ปิดหน้าต่าง"
+              className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
-          {/* Subtitle */}
-          <p className="text-xs text-purple-200/80 mb-4 sm:mb-5">
+          <p className="text-xs text-slate-400 mb-4 sm:mb-5">
             {type === 'mode'
-              ? 'เลือกสไตล์การเปิดไพ่ที่คุณชื่นชอบและรู้สึกเชื่อมโยงกับพลังงานจิตมากที่สุด'
-              : 'เลือกจำนวนไพ่ที่ต้องการใช้ทำนายตามวัตถุประสงค์และเรื่องราวที่สนใจ'}
+              ? 'เลือกสไตล์การเปิดไพ่ที่ใช่สำหรับคุณ'
+              : 'เลือกจำนวนไพ่ในสำรับตามที่ต้องการ'}
           </p>
 
           {/* Mode Selection Cards */}
@@ -174,16 +171,18 @@ export const DeckSelectionModal: React.FC<DeckSelectionModalProps> = ({
                 const IconComponent = item.icon;
 
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={item.id}
                     onClick={() => {
                       if (onSelectMode) onSelectMode(item.id);
                       onClose();
                     }}
-                    className={`relative group rounded-2xl p-4 border transition-all cursor-pointer flex flex-col justify-between overflow-hidden bg-gradient-to-br ${item.previewBg} ${
+                    aria-pressed={isSelected}
+                    className={`relative group rounded-2xl p-4 border text-left transition-all cursor-pointer flex flex-col justify-between overflow-hidden bg-gradient-to-br ${item.previewBg} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                       isSelected
-                        ? 'border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_30px_rgba(234,179,8,0.35)] scale-[1.02]'
-                        : 'border-amber-400/30 hover:border-amber-400/70 hover:scale-[1.01] hover:shadow-lg'
+                        ? 'border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(234,179,8,0.25)]'
+                        : 'border-amber-400/30 hover:border-amber-400/70 hover:shadow-lg'
                     }`}
                   >
                     {/* Selected Checkmark Badge */}
@@ -224,7 +223,7 @@ export const DeckSelectionModal: React.FC<DeckSelectionModalProps> = ({
                         {isSelected ? 'กำลังใช้งาน' : 'เลือกโหมดนี้ →'}
                       </span>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -238,15 +237,17 @@ export const DeckSelectionModal: React.FC<DeckSelectionModalProps> = ({
                 const IconComponent = item.icon;
 
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={item.id}
                     onClick={() => {
                       if (onSelectFilter) onSelectFilter(item.id);
                       onClose();
                     }}
-                    className={`relative group rounded-2xl p-4 border transition-all cursor-pointer flex items-center justify-between bg-gradient-to-r ${item.color} ${
+                    aria-pressed={isSelected}
+                    className={`relative group rounded-2xl p-4 border text-left transition-all cursor-pointer flex items-center justify-between bg-gradient-to-r ${item.color} w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                       isSelected
-                        ? 'border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_25px_rgba(234,179,8,0.3)] scale-[1.01]'
+                        ? 'border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(234,179,8,0.25)]'
                         : 'border-amber-400/30 hover:border-amber-400/70 hover:shadow-md'
                     }`}
                   >
@@ -272,7 +273,7 @@ export const DeckSelectionModal: React.FC<DeckSelectionModalProps> = ({
                     <div className="flex items-center gap-2 shrink-0 ml-3">
                       {isSelected ? (
                         <div className="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-md">
-                          <Check className="w-4 h-4 stroke-[3]" />
+                          <Check className="w-4 h-4 stroke-[3]" aria-hidden="true" />
                         </div>
                       ) : (
                         <span className="text-xs text-amber-400 font-semibold group-hover:underline hidden sm:inline">
@@ -280,23 +281,21 @@ export const DeckSelectionModal: React.FC<DeckSelectionModalProps> = ({
                         </span>
                       )}
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
           )}
 
-          {/* Footer Note */}
           <div className="mt-5 text-center">
             <button
+              type="button"
               onClick={onClose}
-              className="text-xs text-amber-300/80 hover:text-amber-100 underline cursor-pointer"
+              className="text-xs text-amber-200/80 hover:text-amber-100 underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded"
             >
               ปิดหน้าต่าง
             </button>
           </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+    </ModalShell>
   );
 };

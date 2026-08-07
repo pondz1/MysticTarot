@@ -3,6 +3,7 @@ import type { ApiSettings, AiConnectionMode } from '../../types';
 import { PROVIDER_PRESETS } from '../../services/aiService';
 import { Settings, X, Key, Globe, Cpu, Check, Sparkles, Coins, Zap } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { ModalShell } from '../common/ModalShell';
 
 interface ApiSettingsModalProps {
   isOpen: boolean;
@@ -37,8 +38,6 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
     }
   }, [isOpen, settings]);
 
-  if (!isOpen) return null;
-
   const handleApplyPreset = (preset: typeof PROVIDER_PRESETS[0]) => {
     setBaseUrl(preset.baseUrl);
     setModel(preset.model);
@@ -64,22 +63,28 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-lg glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-hidden">
-        
+    <ModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      titleId="api-settings-title"
+      maxWidthClass="max-w-lg"
+      panelClassName="glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto overscroll-contain"
+    >
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-amber-300 animate-spin-slow" />
-            <h3 className="text-base font-bold font-serif-mystic text-gold-gradient">
-              ตั้งค่าการเชื่อมต่อ AI (AI Settings)
+          <div className="flex items-center gap-2 min-w-0">
+            <Settings className="w-5 h-5 text-amber-300 shrink-0" aria-hidden="true" />
+            <h3 id="api-settings-title" className="text-base font-bold text-amber-100">
+              ตั้งค่าการเชื่อมต่อ AI
             </h3>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
+            aria-label="ปิดหน้าต่างตั้งค่า AI"
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -264,7 +269,6 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
             <span>{savedSuccess ? 'บันทึกเรียบร้อย' : 'บันทึกการตั้งค่า'}</span>
           </button>
         </form>
-      </div>
-    </div>
+    </ModalShell>
   );
 };

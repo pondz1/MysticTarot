@@ -15,6 +15,7 @@ import { CompassDeckView } from './deck/CompassDeckView';
 import { DeckConfirmation } from './deck/DeckConfirmation';
 import { DeckSelectionModal } from '../../../components/modals/DeckSelectionModal';
 import { storageService } from '../../../services/storageService';
+import { prefersReducedMotion } from '../../../hooks/useModalA11y';
 
 interface TarotDeckProps {
   spreadMode: SpreadMode;
@@ -129,17 +130,19 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
     setTimeout(() => {
       setDeck(shuffleArray(getFilteredCards(deckFilter)));
       setIsShuffling(false);
-      try {
-        confetti({
-          particleCount: 35,
-          spread: 55,
-          origin: { y: 0.65 },
-          colors: ['#EAB308', '#A855F7', '#38BDF8'],
-        });
-      } catch {
-        // ignore
+      if (!prefersReducedMotion()) {
+        try {
+          confetti({
+            particleCount: 35,
+            spread: 55,
+            origin: { y: 0.65 },
+            colors: ['#EAB308', '#A855F7', '#38BDF8'],
+          });
+        } catch {
+          // ignore
+        }
       }
-    }, 1000);
+    }, prefersReducedMotion() ? 200 : 1000);
   };
 
   // Helper to get position name from spread config
@@ -203,15 +206,17 @@ export const TarotDeck: React.FC<TarotDeckProps> = ({
         position: getPositionName(idx),
       }));
 
-    try {
-      confetti({
-        particleCount: 60,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#EAB308', '#A855F7', '#38BDF8'],
-      });
-    } catch {
-      // ignore
+    if (!prefersReducedMotion()) {
+      try {
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#EAB308', '#A855F7', '#38BDF8'],
+        });
+      } catch {
+        // ignore
+      }
     }
 
     onCardsSelected(normalizedCards, useAi, deckFilter);

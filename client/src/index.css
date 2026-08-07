@@ -118,6 +118,33 @@
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Respect reduced motion — pause decorative loops & shorten transitions */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-spin-slow,
+  .animate-pulse,
+  .animate-pulse-glow,
+  .animate-float-slow,
+  .animate-bounce,
+  .animate-bounce-slow {
+    animation: none !important;
+  }
+
+  .animate-fade-in {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {

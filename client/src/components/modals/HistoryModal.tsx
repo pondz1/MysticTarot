@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Coins,
 } from 'lucide-react';
+import { ModalShell } from '../common/ModalShell';
 
 interface HistoryModalProps {
   isOpen: boolean;
@@ -85,8 +86,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const getItemCategory = (item: SavedReading): HistoryCategory => {
     return item.category || 'tarot';
   };
@@ -143,47 +142,62 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-3xl max-h-[88vh] glass-panel-gold rounded-2xl p-4 sm:p-6 border border-amber-400/50 shadow-2xl flex flex-col overflow-hidden">
-        
+    <ModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      titleId="history-modal-title"
+      maxWidthClass="max-w-3xl"
+      panelClassName="max-h-[88vh] glass-panel-gold rounded-2xl p-4 sm:p-6 border border-amber-400/50 shadow-2xl flex flex-col overflow-hidden overscroll-contain"
+    >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-3 shrink-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             {activeReading ? (
-              <button
-                type="button"
-                onClick={() => setActiveReading(null)}
-                className="p-1 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/60 flex items-center gap-1 text-xs font-semibold"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>กลับ</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setActiveReading(null)}
+                  className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                >
+                  <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                  <span>กลับ</span>
+                </button>
+                <h2 id="history-modal-title" className="text-sm sm:text-base font-bold text-amber-100 truncate max-w-[12rem] sm:max-w-xs">
+                  {activeReading.title || 'รายละเอียดคำทำนาย'}
+                </h2>
+              </>
             ) : (
               <>
-                <History className="w-5 h-5 text-amber-300" />
-                <h2 className="text-base sm:text-lg font-bold font-serif-mystic text-gold-gradient">
-                  ประวัติการทำนายด้วย AI ทั้งหมด
+                <History className="w-5 h-5 text-amber-300 shrink-0" aria-hidden="true" />
+                <h2 id="history-modal-title" className="text-base sm:text-lg font-bold text-amber-100 truncate">
+                  ประวัติการทำนาย
                 </h2>
               </>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {activeReading && activeReading.resultText && (
               <button
                 type="button"
                 onClick={() => handleCopyText(activeReading.resultText || '')}
-                className="flex items-center gap-1 text-xs text-amber-300 hover:text-amber-100 font-bold bg-amber-600/30 px-2.5 py-1 rounded-lg border border-amber-400/40"
+                className="flex items-center gap-1 text-xs text-amber-200 hover:text-amber-100 font-semibold bg-amber-600/25 px-2.5 py-1.5 min-h-[36px] rounded-lg border border-amber-400/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                )}
                 <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอก'}</span>
               </button>
             )}
             <button
+              type="button"
               onClick={onClose}
-              className="p-1 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/60 cursor-pointer"
+              aria-label="ปิดประวัติการทำนาย"
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -466,8 +480,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
             )}
           </>
         )}
-
-      </div>
-    </div>
+    </ModalShell>
   );
 };
