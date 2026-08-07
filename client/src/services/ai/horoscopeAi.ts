@@ -1,53 +1,7 @@
 import type { ApiSettings, SavedReading } from '../../types';
 import { requestModuleAiCompletion } from './aiClient';
-import {
-  MARKDOWN_OUTPUT_RULES,
-  buildStructureBlock,
-  buildMasterDirectives,
-  lifeAspectSections,
-  buildFallbackMarkdown,
-} from './markdownFormat';
-
-function buildLocalPrompts(
-  signNameTh: string,
-  elementTh: string,
-  timeframe: 'daily' | 'monthly'
-): { systemPrompt: string; userPrompt: string } {
-  const period = timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน';
-
-  const structure = buildStructureBlock(
-    lifeAspectSections({
-      overviewHeading: 'ภาพรวมพลังงานดวงชะตา',
-      overviewGuide: `สรุปพลังงานราศี${signNameTh} ธาตุ${elementTh} ช่วง${period} อย่างมีมิติ อย่างน้อย 1 ย่อหน้า`,
-      workGuide: 'ทิศทางงาน ธุรกิจ การศึกษา โอกาสและอุปสรรค วิเคราะห์เชิงลึก',
-      moneyGuide: 'สภาพคล่อง โชคลาภ การใช้จ่ายและการเก็บออม',
-      loveGuide: 'ความสัมพันธ์ คนมีคู่/คนโสด เสน่ห์และมิตรภาพ',
-      adviceHeading: 'คำแนะนำและข้อคิดชี้ทางจากจักรวาล',
-      adviceGuide: 'ข้อแนะนำปฏิบัติได้จริง 3–5 ข้อแบบ bullet',
-    })
-  );
-
-  const directives = buildMasterDirectives([
-    `**วิเคราะห์ตามราศีและธาตุ (Zodiac Synthesis)**:
-   - อิงราศี **${signNameTh}** ธาตุ **${elementTh}** และช่วง **${period}** เป็นหลัก
-   - ร้อยเรียงงาน เงิน รัก ให้เป็นภาพชีวิตเดียวกัน ไม่แยกขาดจากกัน`,
-    `**สติและความรับผิดชอบ (Wise Counsel)**:
-   - ไม่ขู่เกินเหตุ ไม่รับประกันโชคลาภแน่นอน
-   - ให้สติปัญญาและทางเลือกที่ผู้ใช้นำไปปรับใช้ได้`,
-  ]);
-
-  return {
-    systemPrompt: `คุณคือ "หมอดูโหราศาสตร์ 12 ราศี AI ระดับปรมาจารย์ (Celestial Master Zodiac Prophet)" ผู้หยั่งรู้ดวงดาว อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
-
-${directives}
-
-${MARKDOWN_OUTPUT_RULES}
-
-📌 **โครงสร้างผลทำนายมาตรฐาน (Zodiac)**:
-${structure}`,
-    userPrompt: `โปรดทำนายดวง${period} ของราศี "${signNameTh}" (ธาตุ ${elementTh}) ตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`,
-  };
-}
+import { buildModulePrompts } from './buildPrompts';
+import { buildFallbackMarkdown } from './markdownFormat';
 
 export async function analyzeZodiacHoroscope(
   signNameTh: string,
@@ -58,15 +12,18 @@ export async function analyzeZodiacHoroscope(
   historyEntry?: Partial<SavedReading>,
   signal?: AbortSignal
 ): Promise<string> {
+  const payload = { signNameTh, elementTh, timeframe };
+  const localPrompts = buildModulePrompts('horoscope', payload);
+
   try {
     const content = await requestModuleAiCompletion(
       'horoscope',
-      { signNameTh, elementTh, timeframe },
+      payload,
       settings,
       onChunk,
       historyEntry,
       signal,
-      buildLocalPrompts(signNameTh, elementTh, timeframe)
+      localPrompts
     );
     if (content && content.trim()) return content;
     throw new Error('ไม่สามารถประมวลผลคำตอบจาก AI ได้ในขณะนี้');

@@ -10,6 +10,7 @@ export {
   isCustomKeyMode,
 } from './ai/aiClient';
 export type { AiModuleId } from './ai/aiClient';
+export { buildModulePrompts, isAiModuleId } from './ai/buildPrompts';
 
 export {
   analyzeTarotReading,

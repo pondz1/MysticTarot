@@ -1,69 +1,7 @@
 import type { ApiSettings, SavedReading } from '../../types';
 import { requestModuleAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
-import {
-  MARKDOWN_OUTPUT_RULES,
-  buildStructureBlock,
-  buildMasterDirectives,
-  buildFallbackMarkdown,
-} from './markdownFormat';
-
-function buildLocalPrompts(
-  birthDate: string,
-  dayOfWeekTh: string,
-  elementTh: string,
-  peakAgeRange: string,
-  summaryGuidance: string
-): { systemPrompt: string; userPrompt: string } {
-  const structure = buildStructureBlock([
-    {
-      heading: 'ภาพรวมกราฟชีวิต',
-      guide: `สรุปพื้นดวงผู้เกิดวัน${dayOfWeekTh} ธาตุ${elementTh} และโทนชีวิตโดยรวมอย่างมีมิติ`,
-    },
-    {
-      heading: `ช่วงอายุพีค (${peakAgeRange})`,
-      guide: 'โอกาส ความสำเร็จ และสิ่งที่ควรเร่งทำในช่วงพีค วิเคราะห์ละเอียด',
-    },
-    {
-      heading: 'การงานและเกียรติยศ',
-      guide: 'ทิศทางงาน ชื่อเสียง ผู้ใหญ่ และจังหวะก้าวหน้า',
-    },
-    {
-      heading: 'การเงินและทรัพย์สิน',
-      guide: 'โชคลาภ ทรัพย์สิน และการวางแผนระยะยาว',
-    },
-    {
-      heading: 'ความรักและครอบครัว',
-      guide: 'คู่ครอง ครอบครัว และความสัมพันธ์เกื้อกูล',
-    },
-    {
-      heading: 'ข้อควรระวังและคำแนะนำ',
-      guide: 'ช่วงกราฟลง วิธีตั้งรับ และ actionable 3–5 ข้อแบบ bullet',
-    },
-  ]);
-
-  const directives = buildMasterDirectives([
-    `**วิเคราะห์ตามตำรากราฟชีวิต (Thai Life Chart Synthesis)**:
-   - อิงวันเกิด **${birthDate}** วัน **${dayOfWeekTh}** ธาตุ **${elementTh}** และช่วงพีค **${peakAgeRange}**
-   - ร้อยเรียงจังหวะชีวิต งาน เงิน รัก เป็นภาพชะตาเดียวกัน
-   - ข้อมูลอ้างอิงพื้นดวง: ${summaryGuidance}`,
-    `**สติและความรับผิดชอบ (Wise Counsel)**:
-   - ไม่ขู่เกินเหตุ เน้นการเตรียมตัว วางแผน และบำเพ็ญตน
-   - ให้ทางเลือกที่ผู้ใช้ปรับใช้ตามวัยและจังหวะชีวิตได้`,
-  ]);
-
-  return {
-    systemPrompt: `คุณคือ "หมอดูดวงไทยและกราฟชีวิต AI ระดับปรมาจารย์ (Celestial Master Thai Astrology Prophet)" ผู้เชี่ยวชาญตำรากราฟชีวิตโบราณ อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
-
-${directives}
-
-${MARKDOWN_OUTPUT_RULES}
-
-📌 **โครงสร้างผลทำนายมาตรฐาน (Thai Life Chart)**:
-${structure}`,
-    userPrompt: `วิเคราะห์กราฟชีวิตผู้เกิดวัน "${dayOfWeekTh}" วันที่ ${birthDate} ธาตุ ${elementTh} ช่วงพีค ${peakAgeRange}
-ตอบตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`,
-  };
-}
+import { buildModulePrompts } from './buildPrompts';
+import { buildFallbackMarkdown } from './markdownFormat';
 
 export async function analyzeThaiLifeGraph(
   birthDate: string,
@@ -77,21 +15,24 @@ export async function analyzeThaiLifeGraph(
   signal?: AbortSignal
 ): Promise<string> {
   const activeSettings = settings || DEFAULT_API_SETTINGS;
+  const payload = {
+    birthDate,
+    dayOfWeekTh,
+    elementTh,
+    peakAgeRange,
+    summaryGuidance,
+  };
+  const localPrompts = buildModulePrompts('thai_astrology', payload);
+
   try {
     const content = await requestModuleAiCompletion(
       'thai_astrology',
-      {
-        birthDate,
-        dayOfWeekTh,
-        elementTh,
-        peakAgeRange,
-        summaryGuidance,
-      },
+      payload,
       activeSettings,
       onChunk,
       historyEntry,
       signal,
-      buildLocalPrompts(birthDate, dayOfWeekTh, elementTh, peakAgeRange, summaryGuidance)
+      localPrompts
     );
     if (content && content.trim()) return content;
     throw new Error('ไม่สามารถประมวลผลคำตอบจาก AI ได้ในขณะนี้');

@@ -1,5 +1,9 @@
-/** Re-export shared AI module types */
+/**
+ * Re-export shared module prompt builders (same as server credit mode).
+ */
 export {
+  buildModulePrompts,
+  getSpreadConfig,
   AI_MODULE_IDS,
   isAiModuleId,
   type AiModuleId,
@@ -11,4 +15,4 @@ export {
   type NumerologyPayload,
   type FengShuiPayload,
   type ThaiAstrologyPayload,
-} from '../../../shared/ai/types.js';
+} from '@shared/ai/buildPrompts';
