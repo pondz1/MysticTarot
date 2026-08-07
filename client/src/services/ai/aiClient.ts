@@ -157,6 +157,13 @@ type CreditBody = {
   historyEntry?: Partial<SavedReading>;
 };
 
+function idempotencyHeaders(historyEntry?: Partial<SavedReading>): Record<string, string> {
+  if (historyEntry?.id) {
+    return { 'X-Idempotency-Key': String(historyEntry.id) };
+  }
+  return {};
+}
+
 async function creditNonStream(body: CreditBody, signal?: AbortSignal): Promise<string> {
   try {
     const data = await apiClient.post<{
@@ -172,7 +179,10 @@ async function creditNonStream(body: CreditBody, signal?: AbortSignal): Promise<
         stream: false,
         historyEntry: body.historyEntry,
       },
-      signal ? { signal } : undefined
+      {
+        ...(signal ? { signal } : {}),
+        headers: idempotencyHeaders(body.historyEntry),
+      }
     );
 
     if (data.result) {
@@ -196,6 +206,9 @@ async function creditNonStream(body: CreditBody, signal?: AbortSignal): Promise<
       if (err.status === 402) {
         throw new Error(err.message || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
       }
+      if (err.status === 409) {
+        throw new Error(err.message || 'คำขอนี้กำลังประมวลผลอยู่ กรุณารอสักครู่');
+      }
       throw new Error(err.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
     }
     const message =
@@ -217,6 +230,7 @@ async function* creditStream(body: CreditBody, signal?: AbortSignal): AsyncItera
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
       'X-Session-ID': getClientSessionId(),
+      ...idempotencyHeaders(body.historyEntry),
     },
     body: JSON.stringify({
       module: body.module,
@@ -244,6 +258,11 @@ async function* creditStream(body: CreditBody, signal?: AbortSignal): AsyncItera
         (errJson?.error as string) ||
           (errJson?.message as string) ||
           'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key'
+      );
+    }
+    if (response.status === 409) {
+      throw new Error(
+        (errJson?.error as string) || 'คำขอนี้กำลังประมวลผลอยู่ กรุณารอสักครู่'
       );
     }
     throw new Error(
