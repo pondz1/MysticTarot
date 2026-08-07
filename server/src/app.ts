@@ -48,8 +48,19 @@ export function createApp() {
     })
   );
 
-  app.use(express.json({ limit: '100kb' }));
-  // Omise webhooks have no user JWT — register before/after auth; auth is optional
+  // Capture raw body for Omise webhook HMAC verification (needs exact bytes)
+  app.use(
+    express.json({
+      limit: '100kb',
+      verify: (req, _res, buf) => {
+        const url = req.url || '';
+        if (url.startsWith('/api/webhooks/omise')) {
+          (req as Request & { rawBody?: Buffer }).rawBody = Buffer.from(buf);
+        }
+      },
+    })
+  );
+  // Omise webhooks: no JWT — verify Omise-Signature when OMISE_WEBHOOK_SECRET is set
   app.post('/api/webhooks/omise', omiseWebhookHandler);
   app.use(authMiddleware);
 

@@ -183,9 +183,10 @@ describe('Omise top-up payments', () => {
     expect(creditsDb.getCredits(userId)).toBe(30);
   });
 
-  it('webhook charge.complete fulfills order', async () => {
+  it('webhook charge.complete fulfills order (legacy ?secret=)', async () => {
     process.env.OMISE_SECRET_KEY = 'skey_test_fake';
-    process.env.OMISE_WEBHOOK_SECRET = 'whsec';
+    // plain string used only for legacy query fallback (not base64 Omise secret)
+    process.env.OMISE_WEBHOOK_SECRET = 'legacy-custom-secret';
 
     const userId = `omise_wh_${Date.now()}`;
     const chargeId = `chrg_wh_${Date.now()}`;
@@ -221,7 +222,7 @@ describe('Omise top-up payments', () => {
     );
 
     const res = await request(app)
-      .post('/api/webhooks/omise?secret=whsec')
+      .post('/api/webhooks/omise?secret=legacy-custom-secret')
       .send({
         object: 'event',
         id: 'evnt_1',
@@ -235,9 +236,72 @@ describe('Omise top-up payments', () => {
     expect(creditsDb.getCredits(userId)).toBe(55);
   });
 
+  it('webhook accepts Omise-Signature HMAC headers', async () => {
+    process.env.OMISE_SECRET_KEY = 'skey_test_fake';
+    const secretBytes = Buffer.from('omise-test-hmac-secret-key!!');
+    const secretB64 = secretBytes.toString('base64');
+    process.env.OMISE_WEBHOOK_SECRET = secretB64;
+
+    const userId = `omise_sig_${Date.now()}`;
+    const chargeId = `chrg_sig_${Date.now()}`;
+    creditsDb.resetCredits(userId, 0);
+    paymentsDb.create({
+      id: `ord_sig_${Date.now()}`,
+      userId,
+      packageId: 'pkg_starter',
+      packageName: 'Starter Pack',
+      credits: 20,
+      amountSatang: 2900,
+      method: 'promptpay',
+      omiseChargeId: chargeId,
+      status: 'pending',
+    });
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        return new Response(
+          JSON.stringify({
+            object: 'charge',
+            id: chargeId,
+            status: 'successful',
+            amount: 2900,
+            currency: 'thb',
+            paid: true,
+          }),
+          { status: 200 }
+        );
+      })
+    );
+
+    const body = {
+      object: 'event',
+      id: 'evnt_sig',
+      key: 'charge.complete',
+      data: { id: chargeId, object: 'charge', status: 'successful', amount: 2900 },
+    };
+    const raw = JSON.stringify(body);
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const crypto = await import('crypto');
+    const signature = crypto
+      .createHmac('sha256', secretBytes)
+      .update(`${timestamp}.${raw}`, 'utf8')
+      .digest('hex');
+
+    const res = await request(app)
+      .post('/api/webhooks/omise')
+      .set('Omise-Signature', signature)
+      .set('Omise-Signature-Timestamp', timestamp)
+      .set('Content-Type', 'application/json')
+      .send(raw);
+
+    expect(res.status).toBe(200);
+    expect(res.body.newlyFulfilled).toBe(true);
+  });
+
   it('rejects webhook with wrong secret', async () => {
     process.env.OMISE_SECRET_KEY = 'skey_test_fake';
-    process.env.OMISE_WEBHOOK_SECRET = 'whsec';
+    process.env.OMISE_WEBHOOK_SECRET = 'legacy-custom-secret';
 
     const res = await request(app)
       .post('/api/webhooks/omise?secret=wrong')

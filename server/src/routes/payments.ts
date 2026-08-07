@@ -297,7 +297,11 @@ paymentsRouter.get('/topup/:orderId/status', async (req: AuthRequest, res: Respo
 
 /**
  * POST /api/webhooks/omise
- * Omise event webhook — verify by re-fetching charge, then fulfill.
+ * Omise event webhook — verify Omise-Signature (HMAC) when secret configured,
+ * then re-fetch charge and fulfill.
+ *
+ * Dashboard "Webhook secret" ≠ query ?secret=
+ * Omise sends: Omise-Signature + Omise-Signature-Timestamp headers.
  */
 export async function omiseWebhookHandler(req: Request, res: Response): Promise<void> {
   try {
@@ -306,16 +310,42 @@ export async function omiseWebhookHandler(req: Request, res: Response): Promise<
       return;
     }
 
-    // Optional shared secret path segment or header
-    const expected = process.env.OMISE_WEBHOOK_SECRET?.trim();
-    if (expected) {
-      const provided =
-        (req.headers['x-omise-webhook-secret'] as string) ||
-        (req.query.secret as string) ||
-        '';
-      if (provided !== expected) {
-        res.status(401).json({ error: 'Invalid webhook secret' });
-        return;
+    const webhookSecret = process.env.OMISE_WEBHOOK_SECRET?.trim();
+    if (webhookSecret) {
+      // Prefer native Omise HMAC signatures
+      const hasOmiseHeaders =
+        typeof req.headers['omise-signature'] === 'string' &&
+        typeof req.headers['omise-signature-timestamp'] === 'string';
+
+      if (hasOmiseHeaders) {
+        const { verifyOmiseWebhookSignature } = await import(
+          '../services/omiseWebhookVerify.js'
+        );
+        const result = verifyOmiseWebhookSignature(req, webhookSecret);
+        if (!result.ok) {
+          console.warn('[Omise webhook] signature rejected:', result.reason);
+          res.status(401).json({ error: 'Invalid Omise signature', reason: result.reason });
+          return;
+        }
+      } else {
+        // Legacy fallback: custom query/header secret (not Omise Dashboard secret)
+        const provided =
+          (req.headers['x-omise-webhook-secret'] as string) ||
+          (typeof req.query.secret === 'string' ? req.query.secret : '') ||
+          '';
+        if (provided !== webhookSecret) {
+          console.warn(
+            '[Omise webhook] 401: no Omise-Signature headers and custom ?secret= mismatch. ' +
+              'If you generated a secret in Omise Dashboard, store it as OMISE_WEBHOOK_SECRET ' +
+              'and keep URL without ?secret= — Omise signs via headers.'
+          );
+          res.status(401).json({
+            error: 'Invalid webhook authentication',
+            hint:
+              'Use Omise Dashboard webhook secret with header verification, or remove OMISE_WEBHOOK_SECRET for event-id re-fetch only.',
+          });
+          return;
+        }
       }
     }
 
