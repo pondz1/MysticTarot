@@ -34,9 +34,9 @@ export const PredictionStreamingBadge: React.FC<PredictionStreamingBadgeProps> =
 }) => (
   <div
     role="status"
-    className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-slate-400 text-xs font-medium"
+    className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-violet-500/15 border border-violet-400/35 text-violet-200 text-xs font-medium"
   >
-    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" aria-hidden="true" />
+    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(167,139,250,0.7)]" aria-hidden="true" />
     <span>{label}</span>
   </div>
 );
@@ -78,14 +78,21 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
   compact = false,
 }) => (
   <article
-    className={`relative rounded-2xl border border-slate-700/90 bg-slate-950/70 overflow-hidden animate-fade-in ${
+    className={`relative rounded-2xl border border-amber-500/20 bg-gradient-to-b from-slate-900/90 via-slate-950/90 to-slate-950 overflow-hidden animate-fade-in shadow-[0_0_40px_-12px_rgba(245,158,11,0.15)] ${
       compact ? 'p-4 sm:p-5' : 'p-5 sm:p-6 md:p-7'
     } ${className}`}
   >
-    <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4 mb-5">
-      <div className="flex items-center gap-2 min-w-0">
-        <Feather className="w-5 h-5 text-amber-400/90 shrink-0" aria-hidden="true" />
-        <h2 className="text-base sm:text-lg font-bold text-slate-100 truncate">{title}</h2>
+    {/* soft top accent */}
+    <div
+      className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent"
+      aria-hidden="true"
+    />
+    <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/15 pb-4 mb-5">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/30 shrink-0">
+          <Feather className="w-4.5 h-4.5 text-amber-300" aria-hidden="true" />
+        </span>
+        <h2 className="text-base sm:text-lg font-bold text-amber-50 truncate">{title}</h2>
       </div>
       <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap justify-end">
         {headerActions}
@@ -93,13 +100,13 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
           <button
             type="button"
             onClick={onCopy}
-            className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg text-xs font-medium bg-slate-900 border border-slate-700 text-slate-300 hover:text-slate-100 hover:border-slate-600 transition-colors cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg text-xs font-medium bg-amber-500/10 border border-amber-500/30 text-amber-100 hover:bg-amber-500/20 hover:border-amber-400/45 transition-colors cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             title="คัดลอกข้อความคำทำนาย"
           >
             {copied ? (
               <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
             ) : (
-              <Copy className="w-3.5 h-3.5 text-amber-400 shrink-0" aria-hidden="true" />
+              <Copy className="w-3.5 h-3.5 text-amber-300 shrink-0" aria-hidden="true" />
             )}
             <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอกข้อความ'}</span>
           </button>
@@ -117,7 +124,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
     </div>
 
     {footer && (
-      <footer className="mt-6 pt-5 border-t border-slate-800">{footer}</footer>
+      <footer className="mt-6 pt-5 border-t border-amber-500/15">{footer}</footer>
     )}
   </article>
 );
