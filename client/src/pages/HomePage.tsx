@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Sparkles,
   Star,
   ArrowRight,
   Sun,
@@ -90,54 +89,47 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-12 animate-fade-in pb-16">
-      {/* Hero Banner Section */}
-      <section className={`relative rounded-3xl p-6 sm:p-12 overflow-hidden border ${homeTheme.cardBg} shadow-2xl text-center space-y-6`}>
-        {/* Background glow effects */}
-        <div className="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="w-full max-w-6xl mx-auto space-y-10 sm:space-y-12 animate-fade-in pb-16">
+      {/* Hero — content first, one accent */}
+      <section className="relative rounded-2xl sm:rounded-3xl p-6 sm:p-10 overflow-hidden border border-slate-800/90 bg-slate-900/40 text-center space-y-5">
+        <p className="text-[11px] sm:text-xs font-medium tracking-wide text-slate-500 uppercase">
+          MysticVerse
+        </p>
 
-        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full ${homeTheme.badgeBg} text-xs sm:text-sm font-semibold tracking-wide`}>
-          <Sparkles className={`w-4 h-4 ${homeTheme.iconColor} animate-spin`} />
-          <span>MysticVerse — พื้นที่แห่งปัญญาจักรวาล & โหราศาสตร์ออราเคิล</span>
-        </div>
-
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-amber-50 leading-tight px-1 text-pretty">
+        <h1 className="text-2xl sm:text-4xl md:text-[2.75rem] font-bold text-slate-50 leading-tight px-1 text-pretty">
           ศูนย์รวมศาสตร์ทำนาย
-          <span className="block text-lg sm:text-2xl md:text-3xl font-semibold text-amber-200/90 mt-2">
+          <span className="block text-base sm:text-xl md:text-2xl font-medium text-slate-400 mt-2 tracking-normal font-sans">
             ไพ่ยิปซี · ราศี · เลขศาสตร์ · ดวงไทย · ฮวงจุ้ย
           </span>
         </h1>
 
-        <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-          เลือกศาสตร์ที่ใช่ ตั้งคำถาม แล้วรับคำทำนาย — เริ่มจากไพ่ยิปซีได้ทันที
+        <p className="text-slate-500 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+          เลือกศาสตร์ ตั้งคำถาม รับคำทำนาย — เริ่มจากไพ่ยิปซีได้ทันที
         </p>
 
-        {/* Daily Quick Oracle Interactive Drawer */}
-        <div className="pt-4 max-w-xl mx-auto">
-          <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/90 border border-amber-500/30 backdrop-blur-md space-y-3 shadow-xl">
+        {/* Daily oracle — secondary, not competing with primary CTA */}
+        <div className="pt-2 max-w-lg mx-auto">
+          <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5 min-w-0">
-                <Sun className={`w-4 h-4 ${homeTheme.iconColor} shrink-0`} />
-                <span className="whitespace-nowrap">สาส์นคำแนะนำประจำวัน</span>
+              <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5 min-w-0">
+                <Sun className="w-3.5 h-3.5 text-amber-400/80 shrink-0" aria-hidden="true" />
+                <span className="whitespace-nowrap">สาส์นประจำวัน</span>
               </span>
               <button
                 type="button"
                 onClick={handleDrawOracle}
-                className={`text-xs px-3 py-1.5 rounded-lg ${homeTheme.secondaryBtn} font-semibold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0`}
+                className="text-xs px-3 py-1.5 min-h-[36px] rounded-lg border border-slate-700 text-slate-300 hover:border-amber-400/40 hover:text-amber-100 font-medium transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>เปิดสาส์นนำทางประจำวัน</span>
+                <span>สุ่มข้อความ</span>
               </button>
             </div>
             {randomOracle ? (
-              <p className="text-sm font-medium text-slate-100 bg-slate-950 p-3 rounded-xl border border-slate-800 text-left animate-fade-in flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>{randomOracle}</span>
+              <p className="text-sm font-medium text-slate-200 bg-slate-900/80 p-3 rounded-lg border border-slate-800 text-left animate-fade-in">
+                {randomOracle}
               </p>
             ) : (
-              <p className="text-xs text-slate-400 text-left italic">
-                แตะปุ่ม "เปิดสาส์นนำทางประจำวัน" เพื่อรับข้อคิดและสาส์นนำทางชีวิตสั้นๆ ประจำวันนี้...
+              <p className="text-xs text-slate-600 text-left">
+                แตะ「สุ่มข้อความ」เพื่อรับข้อคิดสั้นๆ ประจำวัน
               </p>
             )}
           </div>
@@ -162,28 +154,28 @@ export const HomePage: React.FC = () => {
           return (
             <Link
               to={tarot.link}
-              className={`group relative block rounded-2xl p-5 sm:p-7 border ${theme.cardBg} border-amber-400/40 shadow-xl transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950`}
+              className="group relative block rounded-2xl p-5 sm:p-7 border border-amber-400/30 bg-slate-900/50 hover:border-amber-400/50 hover:bg-slate-900/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07060f]"
             >
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                <div className={`p-3.5 rounded-2xl ${theme.badgeBg} border border-amber-500/25 shrink-0 inline-flex self-start`}>
-                  <Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${theme.iconColor}`} aria-hidden="true" />
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 shrink-0 inline-flex self-start">
+                  <Icon className={`w-8 h-8 sm:w-9 sm:h-9 ${theme.iconColor}`} aria-hidden="true" />
                 </div>
                 <div className="flex-1 min-w-0 space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-lg sm:text-xl font-bold text-amber-100">{tarot.title}</h3>
-                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${theme.badgeBg}`}>
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-50">{tarot.title}</h3>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-200 border border-amber-500/25">
                       {tarot.badge}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-300">{tarot.tagline}</p>
-                  <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">{tarot.description}</p>
+                  <p className="text-sm text-slate-400">{tarot.tagline}</p>
+                  <p className="text-xs text-slate-600 leading-relaxed max-w-2xl hidden sm:block">{tarot.description}</p>
                 </div>
                 <div className="flex flex-col sm:items-end gap-2 shrink-0">
-                  <span className={`inline-flex items-center gap-2 text-sm font-bold px-4 py-2.5 min-h-[44px] rounded-xl ${theme.primaryBtn} shadow-md`}>
+                  <span className="inline-flex items-center gap-2 text-sm font-bold px-4 py-2.5 min-h-[44px] rounded-xl bg-amber-500 text-slate-950 group-hover:bg-amber-400 transition-colors">
                     เริ่มทำนายไพ่
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                   </span>
-                  <span className="text-[11px] text-slate-500">ค่าเริ่มต้น: เปิด 3 ใบ · คลี่ไพ่เลือกเอง</span>
+                  <span className="text-[11px] text-slate-600">ค่าเริ่มต้น: เปิด 3 ใบ · คลี่ไพ่เลือกเอง</span>
                 </div>
               </div>
             </Link>
@@ -220,28 +212,28 @@ export const HomePage: React.FC = () => {
               <Link
                 key={service.id}
                 to={service.link}
-                className={`group relative rounded-2xl p-5 border ${theme.cardBg} transition-transform duration-200 hover:-translate-y-0.5 shadow-lg flex flex-col justify-between gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950`}
+                className="group relative rounded-2xl p-5 border border-slate-800 bg-slate-900/30 hover:border-slate-600 hover:bg-slate-900/50 transition-colors flex flex-col justify-between gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07060f]"
               >
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between gap-2">
-                    <div className={`p-2.5 rounded-xl ${theme.badgeBg} border border-white/5 shrink-0 inline-flex`}>
-                      <Icon className={`w-6 h-6 ${theme.iconColor}`} aria-hidden="true" />
+                    <div className="p-2 rounded-lg bg-slate-950/80 border border-slate-800 shrink-0 inline-flex">
+                      <Icon className={`w-5 h-5 ${theme.iconColor}`} aria-hidden="true" />
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${theme.badgeBg}`}>
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full text-slate-500 border border-slate-800">
                       {service.badge}
                     </span>
                   </div>
                   <div>
-                    <h3 className={`text-base font-bold ${theme.iconColor} group-hover:brightness-110 transition-all`}>
+                    <h3 className="text-base font-semibold text-slate-100 group-hover:text-white transition-colors">
                       {service.title}
                     </h3>
-                    <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{service.tagline}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{service.tagline}</p>
                   </div>
                 </div>
 
-                <span className="inline-flex items-center justify-between text-xs font-semibold text-slate-300 group-hover:text-white pt-1">
+                <span className="inline-flex items-center justify-between text-xs font-medium text-slate-500 group-hover:text-slate-300 pt-1">
                   <span>เข้าใช้บริการ</span>
-                  <ArrowRight className={`w-4 h-4 ${theme.iconColor} group-hover:translate-x-0.5 transition-transform`} aria-hidden="true" />
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                 </span>
               </Link>
             );

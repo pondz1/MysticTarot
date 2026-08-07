@@ -23,23 +23,25 @@ export const DeckConfirmation: React.FC<DeckConfirmationProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-lg glass-panel-gold rounded-2xl p-4 mt-2 flex flex-col items-center gap-3 text-center border border-amber-400/60 shadow-xl"
+      className="w-full max-w-lg rounded-2xl p-4 mt-2 flex flex-col items-center gap-3 text-center border border-amber-400/30 bg-slate-950/90"
     >
-      <div className="flex items-center gap-1.5 text-amber-300 text-xs font-semibold">
-        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-        <span>เลือกไพ่ครบถ้วน ({selectedCount} / {targetCount} ใบ)</span>
+      <div className="flex items-center gap-1.5 text-emerald-300/90 text-xs font-semibold">
+        <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+        <span>
+          เลือกครบ {selectedCount}/{targetCount} ใบ
+        </span>
       </div>
 
-      <div className="w-full flex items-center justify-center p-1 rounded-xl bg-black/60 border border-purple-500/40 gap-1">
+      <div className="w-full flex items-center justify-center p-1 rounded-xl bg-slate-900 border border-slate-800 gap-1">
         <button
           type="button"
           onClick={() => setUseAi(true)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
             useAi
-              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
-              : 'text-purple-300 hover:text-white hover:bg-purple-900/40'
+              ? 'bg-amber-500 text-slate-950 font-bold'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
@@ -49,10 +51,10 @@ export const DeckConfirmation: React.FC<DeckConfirmationProps> = ({
         <button
           type="button"
           onClick={() => setUseAi(false)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
             !useAi
-              ? 'bg-purple-800 text-amber-200 font-bold border border-amber-400/40 shadow-md'
-              : 'text-purple-300 hover:text-white hover:bg-purple-900/40'
+              ? 'bg-slate-700 text-amber-100 font-bold border border-slate-600'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
         >
           <BookOpen className="w-3.5 h-3.5" aria-hidden="true" />
@@ -63,24 +65,22 @@ export const DeckConfirmation: React.FC<DeckConfirmationProps> = ({
       <button
         type="button"
         onClick={onConfirm}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 min-h-[48px] rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-bold text-sm sm:text-base shadow-lg shadow-amber-500/20 border border-amber-200 active:scale-[0.98] transition-transform cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 min-h-[48px] rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm sm:text-base active:scale-[0.99] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
       >
         {useAi ? (
           <>
-            <Sparkles className="w-5 h-5 text-purple-950 fill-purple-950" aria-hidden="true" />
+            <Sparkles className="w-5 h-5" aria-hidden="true" />
             <span>ดูคำทำนายด้วย AI</span>
           </>
         ) : (
           <>
-            <BookOpen className="w-5 h-5 text-purple-950" aria-hidden="true" />
+            <BookOpen className="w-5 h-5" aria-hidden="true" />
             <span>ดูคำทำนายมาตรฐาน</span>
           </>
         )}
       </button>
 
-      <p className="text-[11px] text-slate-500">
-        แตะไพ่ใบอื่นในสำรับเพื่อสลับก่อนยืนยันได้
-      </p>
+      <p className="text-[11px] text-slate-600">แตะไพ่ใบอื่นเพื่อสลับก่อนยืนยันได้</p>
     </motion.div>
   );
 };

@@ -34,9 +34,9 @@ const FengShuiPage = lazy(() =>
 );
 
 const PageLoadingFallback = () => (
-  <div className="py-20 flex flex-col items-center justify-center gap-3 text-amber-300">
-    <Sparkles className="w-8 h-8 animate-spin text-amber-400" />
-    <p className="text-xs sm:text-sm font-medium tracking-wide">กำลังเชื่อมต่อและโหลดข้อมูลศาสตร์ทำนาย...</p>
+  <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400" role="status">
+    <Sparkles className="w-7 h-7 text-amber-400/80" aria-hidden="true" />
+    <p className="text-xs sm:text-sm font-medium tracking-wide">กำลังโหลด…</p>
   </div>
 );
 
@@ -108,10 +108,10 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between text-slate-100 bg-[#050510] relative overflow-hidden">
+    <div className="min-h-screen flex flex-col justify-between text-slate-100 bg-[#07060f] relative overflow-hidden">
 
-      {/* Background Star Particles */}
-      <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:32px_32px] opacity-10 pointer-events-none" />
+      {/* Subtle star field — low contrast so content wins */}
+      <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:40px_40px] opacity-[0.04] pointer-events-none" aria-hidden="true" />
 
       {/* Navbar Header */}
       <Navbar

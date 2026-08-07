@@ -90,7 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-amber-500/20 glass-panel backdrop-blur-md px-3 sm:px-4 py-2 sm:py-2.5">
+    <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#0a0914]/92 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-2.5">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
 
         <Link
@@ -102,33 +102,36 @@ export const Navbar: React.FC<NavbarProps> = ({
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         >
-          <div className="relative p-1.5 sm:p-2 rounded-xl bg-gradient-to-tr from-purple-900 via-amber-700 to-purple-600 border border-amber-400/40 shadow-lg group-hover:scale-105 transition-transform shrink-0">
-            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-200 animate-pulse" />
+          <div className="relative p-1.5 sm:p-2 rounded-xl bg-amber-500/15 border border-amber-400/30 shrink-0">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300" aria-hidden="true" />
           </div>
           <div className="flex flex-col min-w-0">
-            <h1 className="text-sm sm:text-base md:text-xl font-bold font-serif-mystic text-gold-gradient tracking-tight leading-none whitespace-nowrap">
+            <span className="text-sm sm:text-base md:text-lg font-bold font-serif-mystic text-amber-50 tracking-tight leading-none whitespace-nowrap">
               MYSTICVERSE
-            </h1>
-            <p className="hidden sm:block text-[9px] text-amber-300/80 tracking-widest uppercase font-light mt-0.5">
-              ศูนย์รวมศาสตร์ดูดวง & โหราศาสตร์ AI
+            </span>
+            <p className="hidden sm:block text-[9px] text-slate-500 tracking-wide mt-0.5">
+              ศาสตร์ทำนาย · AI
             </p>
           </div>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1.5 py-0.5">
+        <nav className="hidden md:flex items-center gap-1 py-0.5" aria-label="เมนูหลัก">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                   item.active
                     ? `${item.theme.activeNavStyle} font-semibold`
-                    : 'text-slate-300 bg-slate-900/80 border-slate-800 hover:bg-slate-800 hover:text-white'
+                    : 'text-slate-400 bg-transparent border-transparent hover:bg-slate-800/80 hover:text-slate-100'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${item.theme.iconColor} shrink-0`} />
+                <Icon
+                  className={`w-3.5 h-3.5 shrink-0 ${item.active ? item.theme.iconColor : 'text-slate-500'}`}
+                  aria-hidden="true"
+                />
                 <span className="whitespace-nowrap">{item.label}</span>
               </Link>
             );
@@ -223,7 +226,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25 }}
-            className="md:hidden border-t border-amber-500/20 mt-2.5 pt-3 pb-2 px-1 space-y-2 bg-slate-950/95 rounded-b-2xl backdrop-blur-xl shadow-2xl overflow-hidden"
+            className="md:hidden border-t border-white/5 mt-2.5 pt-3 pb-2 px-1 space-y-2 bg-[#0a0914] rounded-b-2xl overflow-hidden"
           >
             <div className="grid grid-cols-2 gap-2">
               {navItems.map((item) => {
@@ -233,15 +236,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-2.5 p-3 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                    className={`flex items-center gap-2.5 p-3 min-h-[44px] rounded-xl text-xs font-semibold transition-colors cursor-pointer border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                       item.active
-                        ? `${item.theme.activeNavStyle} shadow-md`
-                        : 'text-slate-300 bg-slate-900 border-slate-800/80 hover:bg-slate-800'
+                        ? item.theme.activeNavStyle
+                        : 'text-slate-300 bg-slate-900/80 border-slate-800 hover:bg-slate-800'
                     }`}
                   >
-                    <div className={`p-1.5 rounded-lg border ${item.theme.badgeBg}`}>
-                      <Icon className="w-4 h-4" />
-                    </div>
+                    <Icon className={`w-4 h-4 shrink-0 ${item.theme.iconColor}`} aria-hidden="true" />
                     <span className="truncate">{item.label}</span>
                   </Link>
                 );

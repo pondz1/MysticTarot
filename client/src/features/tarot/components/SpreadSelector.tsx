@@ -65,28 +65,28 @@ export const SpreadSelector: React.FC<SpreadSelectorProps> = ({
               aria-selected={isSelected}
               disabled={disabled}
               onClick={() => onSelectMode(spread.id)}
-              className={`relative flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl text-left transition-all duration-200 cursor-pointer disabled:opacity-50 w-[165px] xs:w-[185px] sm:w-auto shrink-0 sm:shrink snap-align-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
+              className={`relative flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl text-left transition-colors duration-150 cursor-pointer disabled:opacity-50 w-[165px] xs:w-[185px] sm:w-auto shrink-0 sm:shrink snap-align-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07060f] ${
                 isSelected
-                  ? 'bg-gradient-to-b from-purple-900/90 via-purple-950/90 to-slate-900 border-2 border-amber-400 shadow-[0_0_16px_rgba(234,179,8,0.28)]'
-                  : 'bg-slate-900/70 border border-slate-700/80 hover:border-amber-400/35 hover:bg-slate-900'
+                  ? 'bg-slate-900 border-2 border-amber-400/70'
+                  : 'bg-slate-950/50 border border-slate-800 hover:border-slate-600 hover:bg-slate-900/60'
               }`}
             >
               {isRecommended && (
-                <span className="absolute -top-2 left-3 text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 border border-amber-300 tracking-wide">
+                <span className="absolute -top-2 left-3 text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 tracking-wide">
                   แนะนำ
                 </span>
               )}
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <div className="p-1.5 rounded-xl bg-purple-950/80 border border-amber-400/25">
+                  <div className="p-1.5 rounded-lg bg-slate-950 border border-slate-800">
                     {renderIcon(spread.iconName, isSelected)}
                   </div>
                   <span
-                    className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                    className={`text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
                       isSelected
-                        ? 'bg-amber-400 text-slate-950 border-amber-300'
-                        : 'bg-slate-950/60 text-amber-200/80 border-slate-600'
+                        ? 'bg-amber-500 text-slate-950 border-amber-400'
+                        : 'bg-transparent text-slate-500 border-slate-700'
                     }`}
                   >
                     {spread.cardCount} ใบ
@@ -95,16 +95,16 @@ export const SpreadSelector: React.FC<SpreadSelectorProps> = ({
 
                 <h3
                   className={`text-xs sm:text-sm font-bold mb-0.5 truncate ${
-                    isSelected ? 'text-amber-100' : 'text-slate-200'
+                    isSelected ? 'text-amber-50' : 'text-slate-200'
                   }`}
                 >
                   {spread.titleTh}
                 </h3>
-                <p className="text-[9px] sm:text-[10px] text-slate-500 mb-1.5 truncate">
+                <p className="text-[9px] sm:text-[10px] text-slate-600 mb-1.5 truncate">
                   {spread.titleEn}
                 </p>
 
-                <p className="text-[10px] sm:text-[11px] text-slate-400 leading-tight line-clamp-2">
+                <p className="text-[10px] sm:text-[11px] text-slate-500 leading-tight line-clamp-2">
                   {spread.description}
                 </p>
               </div>
