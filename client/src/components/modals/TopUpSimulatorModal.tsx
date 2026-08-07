@@ -91,7 +91,6 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successInfo, setSuccessInfo] = useState<{ added: number; total: number } | null>(null);
-  const [loadingPackages, setLoadingPackages] = useState(false);
   const [pending, setPending] = useState<PendingPayment | null>(null);
   const [pollHint, setPollHint] = useState('รอการชำระเงิน…');
   /** Live flags from /packages (authoritative) so we don't stick on AuthContext demo defaults */
@@ -132,9 +131,9 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
     setErrorMsg(null);
     setSuccessInfo(null);
     setPending(null);
-    setLoadingPackages(true);
-    // Only fetch packages once per open — avoid refreshFeatures every dep change (re-render jump)
+    // Keep showing cached/fallback packages — soft refresh, no loading spinner flicker
     let cancelled = false;
+
     apiClient
       .get<{
         packages: TopUpPackage[];
@@ -151,19 +150,19 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
         }
         if (Array.isArray(res.packages) && res.packages.length > 0) {
           setPackages(res.packages);
-          setSelectedPkg(res.packages.find((p) => p.popular) || res.packages[0]);
+          setSelectedPkg((prev) => {
+            const popular = res.packages.find((p) => p.popular);
+            if (prev && res.packages.some((p) => p.id === prev.id)) return prev;
+            return popular || res.packages[0];
+          });
         }
       })
-      .catch((err) => console.warn('Failed to fetch packages:', err))
-      .finally(() => {
-        if (!cancelled) setLoadingPackages(false);
-      });
+      .catch((err) => console.warn('Failed to fetch packages:', err));
 
     return () => {
       cancelled = true;
       stopPolling();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when open toggles
   }, [isOpen, stopPolling]);
 
   const finishSuccess = useCallback(
@@ -564,54 +563,48 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
                 <span>1. เลือกแพ็กเกจ</span>
                 <span className="text-[10px] text-amber-300/80">1 Credit ≈ 1k–4k Tokens</span>
               </label>
-              {loadingPackages ? (
-                <div className="flex items-center justify-center py-8 text-slate-400 text-xs gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" /> กำลังโหลด…
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2.5">
-                  {packages.map((pkg) => {
-                    const isSelected = selectedPkg?.id === pkg.id;
-                    const total = pkg.baseCredits + pkg.bonusCredits;
-                    return (
-                      <button
-                        key={pkg.id}
-                        type="button"
-                        onClick={() => setSelectedPkg(pkg)}
-                        className={`relative flex flex-col p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-amber-500/20 border-amber-400 shadow-md shadow-amber-500/20'
-                            : 'bg-purple-950/40 border-purple-500/20 hover:bg-purple-900/40'
-                        }`}
-                      >
-                        {pkg.badge && (
-                          <span className="absolute -top-2 right-2 text-[9px] px-2 py-0.5 rounded-full bg-amber-500 text-purple-950 font-bold">
-                            {pkg.badge}
-                          </span>
-                        )}
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-bold text-purple-100">{pkg.name}</span>
-                          {isSelected && <Check className="w-4 h-4 text-amber-400" />}
+              <div className="grid grid-cols-2 gap-2.5">
+                {packages.map((pkg) => {
+                  const isSelected = selectedPkg?.id === pkg.id;
+                  const total = pkg.baseCredits + pkg.bonusCredits;
+                  return (
+                    <button
+                      key={pkg.id}
+                      type="button"
+                      onClick={() => setSelectedPkg(pkg)}
+                      className={`relative flex flex-col p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-amber-500/20 border-amber-400 shadow-md shadow-amber-500/20'
+                          : 'bg-purple-950/40 border-purple-500/20 hover:bg-purple-900/40'
+                      }`}
+                    >
+                      {pkg.badge && (
+                        <span className="absolute -top-2 right-2 text-[9px] px-2 py-0.5 rounded-full bg-amber-500 text-purple-950 font-bold">
+                          {pkg.badge}
+                        </span>
+                      )}
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-purple-100">{pkg.name}</span>
+                        {isSelected && <Check className="w-4 h-4 text-amber-400" />}
+                      </div>
+                      <div className="text-lg font-extrabold text-amber-300 font-serif-mystic">
+                        {total}{' '}
+                        <span className="text-xs font-normal text-purple-300">Credits</span>
+                      </div>
+                      {pkg.bonusCredits > 0 && (
+                        <div className="text-[10px] text-emerald-400 flex items-center gap-0.5">
+                          <Sparkles className="w-3 h-3" />
+                          โบนัส +{pkg.bonusCredits}
                         </div>
-                        <div className="text-lg font-extrabold text-amber-300 font-serif-mystic">
-                          {total}{' '}
-                          <span className="text-xs font-normal text-purple-300">Credits</span>
-                        </div>
-                        {pkg.bonusCredits > 0 && (
-                          <div className="text-[10px] text-emerald-400 flex items-center gap-0.5">
-                            <Sparkles className="w-3 h-3" />
-                            โบนัส +{pkg.bonusCredits}
-                          </div>
-                        )}
-                        <div className="mt-2 text-xs font-semibold text-purple-200 border-t border-purple-800/40 pt-1.5 flex justify-between">
-                          <span>ราคา:</span>
-                          <span className="text-amber-300">฿{pkg.priceThb}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                      )}
+                      <div className="mt-2 text-xs font-semibold text-purple-200 border-t border-purple-800/40 pt-1.5 flex justify-between">
+                        <span>ราคา:</span>
+                        <span className="text-amber-300">฿{pkg.priceThb}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="mb-5">
@@ -706,7 +699,7 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
             <button
               type="button"
               onClick={omiseEnabled ? handleOmisePay : handleSimulatePayment}
-              disabled={isProcessing || !selectedPkg || loadingPackages}
+              disabled={isProcessing || !selectedPkg}
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-purple-950 font-bold text-sm shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isProcessing ? (
