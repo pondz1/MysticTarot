@@ -6,7 +6,6 @@ import { DAILY_LUCKY_COLORS_TABLE, DAILY_AUSPICIOUS_DIRECTIONS_MAP, getDynamicFe
 import {
   Compass,
   Sparkles,
-  BookOpen,
   Copy,
   Check,
   Briefcase,
@@ -28,6 +27,8 @@ import { FengShuiDirections } from '../components/FengShuiDirections';
 import { FengShuiTips } from '../components/FengShuiTips';
 
 import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
+import { ModulePageHeader } from '../../../components/common/ModulePageHeader';
+import { AiModeToggle } from '../../../components/common/AiModeToggle';
 
 interface FengShuiPageProps {
   apiSettings: ApiSettings;
@@ -170,85 +171,46 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-16">
-      {/* Header */}
-      <div className="text-center space-y-2.5">
-        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${theme.badgeBg} text-xs sm:text-sm font-medium`}>
-          <Compass className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-          <span>ศาสตร์แห่งพลังงานฮวงจุ้ย & สีมงคล</span>
-        </div>
-        <h1 className={`text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent px-2`}>
-          ตารางสีเสื้อมงคล & พลังงานฮวงจุ้ย <span className="block sm:inline text-base sm:text-2xl opacity-90">(Daily Feng Shui)</span>
-        </h1>
-        <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
-          เสริมสิริมงคลให้ชีวิตในทุกวัน ด้วยตารางสีเสื้อมงคลประจำวัน ทิศนำโชค และเคล็ดลับจัดฮวงจุ้ยรับทรัพย์
-        </p>
-      </div>
+      <ModulePageHeader
+        icon={Compass}
+        iconClassName={theme.iconColor}
+        eyebrow="ฮวงจุ้ย · สีมงคลประจำวัน"
+        title="สีเสื้อมงคล & พลังงานฮวงจุ้ย"
+        description="เลือกวันและพื้นที่ ดูตารางสี/ทิศทันที — ขอ AI ปรับคำแนะนำเฉพาะจุดได้"
+      />
 
-      {/* Mode Control Bar: AI vs Classic Offline Mode */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-300">
-          <span className={`font-semibold ${theme.iconColor}`}>เลือกโหมดคำแนะนำ:</span>
-          <span className="text-slate-400">
-            {isLoading
-              ? 'AI กำลังประมวลผลคำแนะนำฮวงจุ้ย... กรุณารอสักครู่'
-              : useAi
-                ? '(โหมด AI ปรับพลังงานพื้นที่เฉพาะบุคคล)'
-                : '(โหมดคลาสสิก ดูตารางออฟไลน์ทันที)'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => setUseAi(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              isLoading
-                ? 'opacity-50 cursor-not-allowed text-slate-500'
-                : useAi
-                  ? `${theme.secondaryBtn} cursor-pointer`
-                  : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-            }`}
-          >
-            <Sparkles className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-            <span>โหมด AI</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => {
-              setUseAi(false);
-              setPredictionText(
-                generateFallbackFengShui(
-                  currentDayInfo.dayNameTh,
-                  currentDayInfo.luckyWork.join(', '),
-                  currentDayInfo.luckyWealth.join(', '),
-                  currentDayInfo.luckyLove.join(', '),
-                  currentDayInfo.unluckyForbidden.join(', '),
-                  selectedSpace
-                )
-              );
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              isLoading
-                ? 'opacity-50 cursor-not-allowed text-slate-500'
-                : !useAi
-                  ? `${theme.secondaryBtn} cursor-pointer`
-                  : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-            }`}
-          >
-            <BookOpen className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-            <span>โหมดคลาสสิก</span>
-          </button>
-        </div>
-      </div>
+      <AiModeToggle
+        useAi={useAi}
+        disabled={isLoading}
+        accentClassName={theme.iconColor}
+        statusText={
+          isLoading
+            ? 'กำลังประมวลผล…'
+            : useAi
+              ? 'ใช้เครดิตเมื่อขอคำแนะนำ AI'
+              : 'ดูตารางออฟไลน์ทันที'
+        }
+        onChange={(next) => {
+          setUseAi(next);
+          if (!next) {
+            setPredictionText(
+              generateFallbackFengShui(
+                currentDayInfo.dayNameTh,
+                currentDayInfo.luckyWork.join(', '),
+                currentDayInfo.luckyWealth.join(', '),
+                currentDayInfo.luckyLove.join(', '),
+                currentDayInfo.unluckyForbidden.join(', '),
+                selectedSpace
+              )
+            );
+          }
+        }}
+      />
 
       {/* Day & Space Control Center */}
-      <div className={`relative z-20 ${theme.cardBg} rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6`}>
-        {/* Day Selector Tabs */}
+      <div className="relative z-20 rounded-2xl p-5 sm:p-7 border border-slate-800 bg-slate-900/40 space-y-5">
         <div className="space-y-2">
-          <label className="block text-xs font-semibold text-slate-300">เลือกวันประจำสัปดาห์:</label>
+          <label className="block text-xs font-semibold text-slate-400">เลือกวันในสัปดาห์</label>
           <div className="flex flex-wrap justify-center gap-2">
             {DAILY_LUCKY_COLORS_TABLE.map((item, idx) => (
               <button

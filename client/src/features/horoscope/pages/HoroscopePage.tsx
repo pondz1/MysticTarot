@@ -13,7 +13,6 @@ import type { ZodiacSign } from '../types/horoscope';
 import {
   Sparkles,
   Star,
-  BookOpen,
   Calendar,
   Moon,
   Search,
@@ -38,6 +37,8 @@ import { ZodiacGrid } from '../components/ZodiacGrid';
 import { ZodiacAspectBars } from '../components/ZodiacAspectBars';
 
 import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
+import { ModulePageHeader } from '../../../components/common/ModulePageHeader';
+import { AiModeToggle } from '../../../components/common/AiModeToggle';
 
 interface HoroscopePageProps {
   apiSettings: ApiSettings;
@@ -194,33 +195,26 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-16">
-      {/* Header */}
-      <div className="text-center space-y-2.5">
-        <div className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full ${theme.badgeBg} text-xs sm:text-sm font-medium`}>
-          <Star className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-          <span>ดวงชะตา 12 ราศีประจำวัน & รายเดือน</span>
-        </div>
-        <h1 className={`text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent px-2`}>
-          ทำนายดวงชะตา 12 ราศี <span className="block sm:inline text-base sm:text-2xl opacity-90">(Zodiac Horoscope)</span>
-        </h1>
-        <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
-          อ่านทิศทางพลังงานดวงดาวและธาตุประจำราศี เพื่อเตรียมรับมือกับโอกาสและสิ่งดีๆ ในชีวิต
-        </p>
+      <ModulePageHeader
+        icon={Star}
+        iconClassName={theme.iconColor}
+        eyebrow="12 ราศี · รายวัน / รายเดือน"
+        title="ทำนายดวงชะตา 12 ราศี"
+        description="เลือกราศี ดูดวงประจำวันหรือรายเดือน — ใช้มาตรฐานฟรี หรือ AI ลึกขึ้น"
+      />
 
-        {/* Quick Birthdate Zodiac Finder Toggle Button */}
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={() => setShowFinder(!showFinder)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/40 text-purple-200 hover:text-amber-200 text-xs font-semibold transition-all cursor-pointer shadow-sm"
-          >
-            <Search className="w-3.5 h-3.5 text-amber-400" />
-            <span>ค้นหาราศีของคุณจากวันเกิด</span>
-          </button>
-        </div>
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={() => setShowFinder(!showFinder)}
+          aria-expanded={showFinder}
+          className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-slate-100 text-xs font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+        >
+          <Search className="w-3.5 h-3.5 text-purple-400" aria-hidden="true" />
+          <span>{showFinder ? 'ปิดตัวค้นหาราศี' : 'ค้นหาราศีจากวันเกิด'}</span>
+        </button>
       </div>
 
-      {/* Birthdate Zodiac Finder Card Drawer */}
       {showFinder && (
         <BirthdateZodiacFinder
           birthDay={birthDay}
@@ -232,56 +226,24 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
         />
       )}
 
-      {/* Mode Control Bar: AI vs Classic Offline Mode */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-300">
-          <span className={`font-semibold ${theme.iconColor}`}>เลือกโหมดทำนาย:</span>
-          <span className="text-slate-400">
-            {isLoading
-              ? 'AI กำลังประมวลผลคำทำนาย... กรุณารอสักครู่'
-              : useAi
-                ? '(โหมด AI ประมวลผลลึกซึ้ง)'
-                : '(โหมดคลาสสิก ทำนายทันที ไม่ใช้ AI)'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => setUseAi(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              isLoading
-                ? 'opacity-50 cursor-not-allowed text-slate-500'
-                : useAi
-                  ? `${theme.secondaryBtn} cursor-pointer`
-                  : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-            }`}
-          >
-            <Sparkles className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-            <span>โหมด AI</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => {
-              setUseAi(false);
-              setPrediction(getZodiacClassicPrediction(selectedSign, timeframe));
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              isLoading
-                ? 'opacity-50 cursor-not-allowed text-slate-500'
-                : !useAi
-                  ? `${theme.secondaryBtn} cursor-pointer`
-                  : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-            }`}
-          >
-            <BookOpen className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-            <span>โหมดคลาสสิก</span>
-          </button>
-        </div>
-      </div>
+      <AiModeToggle
+        useAi={useAi}
+        disabled={isLoading}
+        accentClassName={theme.iconColor}
+        statusText={
+          isLoading
+            ? 'กำลังประมวลผล…'
+            : useAi
+              ? 'ใช้เครดิตเมื่อขอคำทำนาย AI'
+              : 'อ่านผลคลาสสิกทันที'
+        }
+        onChange={(next) => {
+          setUseAi(next);
+          if (!next) {
+            setPrediction(getZodiacClassicPrediction(selectedSign, timeframe));
+          }
+        }}
+      />
 
       {/* Zodiac Grid Selection */}
       <ZodiacGrid

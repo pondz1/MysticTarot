@@ -32,6 +32,8 @@ import { NumerologyAspectBars } from '../components/NumerologyAspectBars';
 import { NumerologyPairGrid } from '../components/NumerologyPairGrid';
 
 import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
+import { ModulePageHeader } from '../../../components/common/ModulePageHeader';
+import { AiModeToggle } from '../../../components/common/AiModeToggle';
 
 interface NumerologyPageProps {
   apiSettings?: ApiSettings;
@@ -218,128 +220,82 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-16">
-      {/* Header Banner */}
-      <div className="text-center space-y-2.5">
-        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full ${theme.badgeBg} text-xs sm:text-sm font-semibold shadow-xs`}>
-          <Hash className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-          <span>ศาสตร์แห่งตัวเลข & มหาโชคลาภ</span>
-          <Sparkles className={`w-3.5 h-3.5 ${theme.secondaryIconColor}`} />
-        </div>
-        <h1 className={`text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent px-2`}>
-          วิเคราะห์ตัวเลข & เบอร์มงคล <span className="block sm:inline text-base sm:text-2xl opacity-90">(Numerology Prophet)</span>
-        </h1>
-        <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
-          ถอดรหัสพลังงานความมงคลและสติปัญญาที่แฝงอยู่ในเบอร์โทรศัพท์ ทะเบียนรถ หรือเลขบ้านของคุณ
-        </p>
+      <ModulePageHeader
+        icon={Hash}
+        iconClassName={theme.iconColor}
+        eyebrow="เลขศาสตร์ · เบอร์มงคล"
+        title="วิเคราะห์ตัวเลข & เบอร์มงคล"
+        description="ใส่เบอร์โทร ทะเบียนรถ หรือเลขบ้าน — คำนวณเกรดมงคลทันที เสริมด้วย AI ได้"
+      />
 
-        {/* Quick Sample Presets */}
-        <NumerologyPresets
-          sampleNumbers={SAMPLE_NUMBERS}
-          onSelectSample={handleSelectSample}
-        />
-      </div>
+      <NumerologyPresets sampleNumbers={SAMPLE_NUMBERS} onSelectSample={handleSelectSample} />
 
-      {/* Mode Control Bar: AI vs Classic Mode */}
-      <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r ${theme.subtleGradient} border ${theme.borderGlow} shadow-lg`}>
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-300">
-          <span className={`font-semibold ${theme.iconColor}`}>เลือกโหมดวิเคราะห์:</span>
-          <span className="text-slate-400">
-            {isAnalyzing
-              ? 'AI กำลังประมวลผลวิเคราะห์ตัวเลข... กรุณารอสักครู่'
-              : useAi
-                ? '(โหมด AI สังเคราะห์คำทำนายลึกซึ้ง)'
-                : '(โหมดคลาสสิก คำนวณรวดเร็วทันที)'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 bg-slate-950/90 p-1 rounded-xl border border-slate-800">
-          <button
-            type="button"
-            disabled={isAnalyzing}
-            onClick={() => setUseAi(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              isAnalyzing
-                ? 'opacity-50 cursor-not-allowed text-slate-500'
-                : useAi
-                  ? `${theme.secondaryBtn} cursor-pointer`
-                  : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-            }`}
-          >
-            <Sparkles className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-            <span>โหมด AI</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={isAnalyzing}
-            onClick={() => setUseAi(false)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              isAnalyzing
-                ? 'opacity-50 cursor-not-allowed text-slate-500'
-                : !useAi
-                  ? `${theme.secondaryBtn} cursor-pointer`
-                  : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-            }`}
-          >
-            <BookOpen className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-            <span>โหมดคลาสสิก</span>
-          </button>
-        </div>
-      </div>
+      <AiModeToggle
+        useAi={useAi}
+        disabled={isAnalyzing}
+        accentClassName={theme.iconColor}
+        statusText={
+          isAnalyzing
+            ? 'กำลังวิเคราะห์…'
+            : useAi
+              ? 'ใช้เครดิตเมื่อขอคำทำนาย AI'
+              : 'คำนวณผลคลาสสิกทันที'
+        }
+        onChange={setUseAi}
+      />
 
       {/* Input Form Card */}
-      <div className={`${theme.cardBg} rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6`}>
-        {/* Category selector pills */}
-        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-1.5 scrollbar-none max-w-full">
+      <div className="rounded-2xl p-5 sm:p-7 border border-slate-800 bg-slate-900/40 space-y-5">
+        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-1 scrollbar-none max-w-full">
           <button
             type="button"
             onClick={() => handleSelectCategory('phone')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
               numberType === 'phone'
-                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
-                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
+                ? 'bg-cyan-600 text-white font-bold'
+                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-cyan-500/40'
             }`}
           >
-            <Phone className="w-3.5 h-3.5 shrink-0" />
+            <Phone className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">เบอร์โทรศัพท์</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSelectCategory('car')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
               numberType === 'car'
-                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
-                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
+                ? 'bg-cyan-600 text-white font-bold'
+                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-cyan-500/40'
             }`}
           >
-            <Car className="w-3.5 h-3.5 shrink-0" />
+            <Car className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">ทะเบียนรถ</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSelectCategory('house')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
               numberType === 'house'
-                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
-                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
+                ? 'bg-cyan-600 text-white font-bold'
+                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-cyan-500/40'
             }`}
           >
-            <HomeIcon className="w-3.5 h-3.5 shrink-0" />
+            <HomeIcon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">บ้านเลขที่</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSelectCategory('card')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
               numberType === 'card'
-                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25'
-                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-teal-500/50'
+                ? 'bg-cyan-600 text-white font-bold'
+                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-cyan-200 hover:border-cyan-500/40'
             }`}
           >
-            <CreditCard className="w-3.5 h-3.5 shrink-0" />
+            <CreditCard className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">เลขบัตร/บัญชี</span>
           </button>
         </div>

@@ -7,7 +7,6 @@ import type { ThaiLifeChartResult } from '../types/thaiAstrology';
 import {
   Sparkles,
   Calendar,
-  BookOpen,
   Copy,
   Check,
   Briefcase,
@@ -27,6 +26,8 @@ import { LifeGraphVisualizer } from '../components/LifeGraphVisualizer';
 import { LifeStageBreakdown } from '../components/LifeStageBreakdown';
 
 import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
+import { ModulePageHeader } from '../../../components/common/ModulePageHeader';
+import { AiModeToggle } from '../../../components/common/AiModeToggle';
 
 interface ThaiAstrologyPageProps {
   apiSettings: ApiSettings;
@@ -157,79 +158,39 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-16">
-      {/* Header */}
-      <div className="text-center space-y-2.5">
-        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${theme.badgeBg} text-xs sm:text-sm font-medium`}>
-          <Calendar className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-          <span>ดวงไทยโบราณ & กราฟชีวิต 9 ช่วงอายุ</span>
-        </div>
-        <h1 className={`text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent px-2`}>
-          ถอดรหัสกราฟชีวิต & โหราศาสตร์ไทย <span className="block sm:inline text-base sm:text-2xl opacity-90">(Thai Life Chart)</span>
-        </h1>
-        <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
-          สำรวจจังหวะขึ้นลงของชีวิตทั้ง 9 ช่วงอายุ เพื่อวางแผนอนาคตและเสริมสร้างบารมีด้วยสติ
-        </p>
-      </div>
+      <ModulePageHeader
+        icon={Calendar}
+        iconClassName={theme.iconColor}
+        eyebrow="โหราศาสตร์ไทย · กราฟชีวิต"
+        title="กราฟชีวิต & ดวงไทย"
+        description="ใส่วันเกิด ดูจังหวะ 9 ช่วงอายุ — คำนวณมาตรฐานฟรี หรือขอ AI เจาะลึก"
+      />
 
-      {/* Mode Control Bar: AI vs Classic Offline Mode */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-300">
-          <span className={`font-semibold ${theme.iconColor}`}>เลือกโหมดวิเคราะห์:</span>
-          <span className="text-slate-400">
-            {isLoading
-              ? 'AI กำลังประมวลผลคำทำนาย... กรุณารอสักครู่'
-              : useAi
-                ? '(โหมด AI สังเคราะห์กราฟชีวิตลึกซึ้ง)'
-                : '(โหมดคลาสสิก คำนวณทันที ไม่ใช้ AI)'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => setUseAi(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              isLoading
-                ? 'opacity-50 cursor-not-allowed text-slate-500'
-                : useAi
-                  ? `${theme.secondaryBtn} cursor-pointer`
-                  : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-            }`}
-          >
-            <Sparkles className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-            <span>โหมด AI</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => {
-              setUseAi(false);
-              if (result) {
-                setPredictionText(
-                  generateFallbackThaiLifeGraph(
-                    birthDate,
-                    result.dayOfWeekTh,
-                    result.peakAgeRange,
-                    result.summaryGuidance
-                  )
-                );
-              }
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              isLoading
-                ? 'opacity-50 cursor-not-allowed text-slate-500'
-                : !useAi
-                  ? `${theme.secondaryBtn} cursor-pointer`
-                  : 'text-slate-400 hover:text-slate-200 cursor-pointer'
-            }`}
-          >
-            <BookOpen className={`w-3.5 h-3.5 ${theme.iconColor}`} />
-            <span>โหมดคลาสสิก</span>
-          </button>
-        </div>
-      </div>
+      <AiModeToggle
+        useAi={useAi}
+        disabled={isLoading}
+        accentClassName={theme.iconColor}
+        statusText={
+          isLoading
+            ? 'กำลังประมวลผล…'
+            : useAi
+              ? 'ใช้เครดิตเมื่อขอคำทำนาย AI'
+              : 'คำนวณกราฟทันที'
+        }
+        onChange={(next) => {
+          setUseAi(next);
+          if (!next && result) {
+            setPredictionText(
+              generateFallbackThaiLifeGraph(
+                birthDate,
+                result.dayOfWeekTh,
+                result.peakAgeRange,
+                result.summaryGuidance
+              )
+            );
+          }
+        }}
+      />
 
       {/* Birth Input Form */}
       <ThaiAstrologyForm
