@@ -1,6 +1,8 @@
 import React from 'react';
 import { Check, Copy, Feather } from 'lucide-react';
 import { PredictionMarkdown } from './PredictionMarkdown';
+import { AiResultMetaBar } from './AiResultMetaBar';
+import type { AiCompletionMeta } from '../../services/ai/aiClient';
 
 interface PredictionLoadingProps {
   message?: string;
@@ -58,6 +60,8 @@ interface PredictionPanelProps {
   className?: string;
   /** Visual density */
   compact?: boolean;
+  /** Credits / truncated / cache status from last AI call */
+  resultMeta?: AiCompletionMeta | null;
 }
 
 /**
@@ -76,6 +80,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
   streamingLabel,
   className = '',
   compact = false,
+  resultMeta,
 }) => (
   <article
     className={`relative rounded-2xl border border-amber-500/20 bg-gradient-to-b from-slate-900/90 via-slate-950/90 to-slate-950 overflow-hidden animate-fade-in shadow-[0_0_40px_-12px_rgba(245,158,11,0.15)] ${
@@ -121,6 +126,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
         children
       )}
       {isStreaming && <PredictionStreamingBadge label={streamingLabel} />}
+      {!isStreaming && resultMeta && <AiResultMetaBar meta={resultMeta} />}
     </div>
 
     {footer && (

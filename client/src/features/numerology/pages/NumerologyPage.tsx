@@ -15,7 +15,7 @@ import {
 import type { ApiSettings, SavedReading } from '../../../types';
 import { analyzeNumerology, generateFallbackNumerology } from '../../../services/aiService';
 import { storageService } from '../../../services/storageService';
-import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
+import { getLastAiMeta, getLastCreditsDeducted, type AiCompletionMeta } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { isAbortError, useAiAbortController } from '../../../hooks/useAiAbortController';
 
@@ -68,6 +68,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
   );
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [resultMeta, setResultMeta] = useState<AiCompletionMeta | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
   const currentReadingIdRef = useRef<string | null>(null);
@@ -129,6 +130,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
 
     setIsAnalyzing(true);
     setPredictionText('');
+    setResultMeta(null);
 
     const tempId = Date.now().toString();
     currentReadingIdRef.current = tempId;
@@ -163,6 +165,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
       );
       setPredictionText(aiText);
       setAiError(null);
+      setResultMeta(getLastAiMeta());
 
       // Auto save AI Numerology reading to history
       if (aiText && mathResult) {
@@ -378,6 +381,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
               onCopy={handleCopyPrediction}
               copied={copied}
               markdown={predictionText}
+              resultMeta={resultMeta}
             />
           )}
         </div>

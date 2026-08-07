@@ -5,7 +5,7 @@ import type { ThaiLifeChartResult } from '../types/thaiAstrology';
 import { Calendar } from 'lucide-react';
 import type { ApiSettings, SavedReading } from '../../../types';
 import { storageService } from '../../../services/storageService';
-import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
+import { getLastAiMeta, getLastCreditsDeducted, type AiCompletionMeta } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { analyzeThaiLifeGraph, generateFallbackThaiLifeGraph } from '../../../services/aiService';
 import { isAbortError, useAiAbortController } from '../../../hooks/useAiAbortController';
@@ -45,6 +45,7 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [predictionText, setPredictionText] = useState<string>('');
   const [aiError, setAiError] = useState<string | null>(null);
+  const [resultMeta, setResultMeta] = useState<AiCompletionMeta | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
   const [result, setResult] = useState<ThaiLifeChartResult | null>(() => calculateLifeGraph('1995-06-15', 3));
@@ -99,6 +100,7 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
 
     setIsLoading(true);
     setPredictionText('');
+    setResultMeta(null);
 
     const tempId = Date.now().toString();
     currentReadingIdRef.current = tempId;
@@ -128,6 +130,7 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
       );
       setPredictionText(aiText);
       setAiError(null);
+      setResultMeta(getLastAiMeta());
 
       // Auto save AI Thai Astrology reading to history
       if (aiText && mathRes) {
@@ -248,6 +251,7 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
               onCopy={handleCopyPrediction}
               copied={copied}
               markdown={predictionText}
+              resultMeta={resultMeta}
             />
           )}
         </div>

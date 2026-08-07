@@ -10,7 +10,7 @@ import type { ApiSettings, ChatMessage, SavedReading } from '../../../types';
 import { getSpreadConfig } from '../data/tarotSpreads';
 import { analyzeTarotReading, analyzeTarotFollowUp, generateFallbackReading } from '../../../services/aiService';
 import { storageService } from '../../../services/storageService';
-import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
+import { getLastAiMeta, getLastCreditsDeducted, type AiCompletionMeta } from '../../../services/ai/aiClient';
 import type { TarotCard } from '../data/tarotCards';
 import { TarotSubNav } from '../components/TarotSubNav';
 import { ReadingProgressSteps, type ReadingStep } from '../components/ReadingProgressSteps';
@@ -64,6 +64,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isSendingFollowUp, setIsSendingFollowUp] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [resultMeta, setResultMeta] = useState<AiCompletionMeta | null>(null);
 
   // Filter settings from localStorage
   const deckFilter = storageService.getDeckPreferences().deckFilter || 'all';
@@ -91,6 +92,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
     setIsAnalyzing(true);
     setReadingResult('');
     setAiError(null);
+    setResultMeta(null);
     const newId = Date.now().toString();
 
     try {
@@ -124,6 +126,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
       }
       setReadingResult(analysis);
       setAiError(null);
+      setResultMeta(useAi ? getLastAiMeta() : null);
 
       // Auto save reading
       const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
@@ -360,6 +363,9 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
           chatHistory={chatHistory}
           onSendFollowUp={handleSendFollowUp}
           isSendingFollowUp={isSendingFollowUp}
+          resultMeta={resultMeta}
+          onOpenSettings={onOpenSettings}
+          onOpenCreditCenter={onOpenCreditCenter}
         />
       )}
     </div>

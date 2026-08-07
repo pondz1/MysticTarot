@@ -6,6 +6,7 @@ import {
   PredictionLoading,
   PredictionPanel,
 } from '../../../components/common/PredictionPanel';
+import type { AiCompletionMeta } from '../../../services/ai/aiClient';
 
 interface ReadingResultProps {
   resultText: string;
@@ -18,6 +19,7 @@ interface ReadingResultProps {
   isSendingFollowUp?: boolean;
   onOpenSettings?: () => void;
   onOpenCreditCenter?: () => void;
+  resultMeta?: AiCompletionMeta | null;
 }
 
 export const ReadingResult: React.FC<ReadingResultProps> = ({
@@ -31,6 +33,7 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
   isSendingFollowUp = false,
   onOpenSettings,
   onOpenCreditCenter,
+  resultMeta,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -56,6 +59,7 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
           isStreaming={isAnalyzing}
           onCopy={handleCopy}
           copied={copied}
+          resultMeta={resultMeta}
           headerActions={
             <button
               type="button"

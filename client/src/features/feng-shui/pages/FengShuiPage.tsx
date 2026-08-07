@@ -4,7 +4,7 @@ import { DAILY_LUCKY_COLORS_TABLE, DAILY_AUSPICIOUS_DIRECTIONS_MAP, getDynamicFe
 import { Compass, Layout } from 'lucide-react';
 import type { ApiSettings, SavedReading } from '../../../types';
 import { storageService } from '../../../services/storageService';
-import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
+import { getLastAiMeta, getLastCreditsDeducted, type AiCompletionMeta } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { analyzeFengShui, generateFallbackFengShui } from '../../../services/aiService';
 import { isAbortError, useAiAbortController } from '../../../hooks/useAiAbortController';
@@ -55,6 +55,7 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [predictionText, setPredictionText] = useState<string>('');
   const [aiError, setAiError] = useState<string | null>(null);
+  const [resultMeta, setResultMeta] = useState<AiCompletionMeta | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
   const currentDayInfo = DAILY_LUCKY_COLORS_TABLE[selectedDayIndex];
@@ -109,6 +110,7 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
 
     setIsLoading(true);
     setPredictionText('');
+    setResultMeta(null);
 
     const tempId = Date.now().toString();
     currentReadingIdRef.current = tempId;
@@ -139,6 +141,7 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
       );
       setPredictionText(aiText);
       setAiError(null);
+      setResultMeta(getLastAiMeta());
 
       // Auto save AI Feng Shui reading to history
       if (aiText) {
@@ -303,8 +306,9 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
             isStreaming={isLoading}
             onCopy={handleCopyPrediction}
             copied={copied}
-              markdown={predictionText}
-            />
+            markdown={predictionText}
+            resultMeta={resultMeta}
+          />
         </div>
       )}
 

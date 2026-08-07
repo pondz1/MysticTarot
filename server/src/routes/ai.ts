@@ -16,6 +16,7 @@ import { sendSuccess, sendError } from '../utils/response.js';
 import { buildModulePrompts } from '../ai/buildPrompts.js';
 import { isAiModuleId } from '../ai/types.js';
 import { saveAiHistoryEntry } from '../ai/saveReading.js';
+import { completeIdempotency, failIdempotency } from '../middleware/idempotency.js';
 
 export const aiRouter = Router();
 
@@ -365,6 +366,19 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         `[AI Stream Finished] Length: ${fullText.length} chars, Charged: ${creditsDeducted}, Remaining: ${remainingCredits}, finish_reason: ${finishReason || 'n/a'}, Partial: ${abortedEarly || clientDisconnected || truncatedByMaxTokens}`
       );
 
+      // Cache full stream result for idempotent retry (SSE or JSON replay)
+      if (fullText.trim() && !clientDisconnected) {
+        completeIdempotency(req, {
+          result: fullText,
+          remainingCredits,
+          creditsDeducted,
+          truncated: truncatedByMaxTokens,
+          finishReason: finishReason || undefined,
+        });
+      } else if (!fullText.trim()) {
+        failIdempotency(req);
+      }
+
       if (historyEntry && historyEntry.id && fullText.trim()) {
         const creditsUsed = isCreditMode
           ? creditsDeducted || CREDIT_RATES.MIN_CREDITS_PER_REQUEST
@@ -476,6 +490,7 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       finishReason: finishReason || undefined,
     });
   } catch (error: unknown) {
+    failIdempotency(req);
     // Refund reserve on provider/route failure
     if (creditUserId && reservedCredits > 0 && !settled) {
       try {

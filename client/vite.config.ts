@@ -5,8 +5,16 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@shared': fileURLToPath(new URL('../shared', import.meta.url)),
+    },
+  },
   server: {
     port: 5173,
+    fs: {
+      allow: ['..'],
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

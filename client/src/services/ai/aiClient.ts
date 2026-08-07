@@ -23,8 +23,23 @@ export type AiCompletionOptions = {
 
 let lastCreditsDeducted: number = 1;
 
+export type AiCompletionMeta = {
+  creditsDeducted?: number;
+  remainingCredits?: number;
+  truncated?: boolean;
+  partial?: boolean;
+  cached?: boolean;
+  finishReason?: string;
+};
+
+let lastAiMeta: AiCompletionMeta = {};
+
 export function getLastCreditsDeducted(): number {
   return lastCreditsDeducted;
+}
+
+export function getLastAiMeta(): AiCompletionMeta {
+  return { ...lastAiMeta };
 }
 
 /** @deprecated Prefer getClientSessionId from apiClient */
@@ -51,9 +66,16 @@ function throwIfAborted(signal?: AbortSignal): void {
   }
 }
 
-function applyCreditMeta(meta: { creditsDeducted?: number; remainingCredits?: number }): void {
+function applyCreditMeta(
+  meta: AiCompletionMeta & { creditsDeducted?: number; remainingCredits?: number }
+): void {
+  lastAiMeta = {
+    ...lastAiMeta,
+    ...meta,
+  };
   if (typeof meta.creditsDeducted === 'number') {
     lastCreditsDeducted = meta.creditsDeducted;
+    lastAiMeta.creditsDeducted = meta.creditsDeducted;
   }
   if (typeof meta.remainingCredits === 'number' && typeof window !== 'undefined') {
     // Never surface negative credit to UI (legacy/server race safety)
@@ -304,12 +326,20 @@ async function* creditStream(body: CreditBody, signal?: AbortSignal): AsyncItera
             creditsDeducted?: number;
             remainingCredits?: number;
             error?: string;
+            truncated?: boolean;
+            partial?: boolean;
+            cached?: boolean;
+            finishReason?: string;
           };
           if (parsed.error) throw new Error(parsed.error);
           if (parsed.content) yield parsed.content;
           applyCreditMeta({
             creditsDeducted: parsed.creditsDeducted,
             remainingCredits: parsed.remainingCredits,
+            truncated: parsed.truncated,
+            partial: parsed.partial,
+            cached: parsed.cached,
+            finishReason: parsed.finishReason,
           });
         } catch (parseErr) {
           if (parseErr instanceof Error && parseErr.message && !/JSON/i.test(parseErr.message)) {
@@ -366,6 +396,7 @@ export async function requestModuleAiCompletion(
   }
 
   // Credit mode → server-owned prompts
+  lastAiMeta = {};
   const body: CreditBody = {
     module,
     payload,

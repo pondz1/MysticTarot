@@ -20,7 +20,7 @@ import {
 import type { ApiSettings, SavedReading } from '../../../types';
 import { analyzeZodiacHoroscope } from '../../../services/aiService';
 import { storageService } from '../../../services/storageService';
-import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
+import { getLastAiMeta, getLastCreditsDeducted, type AiCompletionMeta } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { isAbortError, useAiAbortController } from '../../../hooks/useAiAbortController';
 
@@ -61,6 +61,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
   const [prediction, setPrediction] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [resultMeta, setResultMeta] = useState<AiCompletionMeta | null>(null);
 
   const currentReadingIdRef = useRef<string | null>(null);
 
@@ -121,6 +122,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
 
     setIsLoading(true);
     setPrediction('');
+    setResultMeta(null);
 
     const tempId = Date.now().toString();
     currentReadingIdRef.current = tempId;
@@ -148,6 +150,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
       );
       setPrediction(res);
       setAiError(null);
+      setResultMeta(getLastAiMeta());
 
       // Save reading locally and update state
       if (res) {
@@ -377,6 +380,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
               onCopy={handleCopyPrediction}
               copied={copied}
               markdown={prediction}
+              resultMeta={resultMeta}
             />
           ) : (
             <div className="text-center py-8 text-slate-500 text-sm border border-dashed border-slate-800 rounded-xl">
