@@ -144,14 +144,6 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
     }
   };
 
-  const handleUseOfflineFallback = () => {
-    if (drawnCards.length > 0) {
-      const fallbackText = generateFallbackReading(question, drawnCards, spreadMode);
-      setReadingResult(fallbackText);
-      setAiError(null);
-    }
-  };
-
   // Send AI Follow-up Question
   const handleSendFollowUp = async (userQuestion: string) => {
     if (!userQuestion || isSendingFollowUp) return;
@@ -327,7 +319,6 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
         <AiErrorFallbackCard
           errorMessage={aiError}
           onRetry={() => handleCardsSelected(drawnCards, true)}
-          onUseOfflineFallback={handleUseOfflineFallback}
           onOpenCreditCenter={onOpenCreditCenter}
           onOpenSettings={onOpenSettings}
         />

@@ -1,18 +1,20 @@
 import React from 'react';
-import { AlertCircle, Coins, Key, RefreshCw, Sparkles } from 'lucide-react';
+import { AlertCircle, Coins, Key, RefreshCw } from 'lucide-react';
 
 interface AiErrorFallbackCardProps {
   errorMessage: string;
   onRetry?: () => void;
-  onUseOfflineFallback?: () => void;
   onOpenCreditCenter?: () => void;
   onOpenSettings?: () => void;
 }
 
+/**
+ * Shown only when an AI request fails.
+ * Does not offer offline/generated text — that confused users who thought AI answered.
+ */
 export const AiErrorFallbackCard: React.FC<AiErrorFallbackCardProps> = ({
   errorMessage,
   onRetry,
-  onUseOfflineFallback,
   onOpenCreditCenter,
   onOpenSettings,
 }) => {
@@ -30,27 +32,30 @@ export const AiErrorFallbackCard: React.FC<AiErrorFallbackCardProps> = ({
         </div>
         <div>
           <h4 className="text-base font-bold text-rose-100">
-            {looksLikeCredit ? 'เครดิต AI ไม่พอ หรือหมดแล้ว' : 'AI ยังตอบไม่ได้ในตอนนี้'}
+            {looksLikeCredit ? 'เครดิต AI ไม่พอ หรือหมดแล้ว' : 'AI ตอบไม่ได้ในตอนนี้'}
           </h4>
           <p className="text-xs text-rose-200/85 mt-1 leading-relaxed">
-            {errorMessage || 'เชื่อมต่อ AI ไม่สำเร็จ — เลือกทางด้านล่างได้ทันที'}
+            {errorMessage || 'เชื่อมต่อ AI ไม่สำเร็จ — ยังไม่มีคำทำนายจากรอบนี้'}
+          </p>
+          <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
+            ระบบไม่ได้สร้างคำตอบสำรองแทน AI เพื่อไม่ให้สับสนกับผลจริง
           </p>
         </div>
       </div>
 
       <div className="text-[11px] text-slate-400 font-medium mb-3 pt-2 border-t border-slate-800">
-        ยังดูคำทำนายต่อได้ — เลือกอย่างใดอย่างหนึ่ง:
+        เลือกทางแก้ แล้วลองใหม่อีกครั้ง:
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        {onUseOfflineFallback && (
+        {onRetry && (
           <button
             type="button"
-            onClick={onUseOfflineFallback}
+            onClick={onRetry}
             className="flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
           >
-            <Sparkles className="w-4 h-4" aria-hidden="true" />
-            <span>ใช้คำทำนายมาตรฐาน (ไม่ใช้เครดิต)</span>
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            <span>ลองอีกครั้ง</span>
           </button>
         )}
 
@@ -73,17 +78,6 @@ export const AiErrorFallbackCard: React.FC<AiErrorFallbackCardProps> = ({
           >
             <Key className="w-4 h-4 text-amber-400" aria-hidden="true" />
             <span>ใช้ API Key ของฉัน</span>
-          </button>
-        )}
-
-        {onRetry && (
-          <button
-            type="button"
-            onClick={onRetry}
-            className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-xl text-xs font-medium text-slate-400 hover:text-white transition-colors cursor-pointer ml-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-          >
-            <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>ลองอีกครั้ง</span>
           </button>
         )}
       </div>

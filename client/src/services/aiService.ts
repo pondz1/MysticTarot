@@ -13,7 +13,6 @@ export {
   generateFallbackReading,
   buildInitialUserPrompt,
   analyzeTarotFollowUp,
-  generateFollowUpFallback,
 } from './ai/tarotAi';
 
 export {

@@ -232,39 +232,9 @@ ${MARKDOWN_OUTPUT_RULES}
     if (content && content.trim()) {
       return content;
     }
-
-    return generateFollowUpFallback(newQuestion, drawnCards);
+    throw new Error('ไม่ได้รับคำตอบจาก AI สำหรับคำถามเจาะลึก');
   } catch (error: any) {
     console.error('Failed follow-up AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำตอบเจาะลึกจาก AI ได้ในขณะนี้');
   }
-}
-
-export function generateFollowUpFallback(
-  newQuestion: string,
-  drawnCards: DrawnCard[],
-  noticePrefix: string = ''
-): string {
-  const mainCard = drawnCards[0]?.card;
-  const outcomeCard = drawnCards[drawnCards.length - 1]?.card;
-
-  const md = buildFallbackMarkdown(
-    [
-      {
-        heading: 'สรุปคำตอบ',
-        body: `เกี่ยวกับ **"${newQuestion}"** — จากพลังไพ่ในสเปรดนี้ ทิศทางยังเชื่อมกับบทเรียนของ **${mainCard?.nameTh || 'ไพ่หลัก'}** และ **${outcomeCard?.nameTh || 'ไพ่ผลลัพธ์'}**`,
-      },
-      {
-        heading: 'เชื่อมโยงกับไพ่',
-        body: `- **${mainCard?.nameTh || 'ไพ่หลัก'}:** ${mainCard?.advice || 'ยึดสติและความดีงาม'}\n- **${outcomeCard?.nameTh || 'ไพ่ผลลัพธ์'}:** ${outcomeCard?.advice || 'ก้าวเดินด้วยความมั่นใจ'}`,
-      },
-      {
-        heading: 'คำแนะนำ',
-        body: `- ทบทวนสถานการณ์ด้วยความสงบ\n- ลงมือทีละขั้นจากสิ่งที่ควบคุมได้`,
-      },
-    ],
-    'ใช้ไพ่เป็นเข็มทิศ — การตัดสินใจปัจจุบันคือตัวเปลี่ยนทางเดิน'
-  );
-
-  return `${noticePrefix}${md}`;
 }
