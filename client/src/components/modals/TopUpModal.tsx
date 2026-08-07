@@ -66,7 +66,7 @@ const FALLBACK_PACKAGES: TopUpPackage[] = [
   },
 ];
 
-interface TopUpSimulatorModalProps {
+interface TopUpModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (newCredits: number) => void;
@@ -86,7 +86,8 @@ interface PendingPayment {
   dashboardChargeUrl?: string | null;
 }
 
-export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
+/** Credit package purchase (Omise PromptPay/card, or demo simulate when Omise is off). */
+export const TopUpModal: React.FC<TopUpModalProps> = ({
   isOpen,
   onClose,
   onSuccess,

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient, ApiError } from '../../services/apiClient';
-import { TopUpSimulatorModal } from './TopUpSimulatorModal';
+import { TopUpModal } from './TopUpModal';
 import { ModalShell } from '../common/ModalShell';
 import type { TopupReturnResult } from '../../services/topupReturn';
 
@@ -467,7 +467,7 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
       </ModalShell>
 
       {showPaidTopup && (
-        <TopUpSimulatorModal
+        <TopUpModal
           isOpen={isOpen && isTopUpModalOpen}
           onClose={() => setIsTopUpModalOpen(false)}
           onSuccess={(newCredits) => applyCredits(newCredits)}
