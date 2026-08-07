@@ -9,74 +9,102 @@ interface SpreadSelectorProps {
   disabled?: boolean;
 }
 
+const RECOMMENDED_ID: SpreadMode = 'three';
+
 export const SpreadSelector: React.FC<SpreadSelectorProps> = ({
   mode,
   onSelectMode,
-  disabled = false
+  disabled = false,
 }) => {
   const renderIcon = (iconName: string, isSelected: boolean) => {
-    const iconClass = `w-5 h-5 ${isSelected ? 'text-amber-300' : 'text-purple-400'}`;
+    const iconClass = `w-5 h-5 ${isSelected ? 'text-amber-300' : 'text-purple-400/90'}`;
     switch (iconName) {
-      case 'sparkles': return <Sparkles className={iconClass} />;
-      case 'compass': return <Compass className={iconClass} />;
-      case 'layers': return <Layers className={iconClass} />;
-      case 'heart': return <Heart className={iconClass} />;
-      case 'crown': return <Crown className={iconClass} />;
-      default: return <Sparkles className={iconClass} />;
+      case 'sparkles':
+        return <Sparkles className={iconClass} aria-hidden="true" />;
+      case 'compass':
+        return <Compass className={iconClass} aria-hidden="true" />;
+      case 'layers':
+        return <Layers className={iconClass} aria-hidden="true" />;
+      case 'heart':
+        return <Heart className={iconClass} aria-hidden="true" />;
+      case 'crown':
+        return <Crown className={iconClass} aria-hidden="true" />;
+      default:
+        return <Sparkles className={iconClass} aria-hidden="true" />;
     }
   };
 
   return (
     <div className="w-full max-w-5xl mx-auto my-2 sm:my-3 px-2">
-      <div className="flex items-center justify-between sm:justify-center mb-2 px-1">
-        <h2 className="text-xs sm:text-sm font-bold font-serif-mystic text-gold-gradient tracking-wide uppercase">
-          เลือกรูปแบบการทำนาย
+      <div className="flex items-center justify-between sm:justify-center gap-2 mb-2 px-1">
+        <h2 className="text-xs sm:text-sm font-bold text-amber-100/95 tracking-wide">
+          ขั้นตอนที่ 1 · เลือกรูปแบบการทำนาย
         </h2>
-        <span className="text-[10px] text-purple-300/60 sm:hidden flex items-center gap-1">
-          <span>เลื่อนดูเพิ่มเติม</span>
-          <span className="text-amber-400">→</span>
+        <span className="text-[10px] text-slate-500 sm:hidden flex items-center gap-1 shrink-0">
+          <span>เลื่อนดู</span>
+          <span className="text-amber-400/80" aria-hidden="true">
+            →
+          </span>
         </span>
       </div>
 
-      {/* Flex row with horizontal scroll on mobile, Grid on desktop */}
-      <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible snap-x scrollbar-none p-2.5 sm:p-3 -mx-2 sm:mx-0">
+      <div
+        role="listbox"
+        aria-label="รูปแบบการทำนายไพ่"
+        className="flex sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible snap-x scrollbar-none p-2.5 sm:p-3 -mx-2 sm:mx-0"
+      >
         {TAROT_SPREADS.map((spread) => {
           const isSelected = mode === spread.id;
+          const isRecommended = spread.id === RECOMMENDED_ID;
 
           return (
             <button
               key={spread.id}
               type="button"
+              role="option"
+              aria-selected={isSelected}
               disabled={disabled}
               onClick={() => onSelectMode(spread.id)}
-              className={`relative flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl text-left transition-all duration-200 cursor-pointer disabled:opacity-50 w-[165px] xs:w-[185px] sm:w-auto shrink-0 sm:shrink snap-align-start ${
+              className={`relative flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl text-left transition-all duration-200 cursor-pointer disabled:opacity-50 w-[165px] xs:w-[185px] sm:w-auto shrink-0 sm:shrink snap-align-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
                 isSelected
-                  ? 'bg-gradient-to-b from-purple-900/90 via-purple-950/90 to-slate-900 border-2 border-amber-400 shadow-[0_0_20px_rgba(234,179,8,0.4)]'
-                  : 'glass-panel hover:border-amber-400/40 hover:bg-purple-950/40'
+                  ? 'bg-gradient-to-b from-purple-900/90 via-purple-950/90 to-slate-900 border-2 border-amber-400 shadow-[0_0_16px_rgba(234,179,8,0.28)]'
+                  : 'bg-slate-900/70 border border-slate-700/80 hover:border-amber-400/35 hover:bg-slate-900'
               }`}
             >
+              {isRecommended && (
+                <span className="absolute -top-2 left-3 text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 border border-amber-300 tracking-wide">
+                  แนะนำ
+                </span>
+              )}
+
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <div className="p-1.5 rounded-xl bg-purple-950/80 border border-amber-400/30">
+                  <div className="p-1.5 rounded-xl bg-purple-950/80 border border-amber-400/25">
                     {renderIcon(spread.iconName, isSelected)}
                   </div>
-                  <span className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                    isSelected
-                      ? 'bg-amber-400 text-slate-950 border-amber-300'
-                      : 'bg-purple-950/60 text-amber-300/90 border-purple-500/30'
-                  }`}>
+                  <span
+                    className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                      isSelected
+                        ? 'bg-amber-400 text-slate-950 border-amber-300'
+                        : 'bg-slate-950/60 text-amber-200/80 border-slate-600'
+                    }`}
+                  >
                     {spread.cardCount} ใบ
                   </span>
                 </div>
 
-                <h3 className={`text-xs sm:text-sm font-bold font-serif-mystic mb-0.5 truncate ${
-                  isSelected ? 'text-amber-200' : 'text-slate-200'
-                }`}>
+                <h3
+                  className={`text-xs sm:text-sm font-bold mb-0.5 truncate ${
+                    isSelected ? 'text-amber-100' : 'text-slate-200'
+                  }`}
+                >
                   {spread.titleTh}
                 </h3>
-                <p className="text-[9px] sm:text-[10px] text-purple-300/60 mb-1.5 truncate">{spread.titleEn}</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-500 mb-1.5 truncate">
+                  {spread.titleEn}
+                </p>
 
-                <p className="text-[10px] sm:text-[11px] text-slate-300/80 leading-tight line-clamp-2">
+                <p className="text-[10px] sm:text-[11px] text-slate-400 leading-tight line-clamp-2">
                   {spread.description}
                 </p>
               </div>

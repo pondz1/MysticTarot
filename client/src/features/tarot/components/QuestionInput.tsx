@@ -18,27 +18,30 @@ const PRESET_QUESTIONS = [
 export const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, disabled }) => {
   return (
     <div className="w-full max-w-2xl mx-auto my-3 sm:my-4 flex flex-col gap-2 sm:gap-2.5">
-      <div className="flex justify-between items-center px-1.5">
-        <label className="text-xs sm:text-sm uppercase tracking-wider font-semibold text-purple-300 flex items-center gap-2">
-          <HelpCircle className="w-4 h-4 text-amber-400 shrink-0" />
-          <span>กรอกคำถามของคุณ</span>
+      <div className="flex justify-between items-center gap-2 px-1.5">
+        <label
+          htmlFor="tarot-question-input"
+          className="text-xs sm:text-sm font-semibold text-amber-100/95 flex items-center gap-2"
+        >
+          <HelpCircle className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
+          <span>ขั้นตอนที่ 2 · คำถามของคุณ</span>
         </label>
-        
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 shrink-0">
           {question ? (
             <button
               type="button"
               disabled={disabled}
               onClick={() => setQuestion('')}
               aria-label="ล้างคำถาม"
-              className="text-xs text-amber-300 hover:text-amber-100 cursor-pointer flex items-center gap-1.5 font-medium transition-colors bg-purple-950/90 hover:bg-purple-900 px-2.5 py-1 rounded-lg border border-amber-400/40 shadow-xs"
+              className="text-xs text-amber-200 hover:text-amber-50 cursor-pointer flex items-center gap-1.5 font-medium transition-colors bg-slate-900 hover:bg-slate-800 px-2.5 py-1.5 min-h-[36px] rounded-lg border border-slate-700"
             >
-              <X className="w-3.5 h-3.5 text-amber-300" />
-              <span>ล้างคำถาม</span>
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>ล้าง</span>
             </button>
           ) : (
-            <span className="text-xs text-purple-300/70 font-medium">
-              (หากไม่กรอก ระบบจะทำนายภาพรวมให้)
+            <span className="text-[11px] sm:text-xs text-slate-500 font-medium text-right">
+              ข้ามได้ · ระบบทำนายภาพรวม
             </span>
           )}
         </div>
@@ -46,12 +49,14 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuest
 
       <div className="relative w-full">
         <textarea
+          id="tarot-question-input"
+          name="tarot-question"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={disabled}
-          placeholder="พิมพ์คำถามหรือเรื่องที่ต้องการดูดวงอย่างละเอียด เช่น เรื่องความรักกับคนปัจจุบันช่วง 3 เดือนนี้จะเป็นอย่างไร? ควรย้ายงานใหม่ตอนนี้ดีไหม?..."
+          placeholder="เช่น ความรักช่วง 3 เดือนนี้จะเป็นอย่างไร? ควรย้ายงานไหม?…"
           rows={3}
-          className="w-full p-4 sm:p-5 min-h-[110px] sm:min-h-[135px] rounded-2xl bg-purple-950/50 backdrop-blur-xl border border-amber-400/40 hover:border-amber-400/70 text-sm sm:text-base text-amber-50 placeholder-slate-400/70 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-all resize-y shadow-inner leading-relaxed"
+          className="w-full p-4 sm:p-5 min-h-[100px] sm:min-h-[120px] rounded-2xl bg-slate-950/80 border border-slate-700 hover:border-amber-400/40 text-sm sm:text-base text-slate-100 placeholder-slate-500 focus:outline-none focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/30 transition-colors resize-y leading-relaxed"
         />
       </div>
 

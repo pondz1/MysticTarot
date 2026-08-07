@@ -63,23 +63,23 @@ export const DeckConfirmation: React.FC<DeckConfirmationProps> = ({
       <button
         type="button"
         onClick={onConfirm}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-bold text-sm sm:text-base shadow-lg shadow-amber-500/25 border border-amber-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 min-h-[48px] rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-bold text-sm sm:text-base shadow-lg shadow-amber-500/20 border border-amber-200 active:scale-[0.98] transition-transform cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
       >
         {useAi ? (
           <>
-            <Sparkles className="w-5 h-5 text-purple-950 fill-purple-950" />
-            <span>ยืนยันวิเคราะห์ด้วย AI ({targetCount} ใบ)</span>
+            <Sparkles className="w-5 h-5 text-purple-950 fill-purple-950" aria-hidden="true" />
+            <span>ดูคำทำนายด้วย AI</span>
           </>
         ) : (
           <>
-            <BookOpen className="w-5 h-5 text-purple-950" />
-            <span>ยืนยันอ่านคำทำนายมาตรฐาน ({targetCount} ใบ)</span>
+            <BookOpen className="w-5 h-5 text-purple-950" aria-hidden="true" />
+            <span>ดูคำทำนายมาตรฐาน</span>
           </>
         )}
       </button>
 
-      <p className="text-[11px] text-purple-300/70">
-        * แตะคลิกที่ไพ่ใบอื่นในสำรับได้ทันที หากต้องการสลับเปลี่ยนไพ่
+      <p className="text-[11px] text-slate-500">
+        แตะไพ่ใบอื่นในสำรับเพื่อสลับก่อนยืนยันได้
       </p>
     </motion.div>
   );

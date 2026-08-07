@@ -12,9 +12,8 @@ import { analyzeTarotReading, analyzeTarotFollowUp, generateFallbackReading } fr
 import { storageService } from '../../../services/storageService';
 import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
 import type { TarotCard } from '../data/tarotCards';
-import { Sparkles } from 'lucide-react';
 import { TarotSubNav } from '../components/TarotSubNav';
-import { MODULE_THEMES } from '../../../constants/moduleThemes';
+import { ReadingProgressSteps, type ReadingStep } from '../components/ReadingProgressSteps';
 import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
 
 interface ReadingPageProps {
@@ -34,7 +33,6 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
   onOpenSettings,
   onOpenCreditCenter,
 }) => {
-  const theme = MODULE_THEMES.tarot;
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
 
@@ -253,28 +251,33 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
     navigate('/tarot');
   };
 
+  const cardsDrawn = drawnCards.length > 0;
+  const hasResult = Boolean(readingResult) || isAnalyzing;
+  // Defaults cover steps 1–2; primary action before draw is pick cards (step 3)
+  const progressStep: ReadingStep = cardsDrawn ? (hasResult ? 4 : 3) : 3;
+
   return (
     <div className="w-full flex flex-col items-center animate-fade-in pb-12">
-      {/* Tarot Feature Sub Navigation Tabs */}
       <TarotSubNav />
 
-      {/* Hero Section Banner */}
-      <div className="text-center my-2 sm:my-4 max-w-2xl mx-auto">
-        <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full ${theme.badgeBg} text-[10px] sm:text-xs mb-2 sm:mb-3 shadow-inner`}>
-          <Sparkles className={`w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 ${theme.iconColor}`} />
-          <span>ศาสตร์แห่งไพ่ยิปซี & ปัญญาประดิษฐ์จักรวาล</span>
-        </div>
-
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold font-serif-mystic text-gold-gradient tracking-tight leading-tight pt-2">
-          หยั่งรู้ดวงชะตาสลักชะตาชีวิต
+      {/* Compact header — less marketing, clearer job-to-be-done */}
+      <header className="text-center my-2 sm:my-3 max-w-xl mx-auto px-2">
+        <h1 className="text-xl sm:text-3xl md:text-4xl font-bold font-serif-mystic text-amber-100 tracking-tight leading-snug">
+          ทำนายดวงด้วยไพ่ยิปซี
         </h1>
-        <p className="text-[11px] sm:text-sm text-purple-200/80 mt-1.5 sm:mt-2 font-light leading-relaxed max-w-xl mx-auto">
-          เลือกรูปแบบไพ่ยิปซี พิมพ์เรื่องราวที่คุณอยากรู้ แล้วให้พลังแห่งสถิตไพ่และ AI ช่วยวิเคราะห์คำตอบ
+        <p className="text-xs sm:text-sm text-slate-400 mt-1.5 leading-relaxed">
+          เลือกรูปแบบ · ตั้งคำถาม (ได้) · เลือกไพ่ · รับคำทำนาย
         </p>
-      </div>
+      </header>
 
-      {/* Step 1: Select Spread Mode */}
-      {drawnCards.length === 0 && (
+      <ReadingProgressSteps
+        currentStep={progressStep}
+        cardsDrawn={cardsDrawn}
+        hasResult={hasResult}
+      />
+
+      {/* Setup: spread + question + deck */}
+      {!cardsDrawn && (
         <>
           <SpreadSelector
             mode={spreadMode}
@@ -285,33 +288,35 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
             disabled={isAnalyzing}
           />
 
-          {/* Step 2: Question Input */}
           <QuestionInput
             question={question}
             setQuestion={setQuestion}
             disabled={isAnalyzing}
           />
+
+          <div className="w-full max-w-5xl mx-auto px-2 mt-1 mb-1">
+            <h2 className="text-xs sm:text-sm font-semibold text-amber-100/95 text-center sm:text-left px-1">
+              ขั้นตอนที่ 3 · เลือกไพ่
+            </h2>
+          </div>
+
+          <TarotDeck
+            spreadMode={spreadMode}
+            onCardsSelected={handleCardsSelected}
+            isAnalyzing={isAnalyzing}
+          />
         </>
       )}
 
-      {/* Step 3: Interactive Card Deck */}
-      {drawnCards.length === 0 && (
-        <TarotDeck
-          spreadMode={spreadMode}
-          onCardsSelected={handleCardsSelected}
-          isAnalyzing={isAnalyzing}
-        />
-      )}
-
-      {/* Step 4: Display Selected Cards */}
-      {drawnCards.length > 0 && (
+      {cardsDrawn && (
         <CardDisplay
           drawnCards={drawnCards}
-          onOpenCardDetails={(dCard) => onOpenCardDetails({ card: dCard.card, isReversed: dCard.isReversed })}
+          onOpenCardDetails={(dCard) =>
+            onOpenCardDetails({ card: dCard.card, isReversed: dCard.isReversed })
+          }
         />
       )}
 
-      {/* AI Error Fallback Banner */}
       {aiError && (
         <AiErrorFallbackCard
           errorMessage={aiError}
@@ -322,7 +327,6 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
         />
       )}
 
-      {/* Step 5: AI Reading Result Output */}
       {(isAnalyzing || readingResult) && (
         <ReadingResult
           resultText={readingResult}

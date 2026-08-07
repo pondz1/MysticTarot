@@ -1,5 +1,5 @@
-import React from 'react';
-import { Orbit, Crown, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Orbit, Crown, ChevronDown, ChevronUp, RefreshCw, Settings2 } from 'lucide-react';
 import type { SelectionMode } from '../../types/tarot';
 
 interface TarotDeckHeaderControlsProps {
@@ -35,45 +35,31 @@ export const TarotDeckHeaderControls: React.FC<TarotDeckHeaderControlsProps> = (
   onShuffle,
   onReset,
 }) => {
+  const isDefaultMode = selectionMode === 'manual' && deckFilter === 'all';
+  const [showAdvanced, setShowAdvanced] = useState(!isDefaultMode);
+
   return (
-    <div className="w-full max-w-full px-3 flex flex-col items-center gap-3 sm:gap-4 mb-4 sm:mb-5 text-center">
-      {/* Action Controls & Modal Trigger Buttons Row */}
-      <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3.5 relative z-20">
-        {/* Mode Selector Modal Trigger Button */}
-        <button
-          type="button"
-          disabled={isShuffling || isAnalyzing || isSelectionActive}
-          onClick={() => onOpenModal('mode')}
-          title={isSelectionActive ? 'หากต้องการเปลี่ยนโหมด ให้กดล้างเลือกใหม่ก่อน' : 'เลือกรูปแบบเปิดไพ่'}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 hover:border-amber-400/80 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-semibold shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <Orbit className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span>{getModeLabel(selectionMode)}</span>
-          <ChevronDown className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-        </button>
+    <div className="w-full max-w-full px-3 flex flex-col items-center gap-3 sm:gap-3.5 mb-4 sm:mb-5 text-center">
+      {/* Primary status — one clear instruction */}
+      <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 rounded-full bg-slate-950/90 border border-amber-400/35 text-amber-100 text-xs sm:text-sm font-medium">
+        <span className="leading-tight">
+          {isSelectionComplete
+            ? `เลือกครบ ${targetCount} ใบแล้ว — ยืนยันด้านล่างเพื่อดูคำทำนาย`
+            : `แตะเลือกไพ่${spreadTitleTh ? ` · ${spreadTitleTh}` : ''} (${selectedCount}/${targetCount})`}
+        </span>
+      </div>
 
-        {/* Filter Selector Modal Trigger Button */}
-        <button
-          type="button"
-          disabled={isShuffling || isAnalyzing || isSelectionActive}
-          onClick={() => onOpenModal('filter')}
-          title={isSelectionActive ? 'หากต้องการเปลี่ยนสำรับ ให้กดล้างเลือกใหม่ก่อน' : 'เลือกประเภทสำรับ'}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-amber-400/40 hover:border-amber-400/80 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-semibold shadow-md hover:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span>{getFilterLabel(deckFilter)}</span>
-          <ChevronDown className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-        </button>
-
+      {/* Primary actions only */}
+      <div className="flex flex-wrap items-center justify-center gap-2 relative z-20">
         {!isSelectionActive && (
           <button
             type="button"
             disabled={isShuffling || isAnalyzing}
             onClick={onShuffle}
-            className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3.5 py-1.5 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-100 disabled:opacity-40 transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 text-xs px-4 py-2 min-h-[40px] rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/45 text-amber-100 disabled:opacity-40 transition-colors cursor-pointer font-semibold"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-amber-300 ${isShuffling ? 'animate-spin' : ''}`} />
-            <span>{isShuffling ? 'กำลังสับ...' : 'สับไพ่'}</span>
+            <RefreshCw className={`w-3.5 h-3.5 text-amber-300 ${isShuffling ? 'animate-spin' : ''}`} aria-hidden="true" />
+            <span>{isShuffling ? 'กำลังสับ…' : 'สับไพ่'}</span>
           </button>
         )}
 
@@ -81,22 +67,70 @@ export const TarotDeckHeaderControls: React.FC<TarotDeckHeaderControlsProps> = (
           <button
             type="button"
             onClick={onReset}
-            className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 text-xs px-4 py-2 min-h-[40px] rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 transition-colors cursor-pointer font-medium"
           >
-            <span>ล้างเลือกใหม่</span>
+            <span>เลือกใหม่</span>
           </button>
         )}
+
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((v) => !v)}
+          disabled={isAnalyzing}
+          aria-expanded={showAdvanced}
+          className="flex items-center gap-1.5 text-xs px-3 py-2 min-h-[40px] rounded-xl text-slate-400 hover:text-amber-200 border border-transparent hover:border-slate-700 transition-colors cursor-pointer disabled:opacity-40"
+        >
+          <Settings2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+          <span>ตัวเลือกขั้นสูง</span>
+          {showAdvanced ? (
+            <ChevronUp className="w-3.5 h-3.5" aria-hidden="true" />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
+          )}
+        </button>
       </div>
 
-      {/* Status Badge */}
-      <div className="inline-flex items-center gap-2 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full bg-purple-950/80 border border-amber-400/30 text-amber-200 text-xs sm:text-sm font-medium shadow-md">
-        <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow shrink-0" />
-        <span className="leading-tight">
-          {isSelectionComplete
-            ? `เลือกครบแล้ว (${targetCount}/${targetCount} ใบ)! กดยืนยันด้านล่าง`
-            : `แตะเลือกไพ่สำหรับ "${spreadTitleTh}" (${selectedCount} / ${targetCount} ใบ)`}
-        </span>
-      </div>
+      {/* Advanced: mode + filter — collapsed by default when using defaults */}
+      {showAdvanced && (
+        <div className="w-full max-w-md flex flex-col items-center gap-2 p-3 rounded-2xl bg-slate-950/70 border border-slate-800/90 animate-fade-in">
+          <p className="text-[11px] text-slate-500 w-full text-left px-0.5">
+            ค่าเริ่มต้น: คลี่ไพ่เลือกเอง · ทั้งสำรับ 78 ใบ — เปลี่ยนได้ด้านล่าง
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2 w-full">
+            <button
+              type="button"
+              disabled={isShuffling || isAnalyzing || isSelectionActive}
+              onClick={() => onOpenModal('mode')}
+              title={
+                isSelectionActive
+                  ? 'หากต้องการเปลี่ยนโหมด ให้กดเลือกใหม่ก่อน'
+                  : 'เลือกรูปแบบเปิดไพ่'
+              }
+              className="flex items-center gap-2 px-3 py-2 min-h-[40px] rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-400/40 text-slate-200 text-[11px] sm:text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Orbit className="w-3.5 h-3.5 text-amber-400/80 shrink-0" aria-hidden="true" />
+              <span className="truncate max-w-[140px] sm:max-w-none">{getModeLabel(selectionMode)}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-500 shrink-0" aria-hidden="true" />
+            </button>
+
+            <button
+              type="button"
+              disabled={isShuffling || isAnalyzing || isSelectionActive}
+              onClick={() => onOpenModal('filter')}
+              title={
+                isSelectionActive
+                  ? 'หากต้องการเปลี่ยนสำรับ ให้กดเลือกใหม่ก่อน'
+                  : 'เลือกประเภทสำรับ'
+              }
+              className="flex items-center gap-2 px-3 py-2 min-h-[40px] rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-400/40 text-slate-200 text-[11px] sm:text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Crown className="w-3.5 h-3.5 text-amber-400/80 shrink-0" aria-hidden="true" />
+              <span className="truncate max-w-[140px] sm:max-w-none">{getFilterLabel(deckFilter)}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-500 shrink-0" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
