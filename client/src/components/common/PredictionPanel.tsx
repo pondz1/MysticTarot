@@ -1,21 +1,25 @@
 import React from 'react';
 import { Check, Copy, Feather } from 'lucide-react';
+import { PredictionMarkdown } from './PredictionMarkdown';
 
 interface PredictionLoadingProps {
   message?: string;
   detail?: string;
 }
 
-/** Quiet loading state shared by non-tarot prediction modules */
+/** Quiet loading state shared by prediction modules */
 export const PredictionLoading: React.FC<PredictionLoadingProps> = ({
   message = 'กำลังวิเคราะห์คำทำนาย…',
   detail = 'โปรดรอสักครู่',
 }) => (
   <div
     role="status"
-    className="flex flex-col items-center justify-center p-10 rounded-2xl border border-slate-700 bg-slate-950/80 text-center space-y-2"
+    className="flex flex-col items-center justify-center p-10 sm:p-12 rounded-2xl border border-slate-700 bg-slate-950/80 text-center space-y-2"
   >
-    <div className="w-10 h-10 rounded-full border-2 border-slate-600 border-t-amber-400/80 animate-spin" aria-hidden="true" />
+    <div
+      className="w-10 h-10 rounded-full border-2 border-slate-600 border-t-amber-400/80 animate-spin"
+      aria-hidden="true"
+    />
     <h4 className="text-base font-semibold text-slate-100">{message}</h4>
     <p className="text-xs text-slate-500">{detail}</p>
   </div>
@@ -39,50 +43,83 @@ export const PredictionStreamingBadge: React.FC<PredictionStreamingBadgeProps> =
 
 interface PredictionPanelProps {
   title: string;
+  /** Prefer passing markdown text for unified typography */
+  markdown?: string;
   isStreaming?: boolean;
   onCopy?: () => void;
   copied?: boolean;
-  children: React.ReactNode;
+  /** Extra header actions (e.g. save) — rendered before copy */
+  headerActions?: React.ReactNode;
+  /** Optional footer below content (chat, new reading, etc.) */
+  footer?: React.ReactNode;
+  /** Fallback when not using markdown prop */
+  children?: React.ReactNode;
   streamingLabel?: string;
+  className?: string;
+  /** Visual density */
+  compact?: boolean;
 }
 
-/** Outer chrome for AI/classic prediction markdown results */
+/**
+ * Unified prediction result chrome used across the whole product.
+ * Layout: title bar · markdown body · streaming · footer
+ */
 export const PredictionPanel: React.FC<PredictionPanelProps> = ({
   title,
+  markdown,
   isStreaming = false,
   onCopy,
   copied = false,
+  headerActions,
+  footer,
   children,
   streamingLabel,
+  className = '',
+  compact = false,
 }) => (
-  <div className="relative rounded-2xl p-5 sm:p-6 md:p-7 border border-slate-700/90 bg-slate-950/70 overflow-hidden space-y-4 animate-fade-in">
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+  <article
+    className={`relative rounded-2xl border border-slate-700/90 bg-slate-950/70 overflow-hidden animate-fade-in ${
+      compact ? 'p-4 sm:p-5' : 'p-5 sm:p-6 md:p-7'
+    } ${className}`}
+  >
+    <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4 mb-5">
       <div className="flex items-center gap-2 min-w-0">
         <Feather className="w-5 h-5 text-amber-400/90 shrink-0" aria-hidden="true" />
-        <h3 className="text-base sm:text-lg font-bold text-slate-100 truncate">{title}</h3>
+        <h2 className="text-base sm:text-lg font-bold text-slate-100 truncate">{title}</h2>
       </div>
-      {onCopy && (
-        <button
-          type="button"
-          onClick={onCopy}
-          className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg text-xs font-medium bg-slate-900 border border-slate-700 text-slate-300 hover:text-slate-100 hover:border-slate-600 transition-colors cursor-pointer whitespace-nowrap shrink-0 self-end sm:self-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-          title="คัดลอกข้อความคำทำนาย"
-        >
-          {copied ? (
-            <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
-          ) : (
-            <Copy className="w-3.5 h-3.5 text-amber-400 shrink-0" aria-hidden="true" />
-          )}
-          <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอกข้อความ'}</span>
-        </button>
-      )}
-    </div>
+      <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap justify-end">
+        {headerActions}
+        {onCopy && (
+          <button
+            type="button"
+            onClick={onCopy}
+            className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg text-xs font-medium bg-slate-900 border border-slate-700 text-slate-300 hover:text-slate-100 hover:border-slate-600 transition-colors cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            title="คัดลอกข้อความคำทำนาย"
+          >
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
+            ) : (
+              <Copy className="w-3.5 h-3.5 text-amber-400 shrink-0" aria-hidden="true" />
+            )}
+            <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอกข้อความ'}</span>
+          </button>
+        )}
+      </div>
+    </header>
 
-    <div className="prose prose-invert max-w-none font-prompt text-slate-200 text-sm leading-relaxed" aria-live="polite" aria-busy={isStreaming}>
-      {children}
+    <div aria-live="polite" aria-busy={isStreaming}>
+      {markdown != null ? (
+        <PredictionMarkdown content={markdown} compact={compact} />
+      ) : (
+        children
+      )}
       {isStreaming && <PredictionStreamingBadge label={streamingLabel} />}
     </div>
-  </div>
+
+    {footer && (
+      <footer className="mt-6 pt-5 border-t border-slate-800">{footer}</footer>
+    )}
+  </article>
 );
 
 interface PrimaryAnalyzeButtonProps {
@@ -90,7 +127,6 @@ interface PrimaryAnalyzeButtonProps {
   type?: 'button' | 'submit';
   disabled?: boolean;
   loading?: boolean;
-  /** e.g. ดูคำทำนายด้วย AI / ดูคำทำนายมาตรฐาน */
   label: string;
   loadingLabel?: string;
   className?: string;
@@ -115,7 +151,10 @@ export const PrimaryAnalyzeButton: React.FC<PrimaryAnalyzeButtonProps> = ({
   >
     {loading ? (
       <>
-        <span className="w-4 h-4 rounded-full border-2 border-slate-800/40 border-t-slate-900 animate-spin" aria-hidden="true" />
+        <span
+          className="w-4 h-4 rounded-full border-2 border-slate-800/40 border-t-slate-900 animate-spin"
+          aria-hidden="true"
+        />
         <span>{loadingLabel}</span>
       </>
     ) : (

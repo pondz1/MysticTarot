@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { MessageSquare, Send, Sparkles, AlertCircle, Bot, User, HelpCircle } from 'lucide-react';
 import type { ChatMessage } from '../types/tarot';
 import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
+import { PredictionMarkdown } from '../../../components/common/PredictionMarkdown';
 
 interface AiFollowUpChatProps {
   chatHistory: ChatMessage[];
@@ -134,27 +133,7 @@ export const AiFollowUpChat: React.FC<AiFollowUpChatProps> = ({
                       <span>กำลังตอบ…</span>
                     </div>
                   ) : (
-                    <div className="prose prose-invert max-w-none font-prompt text-slate-200 text-xs md:text-sm">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          p: ({ children }) => <p className="my-1 leading-relaxed">{children}</p>,
-                          strong: ({ children }) => (
-                            <strong className="text-amber-200 font-semibold">{children}</strong>
-                          ),
-                          ul: ({ children }) => (
-                            <ul className="my-1.5 ml-4 list-disc space-y-0.5">{children}</ul>
-                          ),
-                          blockquote: ({ children }) => (
-                            <blockquote className="my-2 pl-3 border-l-2 border-amber-500/50 italic text-amber-100/90">
-                              {children}
-                            </blockquote>
-                          ),
-                        }}
-                      >
-                        {msg.content}
-                      </ReactMarkdown>
-                    </div>
+                    <PredictionMarkdown content={msg.content} compact />
                   )}
                 </div>
 

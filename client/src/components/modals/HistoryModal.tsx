@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import type { SavedReading, HistoryCategory } from '../../types';
 import { getSpreadConfig } from '../../features/tarot/data/tarotSpreads';
 import {
@@ -20,6 +18,7 @@ import {
   Coins,
 } from 'lucide-react';
 import { ModalShell } from '../common/ModalShell';
+import { PredictionMarkdown } from '../common/PredictionMarkdown';
 
 interface HistoryModalProps {
   isOpen: boolean;
@@ -258,34 +257,18 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
               )}
             </div>
 
-            {/* Markdown AI Content */}
-            <div className="p-4 sm:p-6 rounded-xl bg-slate-950/90 border border-amber-500/30 text-slate-100 text-sm leading-relaxed space-y-4">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  h1: ({ children }) => <h2 className="text-base font-bold text-amber-300 mt-4 mb-2 border-b border-amber-500/30 pb-1">{children}</h2>,
-                  h2: ({ children }) => <h2 className="text-base font-bold text-amber-300 mt-4 mb-2 border-b border-amber-500/30 pb-1">{children}</h2>,
-                  h3: ({ children }) => <h3 className="text-sm font-semibold text-purple-300 mt-3 mb-1">{children}</h3>,
-                  p: ({ children }) => <p className="mb-3 leading-relaxed text-slate-200">{children}</p>,
-                  strong: ({ children }) => <strong className="font-bold text-amber-300">{children}</strong>,
-                  blockquote: ({ children }) => (
-                    <blockquote className="border-l-4 border-amber-400 pl-3 py-2 my-3 text-amber-200 bg-purple-950/40 rounded-r-lg">
-                      {children}
-                    </blockquote>
-                  ),
-                  ul: ({ children }) => <ul className="list-disc pl-5 my-2 space-y-1 text-slate-200">{children}</ul>,
-                  li: ({ children }) => <li className="pl-1">{children}</li>,
-                }}
-              >
-                {activeReading.resultText || 'ไม่มีรายละเอียดคำทำนาย'}
-              </ReactMarkdown>
+            {/* Unified prediction content */}
+            <div className="p-4 sm:p-5 rounded-xl bg-slate-950/90 border border-slate-700/90 space-y-4">
+              <PredictionMarkdown
+                content={activeReading.resultText || 'ไม่มีรายละเอียดคำทำนาย'}
+                compact
+              />
 
-              {/* Chat history if available */}
               {activeReading.chatHistory && activeReading.chatHistory.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-purple-500/30 space-y-3">
-                  <h4 className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                    <MessageSquare className="w-4 h-4 text-purple-300" />
-                    <span>ประวัติคำถาม-ตอบเพิ่มเติม:</span>
+                <div className="mt-6 pt-4 border-t border-slate-800 space-y-3">
+                  <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    <MessageSquare className="w-4 h-4 text-amber-400" aria-hidden="true" />
+                    <span>ประวัติคำถาม-ตอบเพิ่มเติม</span>
                   </h4>
                   <div className="space-y-2">
                     {activeReading.chatHistory.map((msg, idx) => (
@@ -293,14 +276,18 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                         key={idx}
                         className={`p-3 rounded-lg text-xs leading-relaxed ${
                           msg.role === 'user'
-                            ? 'bg-purple-950/80 border border-purple-500/30 text-purple-200 ml-4'
-                            : 'bg-slate-900 border border-amber-500/20 text-slate-100 mr-4'
+                            ? 'bg-slate-900 border border-slate-700 text-slate-200 ml-4'
+                            : 'bg-slate-950 border border-slate-800 text-slate-100 mr-4'
                         }`}
                       >
                         <span className="font-bold block mb-1 text-[11px] text-amber-300">
                           {msg.role === 'user' ? 'ผู้ถาม' : 'AI หมอดู'}
                         </span>
-                        {msg.content}
+                        {msg.role === 'assistant' ? (
+                          <PredictionMarkdown content={msg.content} compact />
+                        ) : (
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        )}
                       </div>
                     ))}
                   </div>

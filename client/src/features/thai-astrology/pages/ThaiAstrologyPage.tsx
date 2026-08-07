@@ -1,17 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { calculateLifeGraph } from '../data/thaiAstrologyData';
 import type { ThaiLifeChartResult } from '../types/thaiAstrology';
-import {
-  Sparkles,
-  Calendar,
-  Briefcase,
-  Coins,
-  Heart,
-  Stethoscope,
-} from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import type { ApiSettings, SavedReading } from '../../../types';
 import { storageService } from '../../../services/storageService';
 import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
@@ -252,60 +243,8 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
               isStreaming={isLoading}
               onCopy={handleCopyPrediction}
               copied={copied}
-            >
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  h1: ({ children }) => {
-                    const textStr =
-                      typeof children === 'string'
-                        ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim()
-                        : String(children || '');
-                    let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
-                    if (textStr.includes('งาน') || textStr.includes('เรียน')) {
-                      iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
-                    } else if (textStr.includes('เงิน') || textStr.includes('โชค')) {
-                      iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
-                    } else if (textStr.includes('รัก')) {
-                      iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
-                    } else if (textStr.includes('สุขภาพ') || textStr.includes('กาย')) {
-                      iconComp = <Stethoscope className="w-4 h-4 text-emerald-400 shrink-0" />;
-                    }
-                    return (
-                      <h2 className="text-base font-bold text-slate-100 border-b border-slate-800 mt-5 mb-2 pb-1.5 flex items-center gap-2">
-                        {iconComp}
-                        <span>{textStr}</span>
-                      </h2>
-                    );
-                  },
-                  h2: ({ children }) => (
-                    <h2 className="text-base font-bold text-slate-100 border-b border-slate-800 mt-5 mb-2 pb-1.5">
-                      {children}
-                    </h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 className="text-sm font-semibold text-slate-200 mt-3 mb-1.5">{children}</h3>
-                  ),
-                  p: ({ children }) => (
-                    <p className="mb-3 leading-relaxed text-slate-300">{children}</p>
-                  ),
-                  strong: ({ children }) => (
-                    <strong className="font-semibold text-amber-200">{children}</strong>
-                  ),
-                  blockquote: ({ children }) => (
-                    <blockquote className="border-l-2 border-amber-500/50 pl-3 py-2 my-3 text-slate-300 bg-slate-900/50 rounded-r-lg">
-                      {children}
-                    </blockquote>
-                  ),
-                  ul: ({ children }) => (
-                    <ul className="list-disc pl-5 my-2 space-y-1 text-slate-300">{children}</ul>
-                  ),
-                  li: ({ children }) => <li className="pl-1">{children}</li>,
-                }}
-              >
-                {predictionText}
-              </ReactMarkdown>
-            </PredictionPanel>
+              markdown={predictionText}
+            />
           )}
         </div>
       )}
