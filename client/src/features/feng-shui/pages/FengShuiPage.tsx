@@ -7,6 +7,7 @@ import { storageService } from '../../../services/storageService';
 import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { analyzeFengShui, generateFallbackFengShui } from '../../../services/aiService';
+import { isAbortError, useAiAbortController } from '../../../hooks/useAiAbortController';
 import { CustomSelect } from '../../../components/common/CustomSelect';
 
 import { FengShuiColorGrid } from '../components/FengShuiColorGrid';
@@ -46,6 +47,7 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const aiAbort = useAiAbortController();
   const theme = MODULE_THEMES['feng-shui'];
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
   const [selectedSpace, setSelectedSpace] = useState<string>('โต๊ะทำงาน / มุมทำงาน');
@@ -132,7 +134,8 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
         (chunk) => {
           setPredictionText((prev) => prev + chunk);
         },
-        historyEntryDraft
+        historyEntryDraft,
+        aiAbort.start()
       );
       setPredictionText(aiText);
       setAiError(null);
@@ -150,6 +153,7 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
         navigate(`/feng-shui/reading/${tempId}`, { replace: true });
       }
     } catch (err: any) {
+      if (isAbortError(err)) return;
       console.error('Failed AI completion in FengShuiPage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ฮวงจุ้ย & สีมงคลได้ในขณะนี้';
       setAiError(errMsg);

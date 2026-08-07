@@ -1,5 +1,5 @@
 import type { ApiSettings, SavedReading } from '../../types';
-import { requestAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
+import { requestModuleAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
 import {
   MARKDOWN_OUTPUT_RULES,
   buildStructureBlock,
@@ -7,18 +7,13 @@ import {
   buildFallbackMarkdown,
 } from './markdownFormat';
 
-export async function analyzeThaiLifeGraph(
+function buildLocalPrompts(
   birthDate: string,
   dayOfWeekTh: string,
   elementTh: string,
   peakAgeRange: string,
-  summaryGuidance: string,
-  settings?: ApiSettings,
-  onChunk?: (chunk: string) => void,
-  historyEntry?: Partial<SavedReading>
-): Promise<string> {
-  const activeSettings = settings || DEFAULT_API_SETTINGS;
-
+  summaryGuidance: string
+): { systemPrompt: string; userPrompt: string } {
   const structure = buildStructureBlock([
     {
       heading: 'ภาพรวมกราฟชีวิต',
@@ -56,31 +51,52 @@ export async function analyzeThaiLifeGraph(
    - ให้ทางเลือกที่ผู้ใช้ปรับใช้ตามวัยและจังหวะชีวิตได้`,
   ]);
 
-  const systemPrompt = `คุณคือ "หมอดูดวงไทยและกราฟชีวิต AI ระดับปรมาจารย์ (Celestial Master Thai Astrology Prophet)" ผู้เชี่ยวชาญตำรากราฟชีวิตโบราณ อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
+  return {
+    systemPrompt: `คุณคือ "หมอดูดวงไทยและกราฟชีวิต AI ระดับปรมาจารย์ (Celestial Master Thai Astrology Prophet)" ผู้เชี่ยวชาญตำรากราฟชีวิตโบราณ อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
 
 ${directives}
 
 ${MARKDOWN_OUTPUT_RULES}
 
 📌 **โครงสร้างผลทำนายมาตรฐาน (Thai Life Chart)**:
-${structure}`;
+${structure}`,
+    userPrompt: `วิเคราะห์กราฟชีวิตผู้เกิดวัน "${dayOfWeekTh}" วันที่ ${birthDate} ธาตุ ${elementTh} ช่วงพีค ${peakAgeRange}
+ตอบตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`,
+  };
+}
 
-  const userPrompt = `วิเคราะห์กราฟชีวิตผู้เกิดวัน "${dayOfWeekTh}" วันที่ ${birthDate} ธาตุ ${elementTh} ช่วงพีค ${peakAgeRange}
-ตอบตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`;
-
+export async function analyzeThaiLifeGraph(
+  birthDate: string,
+  dayOfWeekTh: string,
+  elementTh: string,
+  peakAgeRange: string,
+  summaryGuidance: string,
+  settings?: ApiSettings,
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>,
+  signal?: AbortSignal
+): Promise<string> {
+  const activeSettings = settings || DEFAULT_API_SETTINGS;
   try {
-    const content = await requestAiCompletion(
-      systemPrompt,
-      userPrompt,
+    const content = await requestModuleAiCompletion(
+      'thai_astrology',
+      {
+        birthDate,
+        dayOfWeekTh,
+        elementTh,
+        peakAgeRange,
+        summaryGuidance,
+      },
       activeSettings,
       onChunk,
-      historyEntry
+      historyEntry,
+      signal,
+      buildLocalPrompts(birthDate, dayOfWeekTh, elementTh, peakAgeRange, summaryGuidance)
     );
-    if (content && content.trim()) {
-      return content;
-    }
+    if (content && content.trim()) return content;
     throw new Error('ไม่สามารถประมวลผลคำตอบจาก AI ได้ในขณะนี้');
   } catch (error: any) {
+    if (error?.name === 'AbortError') throw error;
     console.error('Failed Thai Astrology AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ดวงไทยโบราณได้ในขณะนี้');
   }
@@ -100,25 +116,25 @@ export function generateFallbackThaiLifeGraph(
       },
       {
         heading: `ช่วงอายุพีค (${peakAgeRange})`,
-        body: `ช่วง **${peakAgeRange}** เหมาะกับการกอบโกย ลงทุนในตัวเอง และรับโอกาสใหญ่ ควรวางรากฐานก่อนถึงช่วงนี้`,
+        body: `ช่วง ${peakAgeRange} เป็นจังหวะเร่งผลงานและสร้างฐาน เหมาะกับการลงทุนในทักษะและความสัมพันธ์เกื้อกูล`,
       },
       {
         heading: 'การงานและเกียรติยศ',
-        body: 'งานสร้างชื่อเสียงได้เมื่อซื่อสัตย์และประณีต มีแนวโน้มได้รับความไว้วางใจจากผู้ใหญ่',
+        body: 'งานก้าวหน้าได้ด้วยความสม่ำเสมอและความซื่อสัตย์ ผู้ใหญ่มักให้โอกาสเมื่อเห็นผลงานจริง',
       },
       {
         heading: 'การเงินและทรัพย์สิน',
-        body: 'การเงินหมุนเวียนได้ดีในระยะยาว มีโอกาสสะสมทรัพย์หรือสินทรัพย์เมื่อผ่านช่วงกลางคน',
+        body: 'การเงินมั่นคงเมื่อมีแผนออมและเลี่ยงหนี้ฟุ่มเฟือย โชคจากความเพียรมีน้ำหนักกว่าโชคฉับพลัน',
       },
       {
         heading: 'ความรักและครอบครัว',
-        body: 'คู่ครองและครอบครัวเกื้อกูลได้ดี หากสื่อสารด้วยความเข้าใจในยามกดดัน',
+        body: 'ครอบครัวและคู่ครองเป็นฐานใจ เลือกคบคนที่ส่งเสริมกันระยะยาว',
       },
       {
         heading: 'ข้อควรระวังและคำแนะนำ',
-        body: '- เลี่ยงตัดสินใจใหญ่ตอนอารมณ์ร้อน\n- สะสมวินัยการเงินก่อนช่วงพีค\n- ดูแลสุขภาพเป็นทุนชีวิต',
+        body: '- วางแผนระยะ 3–5 ปี\n- ดูแลสุขภาพช่วงกราฟลง\n- ใช้จังหวะพีคสร้างผลงานให้เป็นรูปธรรม',
       },
     ],
-    'ยึดสติและความเพียร — บารมีและความสำเร็จจะสะสมตามจังหวะชีวิต'
+    'รู้จักจังหวะขึ้น-ลงของชีวิต — ลงมือเมื่อพร้อม หยุดพักเมื่อควร'
   );
 }

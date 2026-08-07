@@ -15,6 +15,7 @@ import type { TarotCard } from '../data/tarotCards';
 import { TarotSubNav } from '../components/TarotSubNav';
 import { ReadingProgressSteps, type ReadingStep } from '../components/ReadingProgressSteps';
 import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
+import { isAbortError, useAiAbortController } from '../../../hooks/useAiAbortController';
 
 interface ReadingPageProps {
   apiSettings: ApiSettings;
@@ -35,6 +36,8 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
 }) => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const aiAbort = useAiAbortController();
+  const followUpAbort = useAiAbortController();
 
   // Mode selection ('single' | 'three' | 'four' | 'five' | 'celtic')
   const [spreadMode, setSpreadModeState] = useState<SpreadMode>(
@@ -113,7 +116,8 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
           (chunk) => {
             setReadingResult((prev) => prev + chunk);
           },
-          historyEntryDraft
+          historyEntryDraft,
+          aiAbort.start()
         );
       } else {
         analysis = generateFallbackReading(question, cards, spreadMode);
@@ -135,6 +139,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
       setIsSavedCurrent(true);
       navigate(`/tarot/reading/${newId}`, { replace: true });
     } catch (err: any) {
+      if (isAbortError(err)) return;
       console.error('Failed AI completion in TarotReadingPage:', err);
       const msg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ได้ในขณะนี้';
       setAiError(msg);
@@ -176,6 +181,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
         chatHistory: [...chatHistory, userMsg],
         newQuestion: userQuestion,
         settings: apiSettings,
+        signal: followUpAbort.start(),
         onChunk: (chunk) => {
           setChatHistory((prev) =>
             prev.map((msg) =>
@@ -207,6 +213,12 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
         setIsSavedCurrent(true);
       }
     } catch (err: any) {
+      if (isAbortError(err)) {
+        setChatHistory((prev) =>
+          prev.filter((msg) => !(msg.id === aiMsgId && !msg.content))
+        );
+        return;
+      }
       console.error('Failed follow-up Q&A:', err);
       // Remove empty assistant placeholder so UI does not look stuck mid-reply
       setChatHistory((prev) =>

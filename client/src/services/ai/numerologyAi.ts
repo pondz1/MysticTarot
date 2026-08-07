@@ -1,5 +1,5 @@
 import type { ApiSettings, SavedReading } from '../../types';
-import { requestAiCompletion } from './aiClient';
+import { requestModuleAiCompletion } from './aiClient';
 import {
   MARKDOWN_OUTPUT_RULES,
   buildStructureBlock,
@@ -8,15 +8,12 @@ import {
   buildFallbackMarkdown,
 } from './markdownFormat';
 
-export async function analyzeNumerology(
+function buildLocalPrompts(
   digitsStr: string,
   sumValue: number,
   sumTitle: string,
-  pairsSummary: string,
-  settings: ApiSettings,
-  onChunk?: (chunk: string) => void,
-  historyEntry?: Partial<SavedReading>
-): Promise<string> {
+  pairsSummary: string
+): { systemPrompt: string; userPrompt: string } {
   const structure = buildStructureBlock(
     lifeAspectSections({
       overviewHeading: 'ภาพรวมพลังงานตัวเลข',
@@ -38,25 +35,44 @@ export async function analyzeNumerology(
    - ไม่รับประกันความมั่งคั่งแน่นอน`,
   ]);
 
-  const systemPrompt = `คุณคือ "หมอดูเลขศาสตร์ AI ระดับปรมาจารย์ (Celestial Master Numerology Prophet)" ผู้ถอดรหัสตัวเลขและเบอร์มงคล อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
+  return {
+    systemPrompt: `คุณคือ "หมอดูเลขศาสตร์ AI ระดับปรมาจารย์ (Celestial Master Numerology Prophet)" ผู้ถอดรหัสตัวเลขและเบอร์มงคล อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
 
 ${directives}
 
 ${MARKDOWN_OUTPUT_RULES}
 
 📌 **โครงสร้างผลทำนายมาตรฐาน (Numerology)**:
-${structure}`;
+${structure}`,
+    userPrompt: `โปรดวิเคราะห์ชุดตัวเลข "${digitsStr}" ผลรวม ${sumValue} (${sumTitle}) คู่เลขสำคัญ: ${pairsSummary}
+ตอบตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`,
+  };
+}
 
-  const userPrompt = `โปรดวิเคราะห์ชุดตัวเลข "${digitsStr}" ผลรวม ${sumValue} (${sumTitle}) คู่เลขสำคัญ: ${pairsSummary}
-ตอบตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`;
-
+export async function analyzeNumerology(
+  digitsStr: string,
+  sumValue: number,
+  sumTitle: string,
+  pairsSummary: string,
+  settings: ApiSettings,
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>,
+  signal?: AbortSignal
+): Promise<string> {
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk, historyEntry);
-    if (content && content.trim()) {
-      return content;
-    }
+    const content = await requestModuleAiCompletion(
+      'numerology',
+      { digitsStr, sumValue, sumTitle, pairsSummary },
+      settings,
+      onChunk,
+      historyEntry,
+      signal,
+      buildLocalPrompts(digitsStr, sumValue, sumTitle, pairsSummary)
+    );
+    if (content && content.trim()) return content;
     throw new Error('ไม่สามารถประมวลผลคำตอบจาก AI ได้ในขณะนี้');
   } catch (error: any) {
+    if (error?.name === 'AbortError') throw error;
     console.error('Failed Numerology AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ถอดรหัสตัวเลขได้ในขณะนี้');
   }

@@ -22,6 +22,7 @@ import { analyzeZodiacHoroscope } from '../../../services/aiService';
 import { storageService } from '../../../services/storageService';
 import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
+import { isAbortError, useAiAbortController } from '../../../hooks/useAiAbortController';
 
 import { BirthdateZodiacFinder } from '../components/BirthdateZodiacFinder';
 import { ZodiacGrid } from '../components/ZodiacGrid';
@@ -52,6 +53,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const aiAbort = useAiAbortController();
   const theme = MODULE_THEMES.horoscope;
   const [selectedSign, setSelectedSign] = useState<ZodiacSign>(ZODIAC_SIGNS[0]);
   const [timeframe, setTimeframe] = useState<'daily' | 'monthly'>('daily');
@@ -141,7 +143,8 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
         (chunk) => {
           setPrediction((prev) => prev + chunk);
         },
-        historyEntryDraft
+        historyEntryDraft,
+        aiAbort.start()
       );
       setPrediction(res);
       setAiError(null);
@@ -159,6 +162,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
         navigate(`/horoscope/reading/${tempId}`, { replace: true });
       }
     } catch (err: any) {
+      if (isAbortError(err)) return;
       console.error('Failed AI completion in HoroscopePage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ดูดวงราศีได้ในขณะนี้';
       setAiError(errMsg);

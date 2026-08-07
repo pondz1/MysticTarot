@@ -17,6 +17,7 @@ import { analyzeNumerology, generateFallbackNumerology } from '../../../services
 import { storageService } from '../../../services/storageService';
 import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
+import { isAbortError, useAiAbortController } from '../../../hooks/useAiAbortController';
 
 import { NumerologyPresets, type SampleNumberItem } from '../components/NumerologyPresets';
 import { NumerologyHeaderBanner } from '../components/NumerologyHeaderBanner';
@@ -56,6 +57,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const aiAbort = useAiAbortController();
   const theme = MODULE_THEMES.numerology;
   const [phoneNumber, setPhoneNumber] = useState<string>('0958889999');
   const [numberType, setNumberType] = useState<'phone' | 'car' | 'house' | 'card'>('phone');
@@ -156,7 +158,8 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
         (chunk) => {
           setPredictionText((prev) => prev + chunk);
         },
-        historyEntryDraft
+        historyEntryDraft,
+        aiAbort.start()
       );
       setPredictionText(aiText);
       setAiError(null);
@@ -174,6 +177,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
         navigate(`/numerology/reading/${tempId}`, { replace: true });
       }
     } catch (err: any) {
+      if (isAbortError(err)) return;
       console.error('Failed AI completion in NumerologyPage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ถอดรหัสตัวเลขได้ในขณะนี้';
       setAiError(errMsg);

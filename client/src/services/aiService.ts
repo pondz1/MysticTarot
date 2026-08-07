@@ -5,8 +5,11 @@ export {
   cleanAiResponse,
   getOpenAIClient,
   requestAiCompletion,
+  requestModuleAiCompletion,
   streamAiCompletion,
+  isCustomKeyMode,
 } from './ai/aiClient';
+export type { AiModuleId } from './ai/aiClient';
 
 export {
   analyzeTarotReading,

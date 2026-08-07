@@ -12,9 +12,40 @@ export const CREDIT_RATES = {
   // Minimum credits deducted per AI completion call
   MIN_CREDITS_PER_REQUEST: 1,
 
+  /**
+   * Soft gate before starting a request.
+   * Actual cost is settled from tokens after completion and can be higher;
+   * balance is clamped so it never goes negative.
+   */
+  MIN_CREDITS_TO_START: 1,
+
+  /**
+   * Credits held (deducted) before calling the provider.
+   * After completion, difference is refunded or extra-deducted via planCreditSettlement.
+   */
+  RESERVE_CREDITS_PER_REQUEST: 2,
+
   // Initial free credits granted to new users
   INITIAL_USER_CREDITS: 10,
 } as const;
+
+/**
+ * After a reserve hold of `reserved`, settle to `actualCost` (token-based).
+ * - actual > reserved → need extra deduct
+ * - actual < reserved → refund difference
+ * - actual === reserved → no-op
+ */
+export function planCreditSettlement(
+  reserved: number,
+  actualCost: number
+): { extraDeduct: number; refund: number; netCharged: number } {
+  const hold = Math.max(0, Math.floor(reserved));
+  const actual = Math.max(0, Math.floor(actualCost));
+  if (actual >= hold) {
+    return { extraDeduct: actual - hold, refund: 0, netCharged: actual };
+  }
+  return { extraDeduct: 0, refund: hold - actual, netCharged: actual };
+}
 
 export interface TokenUsageInfo {
   prompt_tokens?: number;

@@ -1,5 +1,5 @@
 import type { ApiSettings, SavedReading } from '../../types';
-import { requestAiCompletion } from './aiClient';
+import { requestModuleAiCompletion } from './aiClient';
 import {
   MARKDOWN_OUTPUT_RULES,
   buildStructureBlock,
@@ -8,14 +8,11 @@ import {
   buildFallbackMarkdown,
 } from './markdownFormat';
 
-export async function analyzeZodiacHoroscope(
+function buildLocalPrompts(
   signNameTh: string,
   elementTh: string,
-  timeframe: 'daily' | 'monthly',
-  settings: ApiSettings,
-  onChunk?: (chunk: string) => void,
-  historyEntry?: Partial<SavedReading>
-): Promise<string> {
+  timeframe: 'daily' | 'monthly'
+): { systemPrompt: string; userPrompt: string } {
   const period = timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน';
 
   const structure = buildStructureBlock(
@@ -39,24 +36,42 @@ export async function analyzeZodiacHoroscope(
    - ให้สติปัญญาและทางเลือกที่ผู้ใช้นำไปปรับใช้ได้`,
   ]);
 
-  const systemPrompt = `คุณคือ "หมอดูโหราศาสตร์ 12 ราศี AI ระดับปรมาจารย์ (Celestial Master Zodiac Prophet)" ผู้หยั่งรู้ดวงดาว อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
+  return {
+    systemPrompt: `คุณคือ "หมอดูโหราศาสตร์ 12 ราศี AI ระดับปรมาจารย์ (Celestial Master Zodiac Prophet)" ผู้หยั่งรู้ดวงดาว อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
 
 ${directives}
 
 ${MARKDOWN_OUTPUT_RULES}
 
 📌 **โครงสร้างผลทำนายมาตรฐาน (Zodiac)**:
-${structure}`;
+${structure}`,
+    userPrompt: `โปรดทำนายดวง${period} ของราศี "${signNameTh}" (ธาตุ ${elementTh}) ตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`,
+  };
+}
 
-  const userPrompt = `โปรดทำนายดวง${period} ของราศี "${signNameTh}" (ธาตุ ${elementTh}) ตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`;
-
+export async function analyzeZodiacHoroscope(
+  signNameTh: string,
+  elementTh: string,
+  timeframe: 'daily' | 'monthly',
+  settings: ApiSettings,
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>,
+  signal?: AbortSignal
+): Promise<string> {
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk, historyEntry);
-    if (content && content.trim()) {
-      return content;
-    }
+    const content = await requestModuleAiCompletion(
+      'horoscope',
+      { signNameTh, elementTh, timeframe },
+      settings,
+      onChunk,
+      historyEntry,
+      signal,
+      buildLocalPrompts(signNameTh, elementTh, timeframe)
+    );
+    if (content && content.trim()) return content;
     throw new Error('ไม่สามารถประมวลผลคำตอบจาก AI ได้ในขณะนี้');
   } catch (error: any) {
+    if (error?.name === 'AbortError') throw error;
     console.error('Failed Zodiac AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ดูดวงราศีได้ในขณะนี้');
   }

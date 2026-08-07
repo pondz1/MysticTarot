@@ -1,5 +1,5 @@
 import type { ApiSettings, SavedReading } from '../../types';
-import { requestAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
+import { requestModuleAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
 import {
   MARKDOWN_OUTPUT_RULES,
   buildStructureBlock,
@@ -7,19 +7,14 @@ import {
   buildFallbackMarkdown,
 } from './markdownFormat';
 
-export async function analyzeFengShui(
+function buildLocalPrompts(
   dayNameTh: string,
   luckyWork: string,
   luckyWealth: string,
   luckyLove: string,
   unluckyForbidden: string,
-  selectedSpace: string,
-  settings?: ApiSettings,
-  onChunk?: (chunk: string) => void,
-  historyEntry?: Partial<SavedReading>
-): Promise<string> {
-  const activeSettings = settings || DEFAULT_API_SETTINGS;
-
+  selectedSpace: string
+): { systemPrompt: string; userPrompt: string } {
   const structure = buildStructureBlock([
     {
       heading: 'ภาพรวมฮวงจุ้ยและสีมงคล',
@@ -56,35 +51,65 @@ export async function analyzeFengShui(
    - ไม่ขู่เกินเหตุ ไม่รับประกันโชคลาภแน่นอน`,
   ]);
 
-  const systemPrompt = `คุณคือ "หมอดูฮวงจุ้ยและสีมงคล AI ระดับปรมาจารย์ (Celestial Master Feng Shui Prophet)" ผู้จัดพลังงานพื้นที่ อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
+  return {
+    systemPrompt: `คุณคือ "หมอดูฮวงจุ้ยและสีมงคล AI ระดับปรมาจารย์ (Celestial Master Feng Shui Prophet)" ผู้จัดพลังงานพื้นที่ อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
 
 ${directives}
 
 ${MARKDOWN_OUTPUT_RULES}
 
 📌 **โครงสร้างผลทำนายมาตรฐาน (Feng Shui)**:
-${structure}`;
-
-  const userPrompt = `วิเคราะห์ฮวงจุ้ยพื้นที่ "${selectedSpace}" ประจำวัน "${dayNameTh}"
+${structure}`,
+    userPrompt: `วิเคราะห์ฮวงจุ้ยพื้นที่ "${selectedSpace}" ประจำวัน "${dayNameTh}"
 สีมงคลงาน: ${luckyWork}
 สีมงคลเงิน: ${luckyWealth}
 สีมงคลรัก: ${luckyLove}
 สีควรหลีก: ${unluckyForbidden}
-ตอบตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`;
+ตอบตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`,
+  };
+}
 
+export async function analyzeFengShui(
+  dayNameTh: string,
+  luckyWork: string,
+  luckyWealth: string,
+  luckyLove: string,
+  unluckyForbidden: string,
+  selectedSpace: string,
+  settings?: ApiSettings,
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>,
+  signal?: AbortSignal
+): Promise<string> {
+  const activeSettings = settings || DEFAULT_API_SETTINGS;
   try {
-    const content = await requestAiCompletion(
-      systemPrompt,
-      userPrompt,
+    const content = await requestModuleAiCompletion(
+      'feng_shui',
+      {
+        dayNameTh,
+        luckyWork,
+        luckyWealth,
+        luckyLove,
+        unluckyForbidden,
+        selectedSpace,
+      },
       activeSettings,
       onChunk,
-      historyEntry
+      historyEntry,
+      signal,
+      buildLocalPrompts(
+        dayNameTh,
+        luckyWork,
+        luckyWealth,
+        luckyLove,
+        unluckyForbidden,
+        selectedSpace
+      )
     );
-    if (content && content.trim()) {
-      return content;
-    }
+    if (content && content.trim()) return content;
     throw new Error('ไม่สามารถประมวลผลคำตอบจาก AI ได้ในขณะนี้');
   } catch (error: any) {
+    if (error?.name === 'AbortError') throw error;
     console.error('Failed Feng Shui AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ฮวงจุ้ย & สีมงคลได้ในขณะนี้');
   }
@@ -102,29 +127,29 @@ export function generateFallbackFengShui(
     [
       {
         heading: 'ภาพรวมฮวงจุ้ยและสีมงคล',
-        body: `ประจำ**${dayNameTh}** พื้นที่ **${spaceType}** เหมาะกับการปรับสีและการจัดวางเล็กน้อยเพื่อให้พลังงานไหลเวียนรับโชคลาภ`,
+        body: `วัน${dayNameTh} เหมาะกับการจัดพื้นที่ **${spaceType}** ให้สอดคล้องกับสีมงคลของวัน ช่วยหนุนงาน เงิน และความสัมพันธ์`,
       },
       {
         heading: 'การงานและพื้นที่ทำงาน',
-        body: `สีมงคลงาน **${luckyWork}** ช่วยเสริมความน่าเชื่อถือและสมาธิ จัดโต๊ะให้โล่ง หันรับแสงธรรมชาติถ้าทำได้`,
+        body: `ใช้โทนสี ${luckyWork} บริเวณมุมทำงาน จัดของให้โล่ง อ่านง่าย ลดสิ่งรบกวนสายตา`,
       },
       {
         heading: 'การเงินและโชคลาภ',
-        body: `สีมงคลการเงิน **${luckyWealth}** เหมาะกับการเจรจาและการรับทรัพย์ เก็บพื้นที่ให้สะอาดเป็นระเบียบ`,
+        body: `เสริมด้วยสี ${luckyWealth} ในจุดรับแสงหรือมุมเก็บของมีค่า หมั่นเก็บเงินอย่างมีระบบ`,
       },
       {
         heading: 'ความรักและเมตตา',
-        body: `สีมงคลความรัก **${luckyLove}** เสริมเสน่ห์และความอ่อนโยนในความสัมพันธ์`,
+        body: `ใช้สี ${luckyLove} เบาๆ ในพื้นที่ส่วนตัว เพิ่มความอบอุ่นและการสื่อสาร`,
       },
       {
         heading: 'สิ่งที่ควรหลีกเลี่ยง',
-        body: `ควรเลี่ยงสี **${unluckyForbidden}** ในวันนี้ และอย่ากองของรกบริเวณทางเข้าหรือมุมทำงาน`,
+        body: `เลี่ยงโทน ${unluckyForbidden} ในจุดหลักของบ้านวันนี้`,
       },
       {
         heading: 'คำแนะนำและข้อคิดชี้ทางจากจักรวาล',
-        body: '- เปิดหน้าต่างรับแสงยามเช้า\n- จัดโต๊ะทำงานให้เป็นระเบียบ\n- ใช้สีมงคลในเครื่องแต่งกายหรือของตกแต่งเล็กน้อย',
+        body: '- จัดโต๊ะให้โล่งก่อนเริ่มงาน\n- เปิดทางเดินหลักให้โปร่ง\n- ใช้สีมงคลของวันเป็นจุดเน้นไม่ต้องทาสีทั้งห้อง',
       },
     ],
-    'จัดพื้นที่ให้โล่ง สะอาด และมีแสง — พลังงานดีเริ่มจากสิ่งที่ทำได้ทันที'
+    'ปรับพื้นที่เล็กน้อยอย่างสม่ำเสมอ — พลังงานดีตามมาเอง'
   );
 }

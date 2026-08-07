@@ -8,6 +8,7 @@ import { storageService } from '../../../services/storageService';
 import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
 import { MODULE_THEMES } from '../../../constants/moduleThemes';
 import { analyzeThaiLifeGraph, generateFallbackThaiLifeGraph } from '../../../services/aiService';
+import { isAbortError, useAiAbortController } from '../../../hooks/useAiAbortController';
 
 import { ThaiAstrologyForm } from '../components/ThaiAstrologyForm';
 import { LifeGraphVisualizer } from '../components/LifeGraphVisualizer';
@@ -36,6 +37,7 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const aiAbort = useAiAbortController();
   const theme = MODULE_THEMES['thai-astrology'];
   const [birthDate, setBirthDate] = useState<string>('1995-06-15');
   const [dayIndex, setDayIndex] = useState<number>(3); // Wednesday default
@@ -121,7 +123,8 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
         (chunk) => {
           setPredictionText((prev) => prev + chunk);
         },
-        historyEntryDraft
+        historyEntryDraft,
+        aiAbort.start()
       );
       setPredictionText(aiText);
       setAiError(null);
@@ -139,6 +142,7 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
         navigate(`/thai-astrology/reading/${tempId}`, { replace: true });
       }
     } catch (err: any) {
+      if (isAbortError(err)) return;
       console.error('Failed AI completion in ThaiAstrologyPage:', err);
       const errMsg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ดวงไทยโบราณได้ในขณะนี้';
       setAiError(errMsg);

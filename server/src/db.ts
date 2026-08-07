@@ -196,17 +196,30 @@ export const creditsDb = {
     return row.credits;
   },
 
-  deductCredit(userId: string = 'default_user', amount: number = 1): { success: boolean; remainingCredits: number } {
+  /**
+   * Deduct credits without allowing a negative balance.
+   * If `amount` exceeds balance, deducts remaining balance only.
+   */
+  deductCredit(
+    userId: string = 'default_user',
+    amount: number = 1
+  ): { success: boolean; remainingCredits: number; deducted: number } {
+    const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
     const current = this.getCredits(userId);
-    if (current <= 0) {
-      return { success: false, remainingCredits: current };
+
+    if (current <= 0 || safeAmount <= 0) {
+      return { success: false, remainingCredits: Math.max(0, current), deducted: 0 };
     }
-    const remainingCredits = current - amount;
+
+    const deducted = Math.min(safeAmount, current);
+    const remainingCredits = current - deducted; // always >= 0
+
     db.update(userCredits)
       .set({ credits: remainingCredits, updatedAt: sql`CURRENT_TIMESTAMP` })
       .where(eq(userCredits.userId, userId))
       .run();
-    return { success: true, remainingCredits };
+
+    return { success: true, remainingCredits, deducted };
   },
 
   refillCredits(userId: string = 'default_user', amount: number = CREDIT_RATES.INITIAL_USER_CREDITS): number {

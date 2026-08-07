@@ -1,8 +1,25 @@
 import type { ApiSettings, SavedReading } from '../../types';
-import { apiClient, ApiError } from '../apiClient';
+import { apiClient, ApiError, getClientSessionId } from '../apiClient';
 import { authService } from '../authService';
 import { DEFAULT_API_SETTINGS, PROVIDER_PRESETS } from '../../constants/aiSettings';
+import { AI_COMPLETION } from '../../constants/aiCompletion';
+
 export { DEFAULT_API_SETTINGS, PROVIDER_PRESETS };
+
+/** Modules with server-owned prompts (credit mode). Must match server/src/ai/types.ts */
+export type AiModuleId =
+  | 'tarot'
+  | 'tarot_followup'
+  | 'horoscope'
+  | 'numerology'
+  | 'feng_shui'
+  | 'thai_astrology';
+
+export type AiCompletionOptions = {
+  onChunk?: (chunk: string) => void;
+  historyEntry?: Partial<SavedReading>;
+  signal?: AbortSignal;
+};
 
 let lastCreditsDeducted: number = 1;
 
@@ -10,21 +27,43 @@ export function getLastCreditsDeducted(): number {
   return lastCreditsDeducted;
 }
 
+/** @deprecated Prefer getClientSessionId from apiClient */
 export function getSessionId(): string {
-  if (typeof window === 'undefined') return 'default_user';
-  let sessionId = localStorage.getItem('mystic_session_id');
-  if (!sessionId) {
-    sessionId = typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : 'sess_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-    localStorage.setItem('mystic_session_id', sessionId);
+  return getClientSessionId();
+}
+
+export function isCustomKeyMode(settings?: ApiSettings): boolean {
+  return !!(settings && settings.mode === 'custom' && settings.apiKey);
+}
+
+function buildChatMessages(systemPrompt: string, userPrompt: string) {
+  return [
+    { role: 'system' as const, content: systemPrompt },
+    { role: 'user' as const, content: userPrompt },
+  ];
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    const err = new Error('ยกเลิกคำขอ AI แล้ว');
+    err.name = 'AbortError';
+    throw err;
   }
-  return sessionId;
+}
+
+function applyCreditMeta(meta: { creditsDeducted?: number; remainingCredits?: number }): void {
+  if (typeof meta.creditsDeducted === 'number') {
+    lastCreditsDeducted = meta.creditsDeducted;
+  }
+  if (typeof meta.remainingCredits === 'number' && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: meta.remainingCredits }));
+  }
 }
 
 export async function getOpenAIClient(settings?: ApiSettings) {
   if (!settings) return null;
-  const isLocalHost = settings.baseUrl.includes('localhost') || settings.baseUrl.includes('127.0.0.1');
+  const isLocalHost =
+    settings.baseUrl.includes('localhost') || settings.baseUrl.includes('127.0.0.1');
   if (!settings.apiKey && !isLocalHost) {
     return null;
   }
@@ -35,178 +74,169 @@ export async function getOpenAIClient(settings?: ApiSettings) {
     baseURL: cleanBaseUrl,
     dangerouslyAllowBrowser: true,
     defaultHeaders: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     },
   });
 }
 
-export async function requestAiCompletion(
+/** Custom key: browser non-stream */
+async function customNonStream(
   systemPrompt: string,
   userPrompt: string,
-  settings?: ApiSettings,
-  onChunk?: (chunk: string) => void,
-  historyEntry?: Partial<SavedReading>
+  settings: ApiSettings,
+  signal?: AbortSignal
 ): Promise<string> {
-  const isStreamingEnabled = settings?.enableStreaming !== false;
-
-  // If streaming is ON, accumulate text from streamAiCompletion (which sends stream: true to server)
-  if (isStreamingEnabled) {
-    let fullText = '';
-    for await (const chunk of streamAiCompletion(systemPrompt, userPrompt, settings || DEFAULT_API_SETTINGS, historyEntry)) {
-      fullText += chunk;
-      if (onChunk) {
-        onChunk(chunk);
-      }
-    }
-    return cleanAiResponse(fullText);
+  lastCreditsDeducted = 0;
+  const client = await getOpenAIClient(settings);
+  if (!client) {
+    throw new Error('API Key ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการตั้งค่า');
   }
-
-  // Mode 1: Custom API Key -> Direct Client Non-streaming Call
-  if (settings && settings.mode === 'custom' && settings.apiKey) {
-    lastCreditsDeducted = 0;
-    const client = await getOpenAIClient(settings);
-    if (!client) {
-      throw new Error('API Key ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการตั้งค่า');
-    }
-
-    const completion = await client.chat.completions.create({
-      model: settings.model || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
+  const completion = await client.chat.completions.create(
+    {
+      model: settings.model || AI_COMPLETION.defaultModel,
+      messages: buildChatMessages(systemPrompt, userPrompt),
+      temperature: AI_COMPLETION.temperature,
+      max_tokens: AI_COMPLETION.maxTokens,
       stream: false,
-    });
+    },
+    signal ? { signal } : undefined
+  );
+  throwIfAborted(signal);
+  return cleanAiResponse(completion.choices[0]?.message?.content || '');
+}
 
-    const rawContent = completion.choices[0]?.message?.content || '';
-    return cleanAiResponse(rawContent);
+/** Custom key: browser stream */
+async function* customStream(
+  systemPrompt: string,
+  userPrompt: string,
+  settings: ApiSettings,
+  signal?: AbortSignal
+): AsyncIterable<string> {
+  lastCreditsDeducted = 0;
+  const client = await getOpenAIClient(settings);
+  if (!client) {
+    throw new Error('API Key ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการตั้งค่า');
   }
+  const stream = await client.chat.completions.create(
+    {
+      model: settings.model || AI_COMPLETION.defaultModel,
+      messages: buildChatMessages(systemPrompt, userPrompt),
+      temperature: AI_COMPLETION.temperature,
+      max_tokens: AI_COMPLETION.maxTokens,
+      stream: true,
+    },
+    signal ? { signal } : undefined
+  );
+  for await (const chunk of stream) {
+    throwIfAborted(signal);
+    const content = chunk.choices[0]?.delta?.content || '';
+    if (content) yield content;
+  }
+}
 
-  // Mode 2: Credit Mode -> Server Non-streaming Call (stream: false)
+type CreditBody = {
+  module: AiModuleId;
+  payload: unknown;
+  settings?: ApiSettings;
+  stream: boolean;
+  historyEntry?: Partial<SavedReading>;
+};
+
+async function creditNonStream(body: CreditBody, signal?: AbortSignal): Promise<string> {
   try {
-    const data = await apiClient.post<{ result?: string; remainingCredits?: number; creditsDeducted?: number }>('/api/ai/completion', {
-      systemPrompt,
-      userPrompt,
-      settings,
-      stream: false,
-    });
+    const data = await apiClient.post<{
+      result?: string;
+      remainingCredits?: number;
+      creditsDeducted?: number;
+    }>(
+      '/api/ai/completion',
+      {
+        module: body.module,
+        payload: body.payload,
+        settings: { mode: 'credit' },
+        stream: false,
+        historyEntry: body.historyEntry,
+      },
+      signal ? { signal } : undefined
+    );
 
     if (data.result) {
-      if (typeof data.creditsDeducted === 'number') {
-        lastCreditsDeducted = data.creditsDeducted;
-      }
-      if (typeof data.remainingCredits === 'number') {
-        window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: data.remainingCredits }));
-      }
+      applyCreditMeta({
+        creditsDeducted: data.creditsDeducted,
+        remainingCredits: data.remainingCredits,
+      });
       return cleanAiResponse(data.result);
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') throw err;
     if (err instanceof ApiError) {
       if (typeof err.response?.credits === 'number') {
-        window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: err.response.credits }));
+        applyCreditMeta({ remainingCredits: err.response.credits as number });
+      }
+      if (err.status === 401) {
+        throw new Error(
+          err.message || 'กรุณาเข้าสู่ระบบก่อนใช้ Credit หรือใช้ API Key ของคุณเอง'
+        );
       }
       if (err.status === 402) {
         throw new Error(err.message || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
       }
+      throw new Error(err.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
     }
-    throw new Error(err?.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
+    const message =
+      err instanceof Error ? err.message : 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้';
+    throw new Error(message);
   }
-
   throw new Error('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
 }
 
-// Sanitizer function to clean up AI thinking / prompt leakage
-export function cleanAiResponse(rawContent: string): string {
-  if (!rawContent) return '';
-
-  let cleaned = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-
-  const headingMatch = cleaned.match(/(#+\s*🔮?[\s\S]*)/i);
-  if (headingMatch && headingMatch[1]) {
-    cleaned = headingMatch[1].trim();
-  } else {
-    cleaned = cleaned
-      .replace(/^(We need to|Constraints:|Let's craft|Pattern:|Structure:|Must keep|The instruction says)[\s\S]*?(?=\n\n|$)/gi, '')
-      .trim();
-  }
-
-  return cleaned || rawContent.trim();
-}
-
-/**
- * Async generator for streaming response completion
- */
-export async function* streamAiCompletion(
-  systemPrompt: string,
-  userPrompt: string,
-  settings: ApiSettings,
-  historyEntry?: Partial<SavedReading>
-): AsyncIterable<string> {
-  // If user disabled streaming in settings, fallback to non-streaming request
-  if (settings && settings.enableStreaming === false) {
-    const fullResult = await requestAiCompletion(systemPrompt, userPrompt, settings, undefined, historyEntry);
-    yield fullResult;
-    return;
-  }
-
-  // Mode 1: Custom API Key -> Direct Client Streaming
-  if (settings && settings.mode === 'custom' && settings.apiKey) {
-    lastCreditsDeducted = 0;
-    const client = await getOpenAIClient(settings);
-    if (!client) {
-      throw new Error('API Key ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการตั้งค่า');
-    }
-
-    const stream = await client.chat.completions.create({
-      model: settings.model || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 5000,
-      stream: true,
-    });
-
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content || '';
-      if (content) {
-        yield content;
-      }
-    }
-    return;
-  }
-
-  // Mode 2: Credit Mode -> Server SSE Streaming (/api/ai/completion with stream: true)
+async function* creditStream(body: CreditBody, signal?: AbortSignal): AsyncIterable<string> {
   const token = authService.getToken();
-  const sessionId = getSessionId();
+  if (!token) {
+    throw new Error('กรุณาเข้าสู่ระบบก่อนใช้ Credit (รีเฟรชหน้า) หรือใช้ API Key ของคุณเอง');
+  }
+
   const response = await fetch('/api/ai/completion', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'x-session-id': sessionId,
+      Authorization: `Bearer ${token}`,
+      'X-Session-ID': getClientSessionId(),
     },
     body: JSON.stringify({
-      systemPrompt,
-      userPrompt,
-      settings,
+      module: body.module,
+      payload: body.payload,
+      settings: { mode: 'credit' },
       stream: true,
-      historyEntry,
+      historyEntry: body.historyEntry,
     }),
+    signal,
   });
 
   if (!response.ok) {
-    const errJson = await response.json().catch(() => ({}));
+    const errJson = await response.json().catch(() => ({} as Record<string, unknown>));
     if (typeof errJson?.credits === 'number') {
-      window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: errJson.credits }));
+      applyCreditMeta({ remainingCredits: errJson.credits as number });
+    }
+    if (response.status === 401) {
+      throw new Error(
+        (errJson?.error as string) ||
+          'กรุณาเข้าสู่ระบบก่อนใช้ Credit (รีเฟรชหน้า) หรือใช้ API Key ของคุณเอง'
+      );
     }
     if (response.status === 402) {
-      throw new Error(errJson?.error || errJson?.message || 'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key');
+      throw new Error(
+        (errJson?.error as string) ||
+          (errJson?.message as string) ||
+          'Credit ไม่เพียงพอ! กรุณาเติม Credit หรือเลือกใช้ Custom API Key'
+      );
     }
-    throw new Error(errJson?.error || errJson?.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้');
+    throw new Error(
+      (errJson?.error as string) ||
+        (errJson?.message as string) ||
+        'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ Credit ได้ในขณะนี้'
+    );
   }
 
   const reader = response.body?.getReader();
@@ -216,39 +246,176 @@ export async function* streamAiCompletion(
 
   const decoder = new TextDecoder();
   let buffer = '';
-
   let isFinished = false;
-  while (!isFinished) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() || '';
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('data: ')) continue;
-      const dataStr = trimmed.replace(/^data:\s*/, '');
-      if (dataStr === '[DONE]') {
-        isFinished = true;
-        break;
-      }
+  try {
+    while (!isFinished) {
+      throwIfAborted(signal);
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
 
-      try {
-        const parsed = JSON.parse(dataStr);
-        if (parsed.content) {
-          yield parsed.content;
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data:')) continue;
+        const dataStr = trimmed.replace(/^data:\s*/, '');
+        if (dataStr === '[DONE]') {
+          isFinished = true;
+          break;
         }
-        if (typeof parsed.creditsDeducted === 'number') {
-          lastCreditsDeducted = parsed.creditsDeducted;
+        try {
+          const parsed = JSON.parse(dataStr) as {
+            content?: string;
+            creditsDeducted?: number;
+            remainingCredits?: number;
+            error?: string;
+          };
+          if (parsed.error) throw new Error(parsed.error);
+          if (parsed.content) yield parsed.content;
+          applyCreditMeta({
+            creditsDeducted: parsed.creditsDeducted,
+            remainingCredits: parsed.remainingCredits,
+          });
+        } catch (parseErr) {
+          if (parseErr instanceof Error && parseErr.message && !/JSON/i.test(parseErr.message)) {
+            throw parseErr;
+          }
         }
-        if (typeof parsed.remainingCredits === 'number') {
-          window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: parsed.remainingCredits }));
-        }
-      } catch {
-        // Skip JSON parse error for incomplete SSE chunks
       }
+    }
+  } finally {
+    try {
+      reader.releaseLock();
+    } catch {
+      // ignore
     }
   }
 }
 
+/**
+ * Credit mode: module + payload only (server builds prompts).
+ * Custom mode: pass systemPrompt + userPrompt (built on client).
+ */
+export async function requestModuleAiCompletion(
+  module: AiModuleId,
+  payload: unknown,
+  settings?: ApiSettings,
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>,
+  signal?: AbortSignal,
+  /** Required when settings.mode === 'custom' — local prompts for BYOK */
+  localPrompts?: { systemPrompt: string; userPrompt: string }
+): Promise<string> {
+  const active = settings || DEFAULT_API_SETTINGS;
+  const streaming = active.enableStreaming !== false;
+
+  // Custom API key → browser SDK with client-built prompts
+  if (isCustomKeyMode(active)) {
+    if (!localPrompts?.systemPrompt || !localPrompts?.userPrompt) {
+      throw new Error('Custom mode ต้องมี systemPrompt และ userPrompt');
+    }
+    if (streaming) {
+      let full = '';
+      for await (const chunk of customStream(
+        localPrompts.systemPrompt,
+        localPrompts.userPrompt,
+        active,
+        signal
+      )) {
+        full += chunk;
+        onChunk?.(chunk);
+      }
+      return cleanAiResponse(full);
+    }
+    return customNonStream(localPrompts.systemPrompt, localPrompts.userPrompt, active, signal);
+  }
+
+  // Credit mode → server-owned prompts
+  const body: CreditBody = {
+    module,
+    payload,
+    settings: active,
+    stream: streaming,
+    historyEntry,
+  };
+
+  if (streaming) {
+    let full = '';
+    for await (const chunk of creditStream(body, signal)) {
+      full += chunk;
+      onChunk?.(chunk);
+    }
+    return cleanAiResponse(full);
+  }
+  return creditNonStream(body, signal);
+}
+
+/**
+ * @deprecated Prefer requestModuleAiCompletion.
+ * Kept for any free-form callers; routes to custom browser or rejects credit without module.
+ */
+export async function requestAiCompletion(
+  systemPrompt: string,
+  userPrompt: string,
+  settings?: ApiSettings,
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>,
+  signal?: AbortSignal
+): Promise<string> {
+  const active = settings || DEFAULT_API_SETTINGS;
+  if (isCustomKeyMode(active)) {
+    return requestModuleAiCompletion(
+      'tarot', // unused for custom
+      {},
+      active,
+      onChunk,
+      historyEntry,
+      signal,
+      { systemPrompt, userPrompt }
+    );
+  }
+  // Credit free-form is no longer allowed
+  throw new Error(
+    'โหมด Credit ต้องเรียกผ่าน module ที่รองรับ — ใช้ requestModuleAiCompletion แทน'
+  );
+}
+
+export function cleanAiResponse(rawContent: string): string {
+  if (!rawContent) return '';
+
+  let cleaned = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+  const headingMatch = cleaned.match(/(#{1,6}\s+[^\n][\s\S]*)/);
+  if (headingMatch?.[1]) {
+    cleaned = headingMatch[1].trim();
+  } else {
+    cleaned = cleaned
+      .replace(
+        /^(We need to|Constraints:|Let's craft|Pattern:|Structure:|Must keep|The instruction says)[\s\S]*?(?=\n\n|$)/gi,
+        ''
+      )
+      .trim();
+  }
+
+  return cleaned || rawContent.trim();
+}
+
+/** @deprecated Use requestModuleAiCompletion streaming path */
+export async function* streamAiCompletion(
+  systemPrompt: string,
+  userPrompt: string,
+  settings: ApiSettings,
+  _historyEntry?: Partial<SavedReading>,
+  signal?: AbortSignal
+): AsyncIterable<string> {
+  if (!isCustomKeyMode(settings)) {
+    throw new Error('streamAiCompletion ใช้ได้เฉพาะ Custom API Key — credit ใช้ requestModuleAiCompletion');
+  }
+  if (settings.enableStreaming === false) {
+    yield await customNonStream(systemPrompt, userPrompt, settings, signal);
+    return;
+  }
+  yield* customStream(systemPrompt, userPrompt, settings, signal);
+}

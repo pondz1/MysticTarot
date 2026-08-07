@@ -1,10 +1,11 @@
 import type { ApiSettings } from '../types';
+import { AI_COMPLETION } from './aiCompletion';
 
 export const DEFAULT_API_SETTINGS: ApiSettings = {
   mode: 'credit',
   apiKey: '',
   baseUrl: 'https://api.openai.com/v1',
-  model: 'gpt-4o-mini',
+  model: AI_COMPLETION.defaultModel,
   enableStreaming: true,
 };
 

@@ -1,29 +1,42 @@
 import type { DrawnCard, SpreadMode } from '../../features/tarot/types/tarot';
 import type { ApiSettings, ChatMessage, SavedReading } from '../../types';
 import { getSpreadConfig } from '../../features/tarot/data/tarotSpreads';
-import { requestAiCompletion } from './aiClient';
+import { requestModuleAiCompletion } from './aiClient';
 import {
   MARKDOWN_OUTPUT_RULES,
   buildStructureBlock,
   buildFallbackMarkdown,
 } from './markdownFormat';
 
-export async function analyzeTarotReading(
+function serializeCards(drawnCards: DrawnCard[]) {
+  return drawnCards.map((d) => ({
+    position: d.position,
+    isReversed: d.isReversed,
+    card: {
+      nameTh: d.card.nameTh,
+      nameEn: d.card.nameEn,
+      keywords: d.card.keywords,
+      uprightMeaning: d.card.uprightMeaning,
+      reversedMeaning: d.card.reversedMeaning,
+      element: d.card.element,
+      arcana: d.card.arcana,
+      suit: d.card.suit,
+    },
+  }));
+}
+
+/** Local prompts for Custom API Key mode only */
+export function buildTarotLocalPrompts(
   question: string,
   drawnCards: DrawnCard[],
   spreadMode: SpreadMode,
-  settings: ApiSettings,
-  deckFilter: 'all' | 'major' | 'minor' = 'all',
-  onChunk?: (chunk: string) => void,
-  historyEntry?: Partial<SavedReading>
-): Promise<string> {
+  deckFilter: 'all' | 'major' | 'minor' = 'all'
+): { systemPrompt: string; userPrompt: string } {
   const spreadConfig = getSpreadConfig(spreadMode);
-
   const spreadGuidelineSection = spreadConfig.aiGuideline
     ? `\n\n🎯 **วัตถุประสงค์และแนวทางวิเคราะห์เฉพาะสำหรับสเปรดนี้ (${spreadConfig.titleTh})**:\n👉 ${spreadConfig.aiGuideline}`
     : '';
 
-  // โครง 4 หัวข้อมาตรฐานของ tarot (ชื่อเต็มแบบเดิม + รูปแบบ markdown รวมของเว็บ)
   const structure = buildStructureBlock([
     {
       heading: `ภาพรวมดวงชะตาและพลังงานไพ่ (${spreadConfig.titleTh})`,
@@ -74,15 +87,44 @@ ${MARKDOWN_OUTPUT_RULES}
 📌 **โครงสร้างผลทำนายมาตรฐาน (Tarot)**:
 ${structure}`;
 
-  const userPrompt = buildInitialUserPrompt(question, drawnCards, spreadMode, deckFilter);
+  return {
+    systemPrompt,
+    userPrompt: buildInitialUserPrompt(question, drawnCards, spreadMode, deckFilter),
+  };
+}
+
+export async function analyzeTarotReading(
+  question: string,
+  drawnCards: DrawnCard[],
+  spreadMode: SpreadMode,
+  settings: ApiSettings,
+  deckFilter: 'all' | 'major' | 'minor' = 'all',
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>,
+  signal?: AbortSignal
+): Promise<string> {
+  const payload = {
+    question,
+    drawnCards: serializeCards(drawnCards),
+    spreadMode,
+    deckFilter,
+  };
+  const localPrompts = buildTarotLocalPrompts(question, drawnCards, spreadMode, deckFilter);
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk, historyEntry);
-    if (content && content.trim()) {
-      return content;
-    }
+    const content = await requestModuleAiCompletion(
+      'tarot',
+      payload,
+      settings,
+      onChunk,
+      historyEntry,
+      signal,
+      localPrompts
+    );
+    if (content && content.trim()) return content;
     throw new Error('ไม่สามารถรับคำตอบจาก AI ได้ในขณะนี้');
   } catch (error: any) {
+    if (error?.name === 'AbortError') throw error;
     console.error('Failed Tarot AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ทำนายไพ่ยิปซีได้ในขณะนี้');
   }
@@ -212,6 +254,7 @@ export async function analyzeTarotFollowUp(params: {
   newQuestion: string;
   settings: ApiSettings;
   onChunk?: (chunk: string) => void;
+  signal?: AbortSignal;
 }): Promise<string> {
   const {
     question,
@@ -222,21 +265,22 @@ export async function analyzeTarotFollowUp(params: {
     newQuestion,
     settings,
     onChunk,
+    signal,
   } = params;
 
+  const payload = {
+    question,
+    drawnCards: serializeCards(drawnCards),
+    spreadMode,
+    initialResult,
+    chatHistory: chatHistory.map((m) => ({ role: m.role, content: m.content })),
+    newQuestion,
+  };
+
   const followUpStructure = buildStructureBlock([
-    {
-      heading: 'สรุปคำตอบ',
-      guide: 'ตอบคำถามเจาะลึกใหม่ชัดเจน ตรงประเด็น',
-    },
-    {
-      heading: 'เชื่อมโยงกับไพ่',
-      guide: 'อ้างไพ่ที่เกี่ยวข้อง 1–3 ใบ จากสเปรดรอบนี้',
-    },
-    {
-      heading: 'คำแนะนำ',
-      guide: 'bullet 2–3 ข้อ ที่ทำได้ทันที',
-    },
+    { heading: 'สรุปคำตอบ', guide: 'ตอบคำถามเจาะลึกใหม่ชัดเจน ตรงประเด็น' },
+    { heading: 'เชื่อมโยงกับไพ่', guide: 'อ้างไพ่ที่เกี่ยวข้อง 1–3 ใบ จากสเปรดรอบนี้' },
+    { heading: 'คำแนะนำ', guide: 'bullet 2–3 ข้อ ที่ทำได้ทันที' },
   ]);
 
   const systemPrompt = `คุณคือ "หมอดูไพ่ยิปซี AI ระดับปรมาจารย์ (Celestial Master Tarot Prophet)" ผู้หยั่งรู้ดวงชะตา อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
@@ -259,18 +303,25 @@ ${MARKDOWN_OUTPUT_RULES}
 ${followUpStructure}`;
 
   const initialUserPrompt = buildInitialUserPrompt(question, drawnCards, spreadMode);
+  const historyText = chatHistory
+    .map((m) => `${m.role === 'user' ? 'ผู้ถาม' : 'หมอดู'}: ${m.content}`)
+    .join('\n');
+  const combinedUserPrompt = `คำถามตั้งต้น:\n${initialUserPrompt}\n\nผลทำนายเริ่มต้น:\n${initialResult}\n\nประวัติก่อนหน้า:\n${historyText}\n\nคำถามเพิ่มเติม: ${newQuestion}`;
 
   try {
-    const historyText = chatHistory
-      .map((m) => `${m.role === 'user' ? 'ผู้ถาม' : 'หมอดู'}: ${m.content}`)
-      .join('\n');
-    const combinedUserPrompt = `คำถามตั้งต้น:\n${initialUserPrompt}\n\nผลทำนายเริ่มต้น:\n${initialResult}\n\nประวัติก่อนหน้า:\n${historyText}\n\nคำถามเพิ่มเติม: ${newQuestion}`;
-    const content = await requestAiCompletion(systemPrompt, combinedUserPrompt, settings, onChunk);
-    if (content && content.trim()) {
-      return content;
-    }
+    const content = await requestModuleAiCompletion(
+      'tarot_followup',
+      payload,
+      settings,
+      onChunk,
+      undefined,
+      signal,
+      { systemPrompt, userPrompt: combinedUserPrompt }
+    );
+    if (content && content.trim()) return content;
     throw new Error('ไม่ได้รับคำตอบจาก AI สำหรับคำถามเจาะลึก');
   } catch (error: any) {
+    if (error?.name === 'AbortError') throw error;
     console.error('Failed follow-up AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำตอบเจาะลึกจาก AI ได้ในขณะนี้');
   }
