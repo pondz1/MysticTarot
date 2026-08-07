@@ -11,9 +11,20 @@ import { readingsRouter } from './routes/readings.js';
 import { userRouter } from './routes/user.js';
 import { authRouter } from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
+import { creditsDb } from './db.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Heal legacy negative credit balances once at boot
+try {
+  const fixed = creditsDb.clampAllNegativeCredits();
+  if (fixed > 0) {
+    console.log(`[Credits] Clamped ${fixed} negative balance row(s) to 0`);
+  }
+} catch (e) {
+  console.warn('[Credits] Failed to clamp negative balances:', e);
+}
 
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS

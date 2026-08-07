@@ -193,7 +193,34 @@ export const creditsDb = {
       db.insert(userCredits).values({ userId, credits: CREDIT_RATES.INITIAL_USER_CREDITS }).run();
       return CREDIT_RATES.INITIAL_USER_CREDITS;
     }
-    return row.credits;
+    // Heal legacy negative balances from older billing bugs
+    if (typeof row.credits === 'number' && row.credits < 0) {
+      db.update(userCredits)
+        .set({ credits: 0, updatedAt: sql`CURRENT_TIMESTAMP` })
+        .where(eq(userCredits.userId, userId))
+        .run();
+      return 0;
+    }
+    return Math.max(0, row.credits);
+  },
+
+  /** One-shot cleanup for any rows still negative (safe to call at boot). */
+  clampAllNegativeCredits(): number {
+    const rows = db
+      .select({ userId: userCredits.userId, credits: userCredits.credits })
+      .from(userCredits)
+      .all();
+    let fixed = 0;
+    for (const row of rows) {
+      if (typeof row.credits === 'number' && row.credits < 0) {
+        db.update(userCredits)
+          .set({ credits: 0, updatedAt: sql`CURRENT_TIMESTAMP` })
+          .where(eq(userCredits.userId, row.userId))
+          .run();
+        fixed += 1;
+      }
+    }
+    return fixed;
   },
 
   /**

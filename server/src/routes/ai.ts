@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import OpenAI from 'openai';
-import { creditsDb, readingsDb } from '../db.js';
+import { creditsDb } from '../db.js';
 import { AuthRequest } from '../middleware/auth.js';
 import {
   calculateCreditsFromTokens,
@@ -15,6 +15,7 @@ import {
 import { sendSuccess, sendError } from '../utils/response.js';
 import { buildModulePrompts } from '../ai/buildPrompts.js';
 import { isAiModuleId } from '../ai/types.js';
+import { saveAiHistoryEntry } from '../ai/saveReading.js';
 
 export const aiRouter = Router();
 
@@ -104,9 +105,14 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
   let reservedCredits = 0;
   let creditUserId: string | null = null;
   let settled = false;
+  const providerAbort = new AbortController();
 
   const onClose = () => {
     clientDisconnected = true;
+    // Stop burning provider tokens when the browser disconnects / aborts
+    if (!providerAbort.signal.aborted) {
+      providerAbort.abort();
+    }
   };
   req.on('close', onClose);
 
@@ -232,13 +238,35 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
     );
 
     if (stream) {
-      const streamResponse = await client.chat.completions.create({
-        model,
-        messages,
-        temperature: AI_COMPLETION.temperature,
-        max_tokens: completionMaxTokens,
-        stream: true,
-      });
+      let streamResponse: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
+      try {
+        streamResponse = await client.chat.completions.create(
+          {
+            model,
+            messages,
+            temperature: AI_COMPLETION.temperature,
+            max_tokens: completionMaxTokens,
+            stream: true,
+          },
+          { signal: providerAbort.signal }
+        );
+      } catch (createErr: unknown) {
+        const aborted =
+          clientDisconnected ||
+          providerAbort.signal.aborted ||
+          (createErr instanceof Error && createErr.name === 'AbortError');
+        if (aborted) {
+          if (isCreditMode && creditUserId && reservedCredits > 0 && !settled) {
+            refundReserve(creditUserId, reservedCredits);
+            settled = true;
+          }
+          if (!res.headersSent) {
+            sendError(res, 'คำขอถูกยกเลิก', 499 as number, 'CLIENT_ABORTED');
+          }
+          return;
+        }
+        throw createErr;
+      }
 
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
@@ -252,23 +280,33 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       let abortedEarly = false;
       let finishReason: string | null = null;
 
-      for await (const chunk of streamResponse) {
-        if (clientDisconnected) {
-          abortedEarly = true;
-          break;
+      try {
+        for await (const chunk of streamResponse) {
+          if (clientDisconnected || providerAbort.signal.aborted) {
+            abortedEarly = true;
+            break;
+          }
+          if (chunk.usage) {
+            finalUsage = chunk.usage;
+          }
+          const choice = chunk.choices[0];
+          if (choice?.finish_reason) {
+            finishReason = choice.finish_reason;
+          }
+          const content = choice?.delta?.content || '';
+          if (content) {
+            fullText += content;
+            writeSse(res, { content });
+          }
         }
-        if (chunk.usage) {
-          finalUsage = chunk.usage;
-        }
-        const choice = chunk.choices[0];
-        if (choice?.finish_reason) {
-          finishReason = choice.finish_reason;
-        }
-        const content = choice?.delta?.content || '';
-        if (content) {
-          fullText += content;
-          writeSse(res, { content });
-        }
+      } catch (streamErr: unknown) {
+        const aborted =
+          clientDisconnected ||
+          providerAbort.signal.aborted ||
+          (streamErr instanceof Error &&
+            (streamErr.name === 'AbortError' || /aborted|abort/i.test(streamErr.message)));
+        if (!aborted) throw streamErr;
+        abortedEarly = true;
       }
 
       const truncatedByMaxTokens = finishReason === 'length';
@@ -331,19 +369,16 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         const creditsUsed = isCreditMode
           ? creditsDeducted || CREDIT_RATES.MIN_CREDITS_PER_REQUEST
           : 0;
-        const savedReadingObj = {
-          ...historyEntry,
-          resultText: fullText,
-          timestamp: historyEntry.timestamp || Date.now(),
-          creditsUsed,
-        };
-        readingsDb.save(
-          historyEntry.id,
-          savedReadingObj.timestamp,
-          historyEntry.question || historyEntry.title || '',
-          historyEntry.spreadMode || 'three',
-          JSON.stringify(savedReadingObj)
-        );
+        try {
+          saveAiHistoryEntry({
+            moduleId: typeof moduleId === 'string' ? moduleId : undefined,
+            historyEntry: historyEntry as Record<string, unknown>,
+            fullText,
+            creditsUsed,
+          });
+        } catch (saveErr) {
+          console.error('[AI] Failed to save history entry', saveErr);
+        }
       }
 
       return;
@@ -358,12 +393,34 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
-    const completion = await client.chat.completions.create({
-      model,
-      messages,
-      temperature: AI_COMPLETION.temperature,
-      max_tokens: completionMaxTokens,
-    });
+    let completion: OpenAI.Chat.Completions.ChatCompletion;
+    try {
+      completion = await client.chat.completions.create(
+        {
+          model,
+          messages,
+          temperature: AI_COMPLETION.temperature,
+          max_tokens: completionMaxTokens,
+        },
+        { signal: providerAbort.signal }
+      );
+    } catch (createErr: unknown) {
+      const aborted =
+        clientDisconnected ||
+        providerAbort.signal.aborted ||
+        (createErr instanceof Error && createErr.name === 'AbortError');
+      if (aborted) {
+        if (isCreditMode && creditUserId && reservedCredits > 0 && !settled) {
+          refundReserve(creditUserId, reservedCredits);
+          settled = true;
+        }
+        if (!res.headersSent) {
+          sendError(res, 'คำขอถูกยกเลิก', 499 as number, 'CLIENT_ABORTED');
+        }
+        return;
+      }
+      throw createErr;
+    }
 
     let result = completion.choices[0]?.message?.content || '';
     const finishReason = completion.choices[0]?.finish_reason || null;
@@ -391,6 +448,21 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
 
     if (clientDisconnected || res.writableEnded) {
       return;
+    }
+
+    if (historyEntry && historyEntry.id && result.trim()) {
+      try {
+        saveAiHistoryEntry({
+          moduleId: typeof moduleId === 'string' ? moduleId : undefined,
+          historyEntry: historyEntry as Record<string, unknown>,
+          fullText: result,
+          creditsUsed: isCreditMode
+            ? creditsDeducted || CREDIT_RATES.MIN_CREDITS_PER_REQUEST
+            : 0,
+        });
+      } catch (saveErr) {
+        console.error('[AI] Failed to save history entry', saveErr);
+      }
     }
 
     sendSuccess(res, {

@@ -173,6 +173,19 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
     setIsSendingFollowUp(true);
 
     try {
+      const readingId = id || Date.now().toString();
+      const followUpHistoryEntry: Partial<SavedReading> = {
+        id: readingId,
+        timestamp: Date.now(),
+        category: 'tarot',
+        question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
+        spreadMode,
+        drawnCards,
+        resultText: readingResult,
+        // User turns so far (no empty assistant placeholder) — server appends AI reply
+        chatHistory: [...chatHistory, userMsg],
+      };
+
       const aiResponseText = await analyzeTarotFollowUp({
         question,
         drawnCards,
@@ -182,6 +195,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
         newQuestion: userQuestion,
         settings: apiSettings,
         signal: followUpAbort.start(),
+        historyEntry: followUpHistoryEntry,
         onChunk: (chunk) => {
           setChatHistory((prev) =>
             prev.map((msg) =>

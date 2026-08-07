@@ -255,6 +255,8 @@ export async function analyzeTarotFollowUp(params: {
   settings: ApiSettings;
   onChunk?: (chunk: string) => void;
   signal?: AbortSignal;
+  /** When set, server merges follow-up chat into this reading id */
+  historyEntry?: Partial<SavedReading>;
 }): Promise<string> {
   const {
     question,
@@ -266,6 +268,7 @@ export async function analyzeTarotFollowUp(params: {
     settings,
     onChunk,
     signal,
+    historyEntry,
   } = params;
 
   const payload = {
@@ -314,7 +317,7 @@ ${followUpStructure}`;
       payload,
       settings,
       onChunk,
-      undefined,
+      historyEntry,
       signal,
       { systemPrompt, userPrompt: combinedUserPrompt }
     );
