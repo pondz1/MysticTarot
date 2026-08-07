@@ -43,32 +43,30 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
     <div className="w-full max-w-4xl mx-auto my-8 px-4">
       {/* Loading state during AI analysis (only when no text has arrived yet) */}
       {isAnalyzing && !resultText && (
-        <div className="flex flex-col items-center justify-center p-12 glass-panel-gold rounded-2xl text-center border border-amber-400/50 shadow-2xl animate-pulse">
-          <div className="relative mb-6">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-600 via-amber-500 to-indigo-600 animate-spin blur-md" />
-            <div className="absolute inset-2 rounded-full bg-slate-950 flex items-center justify-center border border-amber-300">
-              <Sparkles className="w-8 h-8 text-amber-300 animate-bounce" />
-            </div>
+        <div
+          role="status"
+          className="flex flex-col items-center justify-center p-10 sm:p-12 rounded-2xl text-center border border-slate-700 bg-slate-950/80"
+        >
+          <div className="mb-4 p-4 rounded-full bg-amber-500/10 border border-amber-400/30">
+            <Sparkles className="w-8 h-8 text-amber-300" aria-hidden="true" />
           </div>
-          <h3 className="text-lg md:text-xl font-bold font-serif-mystic text-gold-gradient mb-2">
-            หมอดู AI กำลังเปิดคัมภีร์วิเคราะห์ชะตา...
+          <h3 className="text-lg md:text-xl font-bold text-slate-100 mb-2">
+            กำลังวิเคราะห์คำทำนาย…
           </h3>
-          <p className="text-xs text-purple-300/80 max-w-md">
-            กำลังสื่อสารกับพลังงานไพ่ยิปซีเพื่อถอดรหัสสารแห่งอนาคต โปรดรอสักครู่
+          <p className="text-xs text-slate-500 max-w-md">
+            โปรดรอสักครู่ ระบบกำลังประมวลผลจากไพ่ที่คุณเลือก
           </p>
         </div>
       )}
 
       {/* Live Streaming or Finished Analysis Result */}
       {resultText && (
-        <div className="relative glass-panel-gold rounded-2xl p-6 md:p-8 border border-amber-400/40 shadow-2xl overflow-hidden">
-          
-          {/* Scroll Header Decorative Frame */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-400/30 pb-4 mb-6">
+        <div className="relative rounded-2xl p-5 sm:p-6 md:p-8 border border-slate-700/90 bg-slate-950/70 overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4 mb-6">
             <div className="flex items-center gap-2 min-w-0">
-              <Feather className="w-5 h-5 text-amber-400 shrink-0" />
-              <h2 className="text-base sm:text-lg md:text-xl font-bold font-serif-mystic text-gold-gradient truncate">
-                บทวิเคราะห์คำทำนายไพ่ยิปซี
+              <Feather className="w-5 h-5 text-amber-400 shrink-0" aria-hidden="true" />
+              <h2 className="text-base sm:text-lg md:text-xl font-bold text-slate-100 truncate">
+                บทวิเคราะห์คำทำนาย
               </h2>
             </div>
 
@@ -102,7 +100,11 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
           </div>
 
           {/* Formatted Content via ReactMarkdown & remarkGfm */}
-          <div className="prose prose-invert max-w-none font-prompt text-slate-200 text-xs md:text-sm leading-relaxed">
+          <div
+            className="prose prose-invert max-w-none font-prompt text-slate-200 text-xs md:text-sm leading-relaxed"
+            aria-live="polite"
+            aria-busy={isAnalyzing}
+          >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -188,10 +190,12 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
 
             {/* Active Streaming Indicator */}
             {isAnalyzing && (
-              <div className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-medium animate-pulse">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-spin" />
-                <span>หมอดู AI กำลังร่ายบททำนายเพิ่มเติม...</span>
+              <div
+                role="status"
+                className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-slate-400 text-xs font-medium"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" aria-hidden="true" />
+                <span>กำลังเขียนคำทำนายต่อ…</span>
               </div>
             )}
           </div>

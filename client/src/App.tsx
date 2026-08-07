@@ -121,8 +121,12 @@ export function App() {
         hasCustomKey={!!apiSettings.apiKey}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 flex flex-col items-center">
+      {/* Main Content Area — pb for mobile bottom nav */}
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-24 md:pb-8 flex flex-col items-center outline-none"
+      >
         <Suspense fallback={<PageLoadingFallback />}>
           <Routes>
             {/* Platform Portal Home Route */}

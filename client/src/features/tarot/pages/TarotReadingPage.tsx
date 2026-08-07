@@ -216,6 +216,12 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
       }
     } catch (err: any) {
       console.error('Failed follow-up Q&A:', err);
+      // Remove empty assistant placeholder so UI does not look stuck mid-reply
+      setChatHistory((prev) =>
+        prev.filter((msg) => !(msg.id === aiMsgId && !msg.content))
+      );
+      // Re-throw so AiFollowUpChat can show recovery UI
+      throw err;
     } finally {
       setIsSendingFollowUp(false);
     }
