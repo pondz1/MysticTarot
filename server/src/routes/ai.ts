@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import OpenAI from 'openai';
-import { creditsDb } from '../db.js';
+import { creditsDb, readingsDb } from '../db.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { calculateCreditsFromTokens, CREDIT_RATES } from '../constants/creditRates.js';
 import { sendSuccess, sendError } from '../utils/response.js';
@@ -31,7 +31,7 @@ function getClient(settings?: { apiKey?: string; baseUrl?: string }) {
 
 aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { systemPrompt, userPrompt, settings, stream } = req.body;
+    const { systemPrompt, userPrompt, settings, stream, historyEntry } = req.body;
 
     if (!userPrompt) {
       sendError(res, 'userPrompt is required', 400);
@@ -92,6 +92,7 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
 
       let finalUsage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | undefined;
       let estimatedTokens = 0;
+      let fullText = '';
 
       for await (const chunk of streamResponse) {
         if (chunk.usage) {
@@ -99,22 +100,59 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         }
         const content = chunk.choices[0]?.delta?.content || '';
         if (content) {
+          fullText += content;
           estimatedTokens += Math.ceil(content.length / 3);
-          res.write(`data: ${JSON.stringify({ content })}\n\n`);
+          if (!res.writableEnded) {
+            try {
+              res.write(`data: ${JSON.stringify({ content })}\n\n`);
+            } catch {
+              // Socket closed by client disconnect, continue consuming OpenAI stream on server in background
+            }
+          }
         }
       }
 
       // Deduct credits after stream completes
+      let creditsDeducted = 0;
       if (isCreditMode) {
         const usageToUse = finalUsage || { completion_tokens: estimatedTokens, prompt_tokens: 500 };
         const creditsToDeduct = calculateCreditsFromTokens(usageToUse);
+        creditsDeducted = creditsToDeduct;
         const creditResult = creditsDb.deductCredit(userId, creditsToDeduct);
         remainingCredits = creditResult.remainingCredits;
-        res.write(`data: ${JSON.stringify({ remainingCredits, creditsDeducted: creditsToDeduct })}\n\n`);
+        if (!res.writableEnded) {
+          try {
+            res.write(`data: ${JSON.stringify({ remainingCredits, creditsDeducted: creditsToDeduct })}\n\n`);
+          } catch {}
+        }
       }
 
-      res.write('data: [DONE]\n\n');
-      res.end();
+      if (!res.writableEnded) {
+        try {
+          res.write('data: [DONE]\n\n');
+          res.end();
+        } catch {}
+      }
+
+      // Resilient Auto-save on Server DB (even if client disconnected mid-stream)
+      if (historyEntry && historyEntry.id && fullText.trim()) {
+        const isCustomKey = activeSettings?.mode === 'custom' && !!activeSettings?.apiKey;
+        const creditsUsed = isCustomKey ? 0 : (creditsDeducted || 1);
+        const savedReadingObj = {
+          ...historyEntry,
+          resultText: fullText,
+          timestamp: historyEntry.timestamp || Date.now(),
+          creditsUsed,
+        };
+        readingsDb.save(
+          historyEntry.id,
+          savedReadingObj.timestamp,
+          historyEntry.question || historyEntry.title || '',
+          historyEntry.spreadMode || 'three',
+          JSON.stringify(savedReadingObj)
+        );
+      }
+
       return;
     }
 

@@ -1,4 +1,4 @@
-import type { ApiSettings } from '../../types';
+import type { ApiSettings, SavedReading } from '../../types';
 import { apiClient, ApiError } from '../apiClient';
 import { authService } from '../authService';
 import { DEFAULT_API_SETTINGS, PROVIDER_PRESETS } from '../../constants/aiSettings';
@@ -44,14 +44,15 @@ export async function requestAiCompletion(
   systemPrompt: string,
   userPrompt: string,
   settings?: ApiSettings,
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>
 ): Promise<string> {
   const isStreamingEnabled = settings?.enableStreaming !== false;
 
   // If streaming is ON, accumulate text from streamAiCompletion (which sends stream: true to server)
   if (isStreamingEnabled) {
     let fullText = '';
-    for await (const chunk of streamAiCompletion(systemPrompt, userPrompt, settings || DEFAULT_API_SETTINGS)) {
+    for await (const chunk of streamAiCompletion(systemPrompt, userPrompt, settings || DEFAULT_API_SETTINGS, historyEntry)) {
       fullText += chunk;
       if (onChunk) {
         onChunk(chunk);
@@ -140,17 +141,19 @@ export function cleanAiResponse(rawContent: string): string {
 export async function* streamAiCompletion(
   systemPrompt: string,
   userPrompt: string,
-  settings: ApiSettings
+  settings: ApiSettings,
+  historyEntry?: Partial<SavedReading>
 ): AsyncIterable<string> {
   // If user disabled streaming in settings, fallback to non-streaming request
   if (settings && settings.enableStreaming === false) {
-    const fullResult = await requestAiCompletion(systemPrompt, userPrompt, settings);
+    const fullResult = await requestAiCompletion(systemPrompt, userPrompt, settings, undefined, historyEntry);
     yield fullResult;
     return;
   }
 
   // Mode 1: Custom API Key -> Direct Client Streaming
   if (settings && settings.mode === 'custom' && settings.apiKey) {
+    lastCreditsDeducted = 0;
     const client = await getOpenAIClient(settings);
     if (!client) {
       throw new Error('API Key ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการตั้งค่า');
@@ -191,6 +194,7 @@ export async function* streamAiCompletion(
       userPrompt,
       settings,
       stream: true,
+      historyEntry,
     }),
   });
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -51,6 +52,8 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
   onOpenCreditCenter,
   onSaveHistory,
 }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const theme = MODULE_THEMES.horoscope;
   const [selectedSign, setSelectedSign] = useState<ZodiacSign>(ZODIAC_SIGNS[0]);
   const [timeframe, setTimeframe] = useState<'daily' | 'monthly'>('daily');
@@ -58,6 +61,27 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
   const [prediction, setPrediction] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
+
+  // Load saved reading if :id parameter exists in URL
+  useEffect(() => {
+    if (id) {
+      storageService.getReadingByIdAsync(id).then((match) => {
+        if (match) {
+          if (match.meta?.signId) {
+            const found = ZODIAC_SIGNS.find((s) => s.id === match.meta?.signId);
+            if (found) setSelectedSign(found);
+          }
+          if (match.meta?.timeframe) {
+            setTimeframe(match.meta.timeframe);
+          }
+          if (match.resultText) {
+            setPrediction(match.resultText);
+            setUseAi(true);
+          }
+        }
+      });
+    }
+  }, [id]);
 
   // Birthdate Finder state
   const [birthMonth, setBirthMonth] = useState<number>(6);
@@ -94,6 +118,18 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
 
     setIsLoading(true);
     setPrediction('');
+
+    const tempId = Date.now().toString();
+    const historyEntryDraft: SavedReading = {
+      id: tempId,
+      timestamp: Date.now(),
+      category: 'horoscope',
+      title: `ดวง${sign.nameTh} (${mode === 'daily' ? 'ประจำวัน' : 'รายเดือน'})`,
+      subtitle: `ราศี${sign.nameTh} (${sign.dateRange})`,
+      question: `ดวงชะตาราศี${sign.nameTh} (${mode === 'daily' ? 'ประจำวัน' : 'รายเดือน'})`,
+      meta: { signId: sign.id, signName: sign.nameTh, timeframe: mode },
+    };
+
     try {
       const res = await analyzeZodiacHoroscope(
         sign.nameTh,
@@ -102,27 +138,23 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
         apiSettings,
         (chunk) => {
           setPrediction((prev) => prev + chunk);
-        }
+        },
+        historyEntryDraft
       );
       setPrediction(res);
       setAiError(null);
 
-      // Auto save AI Horoscope reading to history
+      // Save reading locally and update state
       if (res) {
         const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
         const newEntry: SavedReading = {
-          id: Date.now().toString(),
-          timestamp: Date.now(),
-          category: 'horoscope',
-          title: `ดวง${sign.nameTh} (${mode === 'daily' ? 'ประจำวัน' : 'รายเดือน'})`,
-          subtitle: `ราศี${sign.nameTh} (${sign.dateRange})`,
-          question: `ดวงชะตาราศี${sign.nameTh} (${mode === 'daily' ? 'ประจำวัน' : 'รายเดือน'})`,
+          ...historyEntryDraft,
           resultText: res,
-          meta: { signId: sign.id, signName: sign.nameTh, timeframe: mode },
           creditsUsed: isCustomKey ? 0 : getLastCreditsDeducted(),
         };
         const updated = storageService.saveReading(newEntry);
         if (onSaveHistory) onSaveHistory(updated);
+        navigate(`/horoscope/reading/${tempId}`, { replace: true });
       }
     } catch (err: any) {
       console.error('Failed AI completion in HoroscopePage:', err);

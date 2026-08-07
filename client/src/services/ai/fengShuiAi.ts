@@ -1,4 +1,4 @@
-import type { ApiSettings } from '../../types';
+import type { ApiSettings, SavedReading } from '../../types';
 import { requestAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
 
 export async function analyzeFengShui(
@@ -7,42 +7,38 @@ export async function analyzeFengShui(
   luckyWealth: string,
   luckyLove: string,
   unluckyForbidden: string,
-  spaceType: string = 'ภาพรวมที่อยู่อาศัย & โต๊ะทำงาน',
+  selectedSpace: string,
   settings?: ApiSettings,
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>
 ): Promise<string> {
-  const effectiveSettings = settings || DEFAULT_API_SETTINGS;
+  const activeSettings = settings || DEFAULT_API_SETTINGS;
 
-  const systemPrompt = `คุณคือซินแสผู้เชี่ยวชาญศาสตร์ฮวงจุ้ยและการปรับพลังงานเบญจธาตุระดับสูง โปรดให้คำแนะนำการแต่งกายสีมงคล ทิศรับทรัพย์ และการจัดวางพื้นที่ (${spaceType}) ในรูปแบบ Markdown (ใช้ภาษาไทยสละสลวย 100%)
+  const systemPrompt = `คุณคือปรมาจารย์แห่งศาสตร์ฮวงจุ้ยและสีมงคล (Feng Shui & Auspicious Master) โปรดวิเคราะห์ทิศมงคลและการจัดฮวงจุ้ยเพื่อเปิดรับพลังงานดี (ใช้ภาษาไทยสละสลวย 100%)
 
-โครงสร้างคำทำนายในรูปแบบ Markdown:
-## 🔮 ภาพรวมพลังงานเบญจธาตุ & สมดุลชีวิต
-(เกริ่นนำพลังงานธาตุประจำวันและการเปิดรับโชคลาภ)
+โครงสร้างบทวิเคราะห์ในรูปแบบ Markdown (ใช้หัวข้อ ##):
+## 🧭 พลังงานฮวงจุ้ย & สีมงคลประจำวัน${dayNameTh} (สำหรับ ${selectedSpace})
+(วิเคราะห์พลังงานธาตุประจำวันและการจัดองศาทิศทางเพื่อปรับพลังงานพื้นที่)
 
-## 👕 สีเสื้อมงคลเสริมพลังชีวิต
-(วิเคราะห์การเลือกแต่งกายด้วยสีมงคลในแต่ละด้าน)
+## 💼 การจัดฮวงจุ้ยเสริมการงาน & ธุรกิจ
+(คำแนะนำจัดพื้นที่ ${selectedSpace} เสริมสีมงคลการงาน: ${luckyWork})
 
-## 🧭 การจัดฮวงจุ้ยพื้นที่ (${spaceType})
-(เคล็ดลับการจัดวางทิศทาง แสงสว่าง และวัตถุมงคลรับทรัพย์)
+## 💰 การจัดฮวงจุ้ยเสริมโชคลาภ & ความมั่งคั่ง
+(คำแนะนำจัดพื้นที่ ${selectedSpace} เสริมสีมงคลการเงิน: ${luckyWealth})
 
-## ⚠️ ข้อควรระวัง & สีต้องห้าม
-(เตือนสติเรื่องสีต้องห้าม ${unluckyForbidden} และจุดอับพลังงานที่ควรแก้ไข)
+## 🚫 สิ่งที่ควรหลีกเลี่ยง & ทิศอัปมงคล
+(คำแนะนำหลีกเลี่ยงสิ่งต้องห้ามและสีอัปมงคล: ${unluckyForbidden})
 
-> **เคล็ดลับซินแสประจำวัน:** (ข้อคิดปรับสมดุลชีวิตและจิตใจ)`;
+> 🌿 **เคล็ดลับปรับฮวงจุ้ยด่วน:** (เคล็ดลับง่ายๆ ที่ลงมือทำได้ทันที)`;
 
-  const userPrompt = `ข้อมูลฮวงจุ้ยประจำ${dayNameTh}:
-- สีเสริมการงาน: ${luckyWork}
-- สีเสริมการเงินโชคลาภ: ${luckyWealth}
-- สีเสริมความรักเมตตา: ${luckyLove}
-- สีต้องห้าม/ฉุดดวง: ${unluckyForbidden}
-- พื้นที่ที่ต้องการจัดฮวงจุ้ย: ${spaceType}`;
+  const userPrompt = `โปรดวิเคราะห์การจัดฮวงจุ้ยสำหรับ "${selectedSpace}" ประจำวัน "${dayNameTh}" โดยมีสีมงคลการงาน: ${luckyWork}, สีมงคลการเงิน: ${luckyWealth}, สีมงคลความรัก: ${luckyLove}, และสีอัปมงคลต้องห้าม: ${unluckyForbidden}`;
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, effectiveSettings, onChunk);
+    const content = await requestAiCompletion(systemPrompt, userPrompt, activeSettings, onChunk, historyEntry);
     if (content && content.trim()) {
       return content;
     }
-    return generateFallbackFengShui(dayNameTh, luckyWork, luckyWealth, luckyLove, unluckyForbidden, spaceType);
+    return generateFallbackFengShui(dayNameTh, luckyWork, luckyWealth, luckyLove, unluckyForbidden, selectedSpace);
   } catch (error: any) {
     console.error('Failed Feng Shui AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ฮวงจุ้ย & สีมงคลได้ในขณะนี้');

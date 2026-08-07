@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { analyzePhoneNumber, analyzeNumerologyInput } from '../data/numerologyData';
@@ -53,6 +54,8 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
   onOpenCreditCenter,
   onSaveHistory,
 }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const theme = MODULE_THEMES.numerology;
   const [phoneNumber, setPhoneNumber] = useState<string>('0958889999');
   const [numberType, setNumberType] = useState<'phone' | 'car' | 'house' | 'card'>('phone');
@@ -64,6 +67,25 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+
+  // Load saved reading if :id parameter exists in URL
+  useEffect(() => {
+    if (id) {
+      storageService.getReadingByIdAsync(id).then((match) => {
+        if (match) {
+          const num = match.meta?.number || match.question?.replace(/.*: /, '') || '';
+          if (num) setPhoneNumber(num);
+          if (match.meta?.numberType) setNumberType(match.meta.numberType);
+          if (match.resultText) {
+            setPredictionText(match.resultText);
+            const math = analyzeNumerologyInput(num);
+            setResult(math);
+            setUseAi(true);
+          }
+        }
+      });
+    }
+  }, [id]);
 
   const resultCardRef = useRef<HTMLDivElement>(null);
 
@@ -102,6 +124,19 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
 
     setIsAnalyzing(true);
     setPredictionText('');
+
+    const tempId = Date.now().toString();
+    const typeLabel = numberType === 'phone' ? 'เบอร์โทรศัพท์' : numberType === 'car' ? 'ทะเบียนรถ' : numberType === 'house' ? 'บ้านเลขที่' : 'เลขบัตร/บัญชี';
+    const historyEntryDraft: SavedReading = {
+      id: tempId,
+      timestamp: Date.now(),
+      category: 'numerology',
+      title: `วิเคราะห์${typeLabel}: ${mathResult.cleanDigits || numStr}`,
+      subtitle: `ผลรวม ${mathResult.sumValue} (${mathResult.sumMeaning.title})`,
+      question: `วิเคราะห์${typeLabel} ${mathResult.cleanDigits || numStr}`,
+      meta: { number: numStr, cleanDigits: mathResult.cleanDigits, sumValue: mathResult.sumValue, sumTitle: mathResult.sumMeaning.title, numberType },
+    };
+
     try {
       const pairsSummary = mathResult.pairAnalyses
         .map((p) => `${p.pair} (${p.meaning})`)
@@ -116,7 +151,8 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
         apiSettings || { apiKey: '', baseUrl: '', model: '' },
         (chunk) => {
           setPredictionText((prev) => prev + chunk);
-        }
+        },
+        historyEntryDraft
       );
       setPredictionText(aiText);
       setAiError(null);
@@ -124,20 +160,14 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
       // Auto save AI Numerology reading to history
       if (aiText && mathResult) {
         const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
-        const typeLabel = numberType === 'phone' ? 'เบอร์โทรศัพท์' : numberType === 'car' ? 'ทะเบียนรถ' : numberType === 'house' ? 'บ้านเลขที่' : 'เลขบัตร/บัญชี';
         const newEntry: SavedReading = {
-          id: Date.now().toString(),
-          timestamp: Date.now(),
-          category: 'numerology',
-          title: `วิเคราะห์${typeLabel}: ${mathResult.cleanDigits || numStr}`,
-          subtitle: `ผลรวม ${mathResult.sumValue} (${mathResult.sumMeaning.title})`,
-          question: `วิเคราะห์${typeLabel} ${mathResult.cleanDigits || numStr}`,
+          ...historyEntryDraft,
           resultText: aiText,
-          meta: { number: numStr, cleanDigits: mathResult.cleanDigits, sumValue: mathResult.sumValue, sumTitle: mathResult.sumMeaning.title, numberType },
           creditsUsed: isCustomKey ? 0 : getLastCreditsDeducted(),
         };
         const updated = storageService.saveReading(newEntry);
         if (onSaveHistory) onSaveHistory(updated);
+        navigate(`/numerology/reading/${tempId}`, { replace: true });
       }
     } catch (err: any) {
       console.error('Failed AI completion in NumerologyPage:', err);

@@ -1,4 +1,4 @@
-import type { ApiSettings } from '../../types';
+import type { ApiSettings, SavedReading } from '../../types';
 import { requestAiCompletion } from './aiClient';
 
 export async function analyzeZodiacHoroscope(
@@ -6,7 +6,8 @@ export async function analyzeZodiacHoroscope(
   elementTh: string,
   timeframe: 'daily' | 'monthly',
   settings: ApiSettings,
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>
 ): Promise<string> {
   const systemPrompt = `คุณคือโหราจารย์ผู้หยั่งรู้ดวงดาว 12 ราศี โปรดวิเคราะห์ดวงชะตาอย่างลึกซึ้ง มีเสน่ห์ ทรงพลัง และให้สติปัญญาในการดำเนินชีวิต (ใช้ภาษาไทยสละสลวย 100%)
 
@@ -28,7 +29,7 @@ export async function analyzeZodiacHoroscope(
   const userPrompt = `โปรดทำนายดวงชะตา ${timeframe === 'daily' ? 'ประจำวัน' : 'รายเดือน'} สำหรับผู้เกิด "${signNameTh}" (${elementTh})`;
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk);
+    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk, historyEntry);
     if (content && content.trim()) {
       return content;
     }

@@ -93,7 +93,18 @@ export function App() {
   // Load a reading from history
   const handleLoadHistoryReading = (reading: SavedReading) => {
     setIsHistoryOpen(false);
-    navigate(`/tarot/reading/${reading.id}`);
+    const cat = reading.category || 'tarot';
+    if (cat === 'horoscope') {
+      navigate(`/horoscope/reading/${reading.id}`);
+    } else if (cat === 'numerology') {
+      navigate(`/numerology/reading/${reading.id}`);
+    } else if (cat === 'thai-astrology') {
+      navigate(`/thai-astrology/reading/${reading.id}`);
+    } else if (cat === 'feng-shui') {
+      navigate(`/feng-shui/reading/${reading.id}`);
+    } else {
+      navigate(`/tarot/reading/${reading.id}`);
+    }
   };
 
   return (
@@ -159,10 +170,32 @@ export function App() {
                 />
               }
             />
+            <Route
+              path="/horoscope/reading/:id"
+              element={
+                <HoroscopePage
+                  apiSettings={apiSettings}
+                  onOpenSettings={handleOpenSettings}
+                  onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                  onSaveHistory={setSavedReadings}
+                />
+              }
+            />
 
             {/* Numerology Module Route */}
             <Route
               path="/numerology"
+              element={
+                <NumerologyPage
+                  apiSettings={apiSettings}
+                  onOpenSettings={handleOpenSettings}
+                  onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                  onSaveHistory={setSavedReadings}
+                />
+              }
+            />
+            <Route
+              path="/numerology/reading/:id"
               element={
                 <NumerologyPage
                   apiSettings={apiSettings}
@@ -185,10 +218,32 @@ export function App() {
                 />
               }
             />
+            <Route
+              path="/thai-astrology/reading/:id"
+              element={
+                <ThaiAstrologyPage
+                  apiSettings={apiSettings}
+                  onOpenSettings={handleOpenSettings}
+                  onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                  onSaveHistory={setSavedReadings}
+                />
+              }
+            />
 
             {/* Feng Shui Module Route */}
             <Route
               path="/feng-shui"
+              element={
+                <FengShuiPage
+                  apiSettings={apiSettings}
+                  onOpenSettings={handleOpenSettings}
+                  onOpenCreditCenter={() => setIsCreditCenterOpen(true)}
+                  onSaveHistory={setSavedReadings}
+                />
+              }
+            />
+            <Route
+              path="/feng-shui/reading/:id"
               element={
                 <FengShuiPage
                   apiSettings={apiSettings}

@@ -1,4 +1,5 @@
-import type { ApiSettings, ChatMessage, DrawnCard, SpreadMode } from '../../features/tarot/types/tarot';
+import type { DrawnCard, SpreadMode } from '../../features/tarot/types/tarot';
+import type { ApiSettings, ChatMessage, SavedReading } from '../../types';
 import { getSpreadConfig } from '../../features/tarot/data/tarotSpreads';
 import { requestAiCompletion } from './aiClient';
 
@@ -8,7 +9,8 @@ export async function analyzeTarotReading(
   spreadMode: SpreadMode,
   settings: ApiSettings,
   deckFilter: 'all' | 'major' | 'minor' = 'all',
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>
 ): Promise<string> {
   const spreadConfig = getSpreadConfig(spreadMode);
 
@@ -55,7 +57,7 @@ export async function analyzeTarotReading(
   const userPrompt = buildInitialUserPrompt(question, drawnCards, spreadMode, deckFilter);
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk);
+    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk, historyEntry);
     if (content && content.trim()) {
       return content;
     }

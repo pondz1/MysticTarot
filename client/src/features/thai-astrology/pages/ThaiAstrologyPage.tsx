@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { calculateLifeGraph } from '../data/thaiAstrologyData';
@@ -40,6 +41,8 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
   onOpenCreditCenter,
   onSaveHistory,
 }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const theme = MODULE_THEMES['thai-astrology'];
   const [birthDate, setBirthDate] = useState<string>('1995-06-15');
   const [dayIndex, setDayIndex] = useState<number>(3); // Wednesday default
@@ -51,6 +54,25 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
 
   const [result, setResult] = useState<ThaiLifeChartResult | null>(() => calculateLifeGraph('1995-06-15', 3));
   const resultCardRef = useRef<HTMLDivElement>(null);
+
+  // Load saved reading if :id parameter exists in URL
+  useEffect(() => {
+    if (id) {
+      storageService.getReadingByIdAsync(id).then((match) => {
+        if (match) {
+          if (match.meta?.birthDate) {
+            setBirthDate(match.meta.birthDate);
+            const mathRes = calculateLifeGraph(match.meta.birthDate, dayIndex);
+            setResult(mathRes);
+          }
+          if (match.resultText) {
+            setPredictionText(match.resultText);
+            setUseAi(true);
+          }
+        }
+      });
+    }
+  }, [id]);
 
   const handleCopyPrediction = () => {
     if (!predictionText) return;
@@ -80,6 +102,18 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
 
     setIsLoading(true);
     setPredictionText('');
+
+    const tempId = Date.now().toString();
+    const historyEntryDraft: SavedReading = {
+      id: tempId,
+      timestamp: Date.now(),
+      category: 'thai-astrology',
+      title: `กราฟชีวิต & โหราศาสตร์ไทย`,
+      subtitle: `วันเกิด ${birthDate} (วัน${mathRes.dayOfWeekTh})`,
+      question: `กราฟชีวิต วันเกิด ${birthDate}`,
+      meta: { birthDate, dayOfWeek: mathRes.dayOfWeekTh, peakAgeRange: mathRes.peakAgeRange },
+    };
+
     try {
       const aiText = await analyzeThaiLifeGraph(
         birthDate,
@@ -90,7 +124,8 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
         apiSettings,
         (chunk) => {
           setPredictionText((prev) => prev + chunk);
-        }
+        },
+        historyEntryDraft
       );
       setPredictionText(aiText);
       setAiError(null);
@@ -99,18 +134,13 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
       if (aiText && mathRes) {
         const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
         const newEntry: SavedReading = {
-          id: Date.now().toString(),
-          timestamp: Date.now(),
-          category: 'thai-astrology',
-          title: `กราฟชีวิต & โหราศาสตร์ไทย`,
-          subtitle: `วันเกิด ${birthDate} (วัน${mathRes.dayOfWeekTh})`,
-          question: `กราฟชีวิต วันเกิด ${birthDate}`,
+          ...historyEntryDraft,
           resultText: aiText,
-          meta: { birthDate, dayOfWeek: mathRes.dayOfWeekTh, peakAgeRange: mathRes.peakAgeRange },
           creditsUsed: isCustomKey ? 0 : getLastCreditsDeducted(),
         };
         const updated = storageService.saveReading(newEntry);
         if (onSaveHistory) onSaveHistory(updated);
+        navigate(`/thai-astrology/reading/${tempId}`, { replace: true });
       }
     } catch (err: any) {
       console.error('Failed AI completion in ThaiAstrologyPage:', err);

@@ -1,40 +1,40 @@
-import type { ApiSettings } from '../../types';
+import type { ApiSettings, SavedReading } from '../../types';
 import { requestAiCompletion } from './aiClient';
 
 export async function analyzeNumerology(
-  inputNumber: string,
+  digitsStr: string,
   sumValue: number,
   sumTitle: string,
   pairsSummary: string,
   settings: ApiSettings,
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>
 ): Promise<string> {
-  const systemPrompt = `คุณคือปรมาจารย์ผู้เชี่ยวชาญศาสตร์แห่งตัวเลขและเบอร์มงคล (Celestial Master Numerologist) มีสติปัญญา ลึกซึ้ง และทำนายภาษาไทยสละสลวย 100% (ห้ามใส่ Emoji ใดๆ ในหัวข้อ Heading)`;
-  const userPrompt = `โปรดทำนายวิเคราะห์เชิงลึกสำหรับตัวเลข "${inputNumber}"
-- ผลรวมตัวเลข: ${sumValue} (${sumTitle})
-- สรุปคู่เลขย่อย: ${pairsSummary}
+  const systemPrompt = `คุณคือปรมาจารย์แห่งศาสตร์ถอดรหัสตัวเลขและเบอร์มงคล โปรดวิเคราะห์อิทธิพลของตัวเลขอย่างลึกซึ้ง แม่นยำ ทรงพลัง และให้ข้อคิดในการใช้ชีวิต (ใช้ภาษาไทยสละสลวย 100%)
 
-โปรดจัดทำโครงสร้างบทวิเคราะห์ Markdown สละสลวยดังนี้ (ห้ามใส่ Emoji ในหัวข้อ ##):
-## ภาพรวมพลังงานและอิทธิพลแห่งตัวเลข (${inputNumber})
-(วิเคราะห์พลังรวม สถิตตัวเลข และแรงดึงดูดชีวิต)
+โครงสร้างบทวิเคราะห์ในรูปแบบ Markdown (ใช้หัวข้อ ##):
+## 🔢 พลังงานรวมของชุดตัวเลข (ผลรวม ${sumValue}: ${sumTitle})
+(วิเคราะห์อิทธิพลโดยรวมของผลรวม และพลังงานหลักที่ส่งผลต่อเจ้าของเลข)
 
-## พลังเสริมดวงการงาน & สติปัญญา
-(วิเคราะห์อิทธิพลต่อการทำงาน การบริหาร และวิชาการ)
+## 💼 อิทธิพลต่อการงาน & ธุรกิจ
+(วิเคราะห์ว่าคู่เลขในชุดนี้ส่งเสริมงาน การค้า หรือตำแหน่งหน้าที่อย่างไร)
 
-## พลังเสริมดวงการเงิน & โชคลาภ
-(วิเคราะห์การไหลเวียนเงินทอง โชคลาภ และความมั่งคั่ง)
+## 💰 อิทธิพลต่อการเงิน & โชคลาภ
+(วิเคราะห์สภาพคล่อง การหมุนเงิน ลาภลอย หรือการดึงดูดทรัพย์)
 
-## พลังเสริมดวงความรัก & เมตตามหานิยม
-(วิเคราะห์เสน่ห์ ความรัก และการเอ็นดูจากผู้คน)
+## ❤️ อิทธิพลต่อเสน่ห์ & ความสัมพันธ์
+(วิเคราะห์มิตรภาพ เสน่ห์ ผู้ใหญ่อุปถัมภ์ และความรัก)
 
-> **ข้อคิดคำแนะนำมงคลประจำชุดตัวเลขนี้**`;
+> 💡 **ข้อแนะนำการใช้พลังงานตัวเลข:** (ข้อคิดสะกิดใจสร้างเสริมบารมี)`;
+
+  const userPrompt = `โปรดวิเคราะห์ชุดตัวเลข "${digitsStr}" ซึ่งมีผลรวม ${sumValue} (${sumTitle}) และมีคู่เลขสำคัญ ได้แก่: ${pairsSummary}`;
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk);
+    const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk, historyEntry);
     if (content && content.trim()) {
       return content;
     }
-    return generateFallbackNumerology(inputNumber, sumValue, sumTitle);
+    return generateFallbackNumerology(digitsStr, sumValue, sumTitle);
   } catch (error: any) {
     console.error('Failed Numerology AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ถอดรหัสตัวเลขได้ในขณะนี้');

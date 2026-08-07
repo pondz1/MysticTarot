@@ -5,7 +5,9 @@ import { QuestionInput } from '../components/QuestionInput';
 import { TarotDeck } from '../components/TarotDeck';
 import { CardDisplay } from '../components/CardDisplay';
 import { ReadingResult } from '../components/ReadingResult';
-import type { ApiSettings, ChatMessage, DrawnCard, SavedReading, SpreadMode } from '../types/tarot';
+import type { DrawnCard, SpreadMode } from '../types/tarot';
+import type { ApiSettings, ChatMessage, SavedReading } from '../../../types';
+import { getSpreadConfig } from '../data/tarotSpreads';
 import { analyzeTarotReading, analyzeTarotFollowUp, generateFallbackReading } from '../../../services/aiService';
 import { storageService } from '../../../services/storageService';
 import { getLastCreditsDeducted } from '../../../services/ai/aiClient';
@@ -68,16 +70,17 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
   // Load existing reading by ID from URL params (/tarot/reading/:id)
   useEffect(() => {
     if (id) {
-      const match = savedReadings.find((r) => r.id === id);
-      if (match) {
-        setQuestion(match.question || '');
-        if (match.spreadMode) setSpreadModeState(match.spreadMode);
-        setDrawnCards(match.drawnCards || []);
-        setReadingResult(match.resultText || '');
-        setChatHistory(match.chatHistory || []);
-        setIsSavedCurrent(true);
-        setAiError(null);
-      }
+      storageService.getReadingByIdAsync(id).then((match) => {
+        if (match) {
+          setQuestion(match.question || '');
+          if (match.spreadMode) setSpreadModeState(match.spreadMode);
+          setDrawnCards(match.drawnCards || []);
+          setReadingResult(match.resultText || '');
+          setChatHistory(match.chatHistory || []);
+          setIsSavedCurrent(true);
+          setAiError(null);
+        }
+      });
     }
   }, [id, savedReadings]);
 
@@ -91,6 +94,17 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
 
     try {
       let analysis = '';
+      const historyEntryDraft: SavedReading = {
+        id: newId,
+        timestamp: Date.now(),
+        category: 'tarot',
+        title: `ไพ่ยิปซี: ${getSpreadConfig(spreadMode).titleTh}`,
+        subtitle: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
+        question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
+        spreadMode,
+        drawnCards: cards,
+      };
+
       if (useAi) {
         analysis = await analyzeTarotReading(
           question,
@@ -100,7 +114,8 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
           deckFilter,
           (chunk) => {
             setReadingResult((prev) => prev + chunk);
-          }
+          },
+          historyEntryDraft
         );
       } else {
         analysis = generateFallbackReading(question, cards, spreadMode);
@@ -111,14 +126,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
       // Auto save reading
       const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
       const newEntry: SavedReading = {
-        id: newId,
-        timestamp: Date.now(),
-        category: 'tarot',
-        title: `ไพ่ยิปซี (${spreadMode === 'single' ? 'ไพ่ 1 ใบ' : 'ไพ่ 3 ใบ'})`,
-        subtitle: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
-        question: question || 'ดวงชะตาและภาพรวมชีวิตประจำวัน',
-        spreadMode,
-        drawnCards: cards,
+        ...historyEntryDraft,
         resultText: analysis,
         chatHistory: [],
         creditsUsed: isCustomKey ? 0 : getLastCreditsDeducted(),

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { SavedReading, HistoryCategory } from '../../types';
+import { getSpreadConfig } from '../../features/tarot/data/tarotSpreads';
 import {
   X,
   History,
@@ -193,20 +194,17 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                   <span className="text-xs text-purple-300">{formatDate(activeReading.timestamp)}</span>
                 </div>
 
-                {/* If Tarot, offer button to view in Tarot Page */}
-                {getItemCategory(activeReading) === 'tarot' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onLoadReading(activeReading);
-                      onClose();
-                    }}
-                    className="flex items-center gap-1 text-xs text-amber-300 hover:text-amber-100 font-bold bg-amber-600/40 px-3 py-1 rounded-lg border border-amber-400/50"
-                  >
-                    <span>เปิดในหน้าไพ่ยิปซี</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onLoadReading(activeReading);
+                    onClose();
+                  }}
+                  className="flex items-center gap-1 text-xs text-amber-300 hover:text-amber-100 font-bold bg-amber-600/40 hover:bg-amber-600/60 px-3 py-1 rounded-lg border border-amber-400/50 transition-all"
+                >
+                  <span>เปิดในหน้าทำนาย</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
               </div>
 
               <h3 className="text-base sm:text-lg font-bold text-amber-200">
@@ -345,7 +343,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                           </span>
                           {item.spreadMode && (
                             <span className="text-[10px] px-2 py-0.5 rounded bg-purple-950 text-amber-300 border border-purple-500/30 font-mono">
-                              {item.spreadMode === 'single' ? '1 ใบ' : '3 ใบ'}
+                              {getSpreadConfig(item.spreadMode).titleTh}
                             </span>
                           )}
                           {renderCreditBadge(item.creditsUsed)}

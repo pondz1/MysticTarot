@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { DAILY_LUCKY_COLORS_TABLE, DAILY_AUSPICIOUS_DIRECTIONS_MAP, getDynamicFengShuiTips } from '../data/fengShuiData';
@@ -49,6 +50,8 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
   onOpenCreditCenter,
   onSaveHistory,
 }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const theme = MODULE_THEMES['feng-shui'];
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
   const [selectedSpace, setSelectedSpace] = useState<string>('โต๊ะทำงาน / มุมทำงาน');
@@ -60,6 +63,23 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
 
   const currentDayInfo = DAILY_LUCKY_COLORS_TABLE[selectedDayIndex];
   const resultCardRef = useRef<HTMLDivElement>(null);
+
+  // Load saved reading if :id parameter exists in URL
+  useEffect(() => {
+    if (id) {
+      storageService.getReadingByIdAsync(id).then((match) => {
+        if (match) {
+          if (match.meta?.space) {
+            setSelectedSpace(match.meta.space);
+          }
+          if (match.resultText) {
+            setPredictionText(match.resultText);
+            setUseAi(true);
+          }
+        }
+      });
+    }
+  }, [id]);
 
   const handleCopyPrediction = () => {
     if (!predictionText) return;
@@ -90,6 +110,18 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
 
     setIsLoading(true);
     setPredictionText('');
+
+    const tempId = Date.now().toString();
+    const historyEntryDraft: SavedReading = {
+      id: tempId,
+      timestamp: Date.now(),
+      category: 'feng-shui',
+      title: `วิเคราะห์ฮวงจุ้ย: ${selectedSpace}`,
+      subtitle: `วัน${currentDayInfo.dayNameTh}`,
+      question: `ฮวงจุ้ย ${selectedSpace} (วัน${currentDayInfo.dayNameTh})`,
+      meta: { space: selectedSpace, dayName: currentDayInfo.dayNameTh },
+    };
+
     try {
       const aiText = await analyzeFengShui(
         currentDayInfo.dayNameTh,
@@ -101,7 +133,8 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
         apiSettings,
         (chunk) => {
           setPredictionText((prev) => prev + chunk);
-        }
+        },
+        historyEntryDraft
       );
       setPredictionText(aiText);
       setAiError(null);
@@ -110,18 +143,13 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
       if (aiText) {
         const isCustomKey = apiSettings?.mode === 'custom' && !!apiSettings?.apiKey;
         const newEntry: SavedReading = {
-          id: Date.now().toString(),
-          timestamp: Date.now(),
-          category: 'feng-shui',
-          title: `วิเคราะห์ฮวงจุ้ย: ${selectedSpace}`,
-          subtitle: `วัน${currentDayInfo.dayNameTh}`,
-          question: `ฮวงจุ้ย ${selectedSpace} (วัน${currentDayInfo.dayNameTh})`,
+          ...historyEntryDraft,
           resultText: aiText,
-          meta: { space: selectedSpace, dayName: currentDayInfo.dayNameTh },
           creditsUsed: isCustomKey ? 0 : getLastCreditsDeducted(),
         };
         const updated = storageService.saveReading(newEntry);
         if (onSaveHistory) onSaveHistory(updated);
+        navigate(`/feng-shui/reading/${tempId}`, { replace: true });
       }
     } catch (err: any) {
       console.error('Failed AI completion in FengShuiPage:', err);

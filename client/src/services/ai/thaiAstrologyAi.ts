@@ -1,4 +1,4 @@
-import type { ApiSettings } from '../../types';
+import type { ApiSettings, SavedReading } from '../../types';
 import { requestAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
 
 export async function analyzeThaiLifeGraph(
@@ -8,37 +8,29 @@ export async function analyzeThaiLifeGraph(
   peakAgeRange: string,
   summaryGuidance: string,
   settings?: ApiSettings,
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string) => void,
+  historyEntry?: Partial<SavedReading>
 ): Promise<string> {
-  const effectiveSettings = settings || DEFAULT_API_SETTINGS;
+  const activeSettings = settings || DEFAULT_API_SETTINGS;
 
-  const systemPrompt = `คุณคือโหราจารย์ผู้เชี่ยวชาญศาสตร์โหราศาสตร์ไทยโบราณและคำนวณกราฟชีวิต 9 ช่วงอายุ โปรดวิเคราะห์ดวงชะตากราฟชีวิตอย่างลึกซึ้ง มีเสน่ห์ ทรงพลัง และให้สติปัญญาในการดำเนินชีวิต (ใช้ภาษาไทยสละสลวย 100%)
+  const systemPrompt = `คุณคือโหราจารย์อาโสฬสผู้เชี่ยวชาญตำรากราฟชีวิตและโหราศาสตร์ไทยโบราณ โปรดวิเคราะห์กราฟชีวิต 9 ช่วงอายุอย่างลึกซึ้ง ให้สติปัญญาในการดำเนินชีวิต (ใช้ภาษาไทยสละสลวย 100%)
 
-โครงสร้างคำทำนายในรูปแบบ Markdown (ห้ามเขียนหัวข้อซ้ำกับชื่อบทวิเคราะห์):
-## 🔮 ภาพรวมพลังงานชะตา & ธาตุประจำตัว
-(เกริ่นนำลักษณะนิสัย พลังงานธาตุประจำตัว ${elementTh} และเส้นทางชีวิต)
+โครงสร้างบทวิเคราะห์ในรูปแบบ Markdown (ใช้หัวข้อ ##):
+## 📜 จังหวะชีวิตและพลังดาวประจำวันเกิด (วัน${dayOfWeekTh} ธาตุ${elementTh})
+(วิเคราะห์พลังงานหลักของดวงชะตาและพื้นดวงเดิม)
 
-## 📈 จังหวะกราฟชีวิต & ช่วงพีคสูงสุด
-(วิเคราะห์ช่วงอายุ ${peakAgeRange} และโอกาสในการสร้างเนื้อสร้างตัว)
+## 📈 ช่วงอายุพีคทองคำ (${peakAgeRange})
+(วิเคราะห์โอกาส ความสำเร็จ และจังหวะก้าวหน้าสูงสุด)
 
-## 💼 การงาน & เกียรติยศ
-(ทิศทางหน้าที่การงาน ธุรกิจ และผู้ใหญ่อุปถัมภ์)
+## ⚖️ ข้อควรระวังและวิธีตั้งรับช่วงกราฟชีวิตลง
+(คำแนะนำการใช้ชีวิตด้วยความไม่ประมาทและการเสริมบารมี)
 
-## 💰 การเงิน & ทรัพย์สิน
-(การหมุนเวียนเงินทอง การลงทุน และอสังหาริมทรัพย์)
+> 🕯️ **โอวาทคำสอนเตือนสติ:** ${summaryGuidance}`;
 
-## ❤️ ความรัก & ครอบครัว
-(ความสัมพันธ์ คู่ครอง และความสมบูรณ์ในครอบครัว)
-
-> 🌟 **สารสั้นเตือนใจประจำชะตาชีวิต:** (ข้อคิดและแนวทางสร้างบารมี)`;
-
-  const userPrompt = `ข้อมูลชะตาชีวิต:
-- วันเกิด: ${birthDate} (ตรงกับ${dayOfWeekTh}, ธาตุประจำตัว: ${elementTh})
-- ช่วงอายุพุ่งสูงสุด: ${peakAgeRange}
-- คำแนะนำภาพรวม: ${summaryGuidance}`;
+  const userPrompt = `โปรดทำนายวิเคราะห์กราฟชีวิตดวงไทยสำหรับผู้เกิดวัน "${dayOfWeekTh}" (เกิดวันที่ ${birthDate}, ธาตุ ${elementTh}) มีช่วงอายุพีคสูงสุดคือ ${peakAgeRange}`;
 
   try {
-    const content = await requestAiCompletion(systemPrompt, userPrompt, effectiveSettings, onChunk);
+    const content = await requestAiCompletion(systemPrompt, userPrompt, activeSettings, onChunk, historyEntry);
     if (content && content.trim()) {
       return content;
     }

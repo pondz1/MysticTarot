@@ -74,6 +74,19 @@ export const storageService = {
     return readings.find((r) => r.id === id);
   },
 
+  async getReadingByIdAsync(id: string): Promise<SavedReading | undefined> {
+    const local = this.getReadingById(id);
+    if (local) return local;
+    try {
+      const response = await apiClient.get<any>(`/api/readings/${id}`);
+      const reading: SavedReading = response?.data || response;
+      if (reading && reading.id) return reading;
+    } catch (e) {
+      console.warn('Failed to fetch reading from server DB:', e);
+    }
+    return undefined;
+  },
+
   saveReading(reading: SavedReading): SavedReading[] {
     const current = this.getSavedReadings();
     const existingIndex = current.findIndex((r) => r.id === reading.id);
