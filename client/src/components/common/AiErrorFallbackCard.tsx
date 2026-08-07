@@ -16,35 +16,52 @@ export const AiErrorFallbackCard: React.FC<AiErrorFallbackCardProps> = ({
   onOpenCreditCenter,
   onOpenSettings,
 }) => {
+  const looksLikeCredit =
+    /credit|เครดิต|insufficient|quota|limit|หมด/i.test(errorMessage || '');
+
   return (
-    <div className="w-full max-w-xl mx-auto my-6 p-5 rounded-2xl bg-gradient-to-b from-purple-950/90 via-purple-950/80 to-purple-950/70 border border-rose-500/50 shadow-2xl backdrop-blur-md animate-fade-in text-left">
+    <div
+      role="alert"
+      className="w-full max-w-xl mx-auto my-6 p-5 rounded-2xl bg-slate-950/95 border border-rose-500/45 shadow-2xl animate-fade-in text-left"
+    >
       <div className="flex items-start gap-3 mb-3">
-        <div className="p-2 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-300 shrink-0">
-          <AlertCircle className="w-6 h-6 animate-pulse" />
+        <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-400/35 text-rose-300 shrink-0">
+          <AlertCircle className="w-6 h-6" aria-hidden="true" />
         </div>
         <div>
-          <h4 className="text-base font-bold text-rose-200 font-serif-mystic">
-            ไม่สามารถประมวลผลคำขอ AI ได้ในขณะนี้
+          <h4 className="text-base font-bold text-rose-100">
+            {looksLikeCredit ? 'เครดิต AI ไม่พอ หรือหมดแล้ว' : 'AI ยังตอบไม่ได้ในตอนนี้'}
           </h4>
-          <p className="text-xs text-rose-300/90 mt-1 leading-relaxed">
-            {errorMessage || 'เกิดข้อผิดพลาดในการเชื่อมต่อ AI กรุณาตรวจสอบและเลือกทางแก้ไขด้านล่าง'}
+          <p className="text-xs text-rose-200/85 mt-1 leading-relaxed">
+            {errorMessage || 'เชื่อมต่อ AI ไม่สำเร็จ — เลือกทางด้านล่างได้ทันที'}
           </p>
         </div>
       </div>
 
-      <div className="text-[11px] text-purple-300 font-medium mb-3 pt-2 border-t border-rose-900/40">
-        💡 คุณสามารถเลือกทางแก้ไข หรือสลับไปใช้การทำนายคลาสสิก (Offline) ได้ทันที:
+      <div className="text-[11px] text-slate-400 font-medium mb-3 pt-2 border-t border-slate-800">
+        ยังดูคำทำนายต่อได้ — เลือกอย่างใดอย่างหนึ่ง:
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        {onUseOfflineFallback && (
+          <button
+            type="button"
+            onClick={onUseOfflineFallback}
+            className="flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+          >
+            <Sparkles className="w-4 h-4" aria-hidden="true" />
+            <span>ใช้คำทำนายมาตรฐาน (ไม่ใช้เครดิต)</span>
+          </button>
+        )}
+
         {onOpenCreditCenter && (
           <button
             type="button"
             onClick={onOpenCreditCenter}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-purple-950 shadow-md transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-amber-400/40 text-amber-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
-            <Coins className="w-4 h-4" />
-            <span>เติม เครดิต (Credit Center)</span>
+            <Coins className="w-4 h-4" aria-hidden="true" />
+            <span>เติมเครดิต AI</span>
           </button>
         )}
 
@@ -52,21 +69,10 @@ export const AiErrorFallbackCard: React.FC<AiErrorFallbackCardProps> = ({
           <button
             type="button"
             onClick={onOpenSettings}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-purple-900/80 hover:bg-purple-800 border border-purple-500/40 text-amber-200 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
-            <Key className="w-4 h-4 text-amber-400" />
-            <span>สลับไปใช้ Custom API Key</span>
-          </button>
-        )}
-
-        {onUseOfflineFallback && (
-          <button
-            type="button"
-            onClick={onUseOfflineFallback}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-purple-950 border border-amber-400/40 text-purple-200 hover:text-white transition-all cursor-pointer"
-          >
-            <Sparkles className="w-4 h-4 text-amber-300" />
-            <span>อ่านคำทำนายคลาสสิก (Offline)</span>
+            <Key className="w-4 h-4 text-amber-400" aria-hidden="true" />
+            <span>ใช้ API Key ของฉัน</span>
           </button>
         )}
 
@@ -74,10 +80,10 @@ export const AiErrorFallbackCard: React.FC<AiErrorFallbackCardProps> = ({
           <button
             type="button"
             onClick={onRetry}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-purple-300 hover:text-white transition-all cursor-pointer ml-auto"
+            className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-xl text-xs font-medium text-slate-400 hover:text-white transition-colors cursor-pointer ml-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>ลองใหม่อีกครั้ง</span>
+            <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>ลองอีกครั้ง</span>
           </button>
         )}
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { SavedReading, HistoryCategory } from '../../types';
@@ -76,6 +76,14 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<'all' | HistoryCategory>('all');
   const [activeReading, setActiveReading] = useState<SavedReading | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setConfirmClearAll(false);
+      setActiveReading(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -108,20 +116,28 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleConfirmClearAll = () => {
+    onClearHistory();
+    setConfirmClearAll(false);
+    setActiveReading(null);
+  };
+
   const renderCreditBadge = (creditsUsed?: number) => {
     if (creditsUsed === 0) {
       return (
         <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 font-semibold inline-flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-emerald-400" />
-          <span>0 CR (Custom Key)</span>
+          <Sparkles className="w-3 h-3 text-emerald-400" aria-hidden="true" />
+          <span>ไม่ใช้เครดิต (API Key ของคุณ)</span>
         </span>
       );
     }
     const val = typeof creditsUsed === 'number' ? creditsUsed : 1;
     return (
       <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-500/40 font-bold inline-flex items-center gap-1">
-        <Coins className="w-3 h-3 text-amber-400" />
-        <span>{val} Credit{val > 1 ? 's' : ''}</span>
+        <Coins className="w-3 h-3 text-amber-400" aria-hidden="true" />
+        <span>
+          ใช้ {val} เครดิต
+        </span>
       </span>
     );
   };
@@ -403,15 +419,49 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
 
             {/* Footer */}
             {savedReadings.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-amber-500/20 flex justify-end shrink-0">
-                <button
-                  type="button"
-                  onClick={onClearHistory}
-                  className="flex items-center gap-1.5 text-xs text-rose-300 hover:text-rose-100 bg-rose-950/60 hover:bg-rose-900/80 px-3 py-1.5 rounded-lg border border-rose-500/40 transition-all cursor-pointer"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>ล้างประวัติทั้งหมด ({savedReadings.length})</span>
-                </button>
+              <div className="mt-3 pt-3 border-t border-amber-500/20 flex flex-col items-stretch gap-2 shrink-0">
+                {confirmClearAll ? (
+                  <div
+                    role="alertdialog"
+                    aria-labelledby="clear-history-title"
+                    aria-describedby="clear-history-desc"
+                    className="rounded-xl border border-rose-500/40 bg-rose-950/40 p-3 space-y-2"
+                  >
+                    <p id="clear-history-title" className="text-xs font-semibold text-rose-100">
+                      ลบประวัติทั้งหมด {savedReadings.length} รายการ?
+                    </p>
+                    <p id="clear-history-desc" className="text-[11px] text-rose-200/80 leading-relaxed">
+                      การลบนี้กู้คืนไม่ได้ รายการคำทำนายที่บันทึกไว้จะหายทั้งหมด
+                    </p>
+                    <div className="flex flex-wrap justify-end gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setConfirmClearAll(false)}
+                        className="text-xs px-3 py-2 min-h-[40px] rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                      >
+                        ยกเลิก
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmClearAll}
+                        className="text-xs px-3 py-2 min-h-[40px] rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
+                      >
+                        ยืนยันลบทั้งหมด
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmClearAll(true)}
+                      className="flex items-center gap-1.5 text-xs text-rose-300 hover:text-rose-100 bg-rose-950/60 hover:bg-rose-900/80 px-3 py-2 min-h-[40px] rounded-lg border border-rose-500/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                      <span>ล้างประวัติทั้งหมด ({savedReadings.length})</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </>

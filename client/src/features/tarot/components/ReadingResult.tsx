@@ -78,21 +78,25 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
                 type="button"
                 onClick={onSaveReading}
                 disabled={isSaved}
-                className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-medium bg-purple-900/60 hover:bg-purple-800 border border-purple-400/40 text-purple-100 disabled:opacity-50 transition-all cursor-pointer whitespace-nowrap shrink-0"
-                title="บันทึกคำทำนายลงเครื่อง"
+                className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 min-h-[36px] rounded-lg text-xs font-medium bg-purple-900/60 hover:bg-purple-800 border border-purple-400/40 text-purple-100 disabled:opacity-50 transition-colors cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                title="บันทึกคำทำนายลงประวัติ"
               >
-                <Save className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span>{isSaved ? 'บันทึกแล้ว' : 'บันทึก'}</span>
+                <Save className="w-3.5 h-3.5 text-amber-300 shrink-0" aria-hidden="true" />
+                <span>{isSaved ? 'บันทึกแล้ว' : 'บันทึกคำทำนาย'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-medium bg-amber-600/30 hover:bg-amber-600/60 border border-amber-400/40 text-amber-100 transition-all cursor-pointer whitespace-nowrap shrink-0"
-                title="คัดลอกคำทำนาย"
+                className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 min-h-[36px] rounded-lg text-xs font-medium bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-100 transition-colors cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                title="คัดลอกข้อความคำทำนาย"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className="w-3.5 h-3.5 text-amber-300 shrink-0" />}
-                <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอก'}</span>
+                {copied ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 text-amber-300 shrink-0" aria-hidden="true" />
+                )}
+                <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอกข้อความ'}</span>
               </button>
             </div>
           </div>
@@ -206,18 +210,18 @@ export const ReadingResult: React.FC<ReadingResultProps> = ({
 
           {/* Footer Action to start new reading */}
           <div className="mt-8 pt-6 border-t border-amber-400/30 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-[11px] text-purple-300/70 italic flex items-center gap-1">
-              <Moon className="w-3.5 h-3.5 text-amber-400" />
-              "โชคชะตาไม่ได้สลักไว้บนก้อนหิน แ่อยู่ในมือของคุณ"
+            <p className="text-[11px] text-slate-500 flex items-center gap-1.5">
+              <Moon className="w-3.5 h-3.5 text-amber-400/80" aria-hidden="true" />
+              <span>คำทำนายถูกบันทึกในประวัติอัตโนมัติเมื่อใช้ AI</span>
             </p>
 
             <button
               type="button"
               onClick={onNewReading}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 via-amber-600 to-purple-700 text-slate-950 hover:text-white border border-amber-300 hover:shadow-[0_0_25px_rgba(234,179,8,0.5)] transition-all cursor-pointer"
+              className="flex items-center gap-2 px-6 py-2.5 min-h-[44px] rounded-xl font-bold text-sm bg-amber-500 hover:bg-amber-400 text-slate-950 border border-amber-300 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
-              <RefreshCw className="w-4 h-4" />
-              <span>เริ่มดูดวงรอบใหม่</span>
+              <RefreshCw className="w-4 h-4" aria-hidden="true" />
+              <span>เริ่มทำนายรอบใหม่</span>
             </button>
           </div>
 

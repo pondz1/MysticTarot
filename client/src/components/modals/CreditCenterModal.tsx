@@ -105,55 +105,70 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
         <div className="relative w-full max-w-lg glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-hidden my-8 max-h-[90vh] overflow-y-auto">
           
           {/* Modal Header */}
-          <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-4">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300">
-                <Coins className="w-5 h-5 animate-bounce-slow" />
+          <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 shrink-0">
+                <Coins className="w-5 h-5" aria-hidden="true" />
               </div>
-              <div>
-                <h3 className="text-base font-bold font-serif-mystic text-gold-gradient">
-                  ศูนย์รวม เครดิต (Credit Center)
+              <div className="min-w-0">
+                <h3 className="text-base font-bold text-amber-100">
+                  เครดิต AI
                 </h3>
-                <p className="text-[11px] text-purple-300">จัดการและเติม เครดิตสำหรับทำนายดวงชะตาด้วย AI</p>
+                <p className="text-[11px] text-slate-400 leading-snug">
+                  ใช้จ่ายเมื่อขอคำทำนายด้วย AI — หมดแล้วยังอ่านแบบมาตรฐานได้
+                </p>
               </div>
             </div>
             <button
+              type="button"
               onClick={onClose}
-              className="p-1 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
+              aria-label="ปิดหน้าต่างเครดิต AI"
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
+          <p className="text-[11px] sm:text-xs text-slate-400 bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2.5 mb-4 leading-relaxed">
+            <strong className="text-amber-200/90 font-semibold">เครดิต AI คืออะไร?</strong>
+            {' '}หน่วยสำหรับเรียก AI วิเคราะห์คำทำนาย ถ้าเครดิตหมดหรือ AI ขัดข้อง
+            ยังเลือก「คำทำนายมาตรฐาน」หรือใส่ API Key ของคุณในตั้งค่า AI ได้
+          </p>
+
           {/* Credit Balance Card */}
-          <div className="p-4 rounded-xl bg-purple-950/70 border border-amber-500/40 flex items-center justify-between shadow-inner mb-5">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300">
-                <Coins className="w-7 h-7 animate-bounce-slow" />
+          <div className="p-4 rounded-xl bg-slate-950/80 border border-amber-500/35 flex items-center justify-between gap-3 shadow-inner mb-5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-400/35 text-amber-300 shrink-0">
+                <Coins className="w-7 h-7" aria-hidden="true" />
               </div>
-              <div>
-                <div className="text-xs text-purple-200 font-medium">ยอด Credit คงเหลือของคุณ</div>
-                <div className="text-3xl font-extrabold text-amber-300 font-serif-mystic">
-                  {loadingCredits ? '...' : (credits !== null ? `${credits} CR` : '10 CR')}
+              <div className="min-w-0">
+                <div className="text-xs text-slate-400 font-medium">เครดิตคงเหลือ</div>
+                <div className="text-3xl font-extrabold text-amber-200 tabular-nums tracking-tight">
+                  {loadingCredits ? '…' : (credits !== null ? credits : '—')}
+                  <span className="text-sm font-semibold text-amber-200/70 ml-1.5">หน่วย</span>
                 </div>
+                {credits !== null && credits <= 0 && (
+                  <p className="text-[11px] text-rose-300/90 mt-0.5">
+                    เครดิตหมด — เติมด้านล่าง หรือใช้คำทำนายมาตรฐาน
+                  </p>
+                )}
               </div>
             </div>
 
             <button
               type="button"
               onClick={handleFastRefill}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-900/80 hover:bg-purple-800 border border-amber-400/40 text-amber-200 transition-all cursor-pointer flex items-center gap-1"
-              title="เติม เครดิต พิเศษ"
+              className="px-3 py-2 min-h-[40px] rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-amber-400/40 text-amber-200 transition-colors cursor-pointer flex items-center gap-1 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              title="เติมเครดิตด่วน +10 หน่วย"
             >
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span>{fastRefillMsg || 'เติมด่วน (+10 CR)'}</span>
+              <Zap className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
+              <span>{fastRefillMsg || 'เติมด่วน +10'}</span>
             </button>
           </div>
 
-          {/* 4 Refill Channels Header */}
-          <div className="text-xs font-bold text-amber-300/90 font-serif-mystic flex items-center gap-1.5 mb-3">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>ช่องทางการเติม Credit ทั้งหมด (4 ช่องทาง):</span>
+          <div className="text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-3">
+            <Sparkles className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
+            <span>วิธีเติมเครดิต</span>
           </div>
 
           {/* 4 Refill Options List */}
@@ -171,7 +186,7 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
                   onClick={handleClaimDailyBonus}
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-300 transition-all cursor-pointer"
                 >
-                  กดรับฟรี (+10 CR)
+                  รับฟรี +10
                 </button>
               </div>
               {dailyMsg && (
@@ -193,8 +208,13 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
                   type="text"
                   value={promoCodeInput}
                   onChange={(e) => setPromoCodeInput(e.target.value)}
-                  placeholder="ระบุโค้ดส่วนลด (ตัวอย่าง: TAROT2026)"
-                  className="flex-1 px-3 py-1.5 rounded-lg bg-black/50 border border-purple-500/40 text-xs text-amber-200 placeholder-purple-400/60 uppercase font-mono focus:outline-none focus:border-amber-400"
+                  id="promo-code-input"
+                  name="promo-code"
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-label="โค้ดส่วนลดเครดิต"
+                  placeholder="เช่น TAROT2026…"
+                  className="flex-1 px-3 py-1.5 rounded-lg bg-black/50 border border-purple-500/40 text-xs text-amber-200 placeholder-slate-500 uppercase font-mono focus:outline-none focus-visible:border-amber-400 focus-visible:ring-1 focus-visible:ring-amber-400/40"
                 />
                 <button
                   type="submit"
@@ -216,8 +236,8 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
               <div className="flex items-center gap-2.5">
                 <CreditCard className="w-5 h-5 text-amber-300" />
                 <div>
-                  <div className="text-xs font-bold text-amber-300">3. แพ็กเกจเติม เครดิต (PromptPay / Card)</div>
-                  <div className="text-[10px] text-purple-300">เลือกแพ็กเกจ 20-310 Credits เติมทันทีผ่านระบบอัตโนมัติ</div>
+                  <div className="text-xs font-bold text-amber-200">3. แพ็กเกจเติมเครดิต</div>
+                  <div className="text-[10px] text-slate-400">PromptPay / บัตร · แพ็ก 20–310 หน่วย</div>
                 </div>
               </div>
 
@@ -234,7 +254,7 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
             <div className="p-3 rounded-xl bg-purple-950/30 border border-purple-500/20 flex items-center justify-between text-[11px] text-purple-300">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-purple-400" />
-                <span>4. เติม เครดิตผ่านระบบ Admin (ระบบจัดการสำหรับเจ้าหน้าที่)</span>
+                <span>4. ระบบ Admin (สำหรับเจ้าหน้าที่)</span>
               </div>
             </div>
 

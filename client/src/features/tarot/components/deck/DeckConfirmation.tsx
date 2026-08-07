@@ -42,8 +42,8 @@ export const DeckConfirmation: React.FC<DeckConfirmationProps> = ({
               : 'text-purple-300 hover:text-white hover:bg-purple-900/40'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>วิเคราะห์ด้วย AI</span>
+          <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+          <span>AI (ใช้เครดิต)</span>
         </button>
 
         <button
@@ -55,8 +55,8 @@ export const DeckConfirmation: React.FC<DeckConfirmationProps> = ({
               : 'text-purple-300 hover:text-white hover:bg-purple-900/40'
           }`}
         >
-          <BookOpen className="w-3.5 h-3.5" />
-          <span>คำทำนายมาตรฐาน</span>
+          <BookOpen className="w-3.5 h-3.5" aria-hidden="true" />
+          <span>มาตรฐาน (ฟรี)</span>
         </button>
       </div>
 

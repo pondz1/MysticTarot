@@ -137,58 +137,79 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
-          {/* Credits Balance Pill -> Opens Credit Tab */}
+          {/* Credits — plain language for beginners */}
           <button
             type="button"
             onClick={() => {
               if (onOpenCreditCenter) onOpenCreditCenter();
               else onOpenSettings('credit');
             }}
-            className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 hover:from-amber-500/25 hover:to-amber-500/15 border border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.1)] hover:shadow-[0_0_16px_rgba(245,158,11,0.25)] transition-all cursor-pointer min-h-[36px]"
-            title="เครดิตใช้งาน AI คงเหลือ (คลิกเพื่อดูรายละเอียดระบบ Credit)"
+            className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-200 transition-colors cursor-pointer min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            aria-label={
+              credits !== null
+                ? `เครดิต AI คงเหลือ ${credits} หน่วย เปิดศูนย์เครดิต`
+                : 'เปิดศูนย์เครดิต AI'
+            }
+            title="เครดิตใช้จ่ายการทำนายด้วย AI — คลิกเพื่อเติมหรือดูรายละเอียด"
           >
-            <Coins className="w-4 h-4 text-amber-400 shrink-0 group-hover:rotate-12 transition-transform" />
-            <span className="whitespace-nowrap font-medium text-amber-200">
-              {credits !== null ? `${credits} CR` : 'Credit'}
+            <Coins className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
+            <span className="whitespace-nowrap font-medium">
+              {credits !== null ? (
+                <>
+                  <span className="hidden sm:inline">เครดิต AI </span>
+                  <span className="tabular-nums">{credits}</span>
+                </>
+              ) : (
+                <span>เครดิต AI</span>
+              )}
             </span>
           </button>
 
-          <div className="h-4 w-px bg-slate-800/80 mx-0.5 hidden sm:block" />
+          <div className="h-4 w-px bg-slate-800/80 mx-0.5 hidden sm:block" aria-hidden="true" />
 
-          {/* History Button */}
           <button
             type="button"
             onClick={onOpenHistory}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 bg-slate-900/90 border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-700 transition-all cursor-pointer min-h-[36px]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 bg-slate-900/90 border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-700 transition-colors cursor-pointer min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            aria-label="ประวัติการทำนาย"
             title="ประวัติการทำนาย"
           >
-            <History className="w-4 h-4 text-amber-400 shrink-0" />
+            <History className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
             <span className="hidden sm:inline whitespace-nowrap">ประวัติ</span>
           </button>
 
-          {/* AI Settings Button -> Opens Custom API Key Tab */}
           <button
             type="button"
             onClick={() => onOpenSettings('custom')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer min-h-[36px] ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
               hasCustomKey
-                ? 'bg-purple-950/70 text-purple-200 border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.2)] font-semibold hover:bg-purple-900/80'
+                ? 'bg-purple-950/70 text-purple-200 border border-purple-500/50 font-semibold hover:bg-purple-900/80'
                 : 'text-slate-300 bg-slate-900/90 border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-700'
             }`}
-            title="ตั้งค่า AI ( Custom API Key / โมเดล )"
+            aria-label={
+              hasCustomKey
+                ? 'ตั้งค่า AI — กำลังใช้ API Key ของคุณ'
+                : 'ตั้งค่า AI หรือใส่ API Key ของคุณ'
+            }
+            title="ตั้งค่าโมเดล AI หรือใช้ API Key ของคุณ (ไม่หักเครดิต)"
           >
-            <Settings className="w-4 h-4 text-amber-400 shrink-0" />
+            <Settings className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
             <span className="hidden sm:inline whitespace-nowrap">ตั้งค่า AI</span>
             {hasCustomKey && (
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse ml-0.5" title="ใช้งาน Custom API Key" />
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-purple-400 ml-0.5"
+                title="ใช้งาน API Key ของคุณ"
+                aria-hidden="true"
+              />
             )}
           </button>
 
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="เปิดเมนูนำทาง"
-            className="md:hidden p-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800 focus:outline-none"
+            aria-label={isMobileMenuOpen ? 'ปิดเมนูนำทาง' : 'เปิดเมนูนำทาง'}
+            aria-expanded={isMobileMenuOpen}
+            className="md:hidden p-2 min-h-[40px] min-w-[40px] rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
