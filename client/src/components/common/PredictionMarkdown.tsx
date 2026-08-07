@@ -89,7 +89,14 @@ function sectionTone(text: string): SectionTone {
       bar: 'bg-rose-400',
     };
   }
-  if (t.includes('คำแนะนำ') || t.includes('สรุปคำตอบ') || t.includes('สรุป')) {
+  if (
+    t.includes('คำแนะนำ') ||
+    t.includes('ข้อคิด') ||
+    t.includes('ชี้ทาง') ||
+    t.includes('สรุปคำตอบ') ||
+    t.includes('บทสรุป') ||
+    t.includes('สรุป')
+  ) {
     return {
       icon: <Lightbulb className="w-4 h-4" aria-hidden="true" />,
       text: 'text-violet-200',
@@ -99,7 +106,12 @@ function sectionTone(text: string): SectionTone {
       bar: 'bg-violet-400',
     };
   }
-  if (t.includes('ไพ่') || t.includes('ตำแหน่ง') || t.includes('สเปรด')) {
+  if (
+    t.includes('วิเคราะห์เจาะลึก') ||
+    t.includes('ไพ่ตามตำแหน่ง') ||
+    t.includes('ตำแหน่งสเปรด') ||
+    t.includes('สเปรด')
+  ) {
     return {
       icon: <Layers className="w-4 h-4" aria-hidden="true" />,
       text: 'text-purple-200',
@@ -109,7 +121,13 @@ function sectionTone(text: string): SectionTone {
       bar: 'bg-purple-400',
     };
   }
-  if (t.includes('ภาพรวม') || t.includes('พีค') || t.includes('ฮวงจุ้ย') || t.includes('พลังงาน')) {
+  if (
+    t.includes('ภาพรวม') ||
+    t.includes('พลังงานไพ่') ||
+    t.includes('พีค') ||
+    t.includes('ฮวงจุ้ย') ||
+    t.includes('พลังงาน')
+  ) {
     return {
       icon: <Compass className="w-4 h-4" aria-hidden="true" />,
       text: 'text-cyan-200',
