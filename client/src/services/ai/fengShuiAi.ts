@@ -3,6 +3,7 @@ import { requestAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
 import {
   MARKDOWN_OUTPUT_RULES,
   buildStructureBlock,
+  buildMasterDirectives,
   buildFallbackMarkdown,
 } from './markdownFormat';
 
@@ -22,7 +23,7 @@ export async function analyzeFengShui(
   const structure = buildStructureBlock([
     {
       heading: 'ภาพรวมฮวงจุ้ยและสีมงคล',
-      guide: `สรุปพลังงานวัน${dayNameTh} สำหรับพื้นที่ ${selectedSpace} 2–4 ประโยค`,
+      guide: `สรุปพลังงานวัน${dayNameTh} สำหรับพื้นที่ ${selectedSpace} อย่างมีมิติ อย่างน้อย 1 ย่อหน้า`,
     },
     {
       heading: 'การงานและพื้นที่ทำงาน',
@@ -41,20 +42,27 @@ export async function analyzeFengShui(
       guide: `สี/ทิศ/พฤติกรรมที่ควรเลี่ยง อิงสีอัปมงคล: ${unluckyForbidden}`,
     },
     {
-      heading: 'คำแนะนำ',
-      guide: 'action ปรับพื้นที่ได้ทันที 2–4 ข้อแบบ bullet',
+      heading: 'คำแนะนำและข้อคิดชี้ทางจากจักรวาล',
+      guide: 'action ปรับพื้นที่ได้ทันที 3–5 ข้อแบบ bullet',
     },
   ]);
 
-  const systemPrompt = `คุณคือผู้เชี่ยวชาญฮวงจุ้ยและสีมงคล ให้คำแนะนำปฏิบัติได้จริง ชัดเจน และสุภาพ
+  const directives = buildMasterDirectives([
+    `**วิเคราะห์ฮวงจุ้ยและสีมงคล (Feng Shui Synthesis)**:
+   - อิงวัน **${dayNameTh}** พื้นที่ **${selectedSpace}** และชุดสีที่ระบุเท่านั้น ห้ามแต่งข้อมูลวันเอง
+   - ร้อยเรียงงาน เงิน รัก และการจัดพื้นที่ให้เป็นคำแนะนำเดียวที่ทำได้จริง`,
+    `**สติและความรับผิดชอบ (Wise Counsel)**:
+   - เน้นสิ่งที่ปรับได้ทันทีในบ้านหรือที่ทำงาน
+   - ไม่ขู่เกินเหตุ ไม่รับประกันโชคลาภแน่นอน`,
+  ]);
 
-กฎ:
-1. ภาษาไทยสละสลวย อ่านง่าย ตรงประเด็น
-2. อิงสีมงคล/อัปมงคลและพื้นที่ที่ระบุ ห้ามแต่งข้อมูลวันเอง
-3. เน้นสิ่งที่ทำได้ทันทีในบ้านหรือที่ทำงาน
+  const systemPrompt = `คุณคือ "หมอดูฮวงจุ้ยและสีมงคล AI ระดับปรมาจารย์ (Celestial Master Feng Shui Prophet)" ผู้จัดพลังงานพื้นที่ อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
+
+${directives}
 
 ${MARKDOWN_OUTPUT_RULES}
 
+📌 **โครงสร้างผลทำนายมาตรฐาน (Feng Shui)**:
 ${structure}`;
 
   const userPrompt = `วิเคราะห์ฮวงจุ้ยพื้นที่ "${selectedSpace}" ประจำวัน "${dayNameTh}"
@@ -62,7 +70,7 @@ ${structure}`;
 สีมงคลเงิน: ${luckyWealth}
 สีมงคลรัก: ${luckyLove}
 สีควรหลีก: ${unluckyForbidden}
-ตอบตามโครงสร้าง markdown ที่กำหนด`;
+ตอบตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`;
 
   try {
     const content = await requestAiCompletion(
@@ -113,7 +121,7 @@ export function generateFallbackFengShui(
         body: `ควรเลี่ยงสี **${unluckyForbidden}** ในวันนี้ และอย่ากองของรกบริเวณทางเข้าหรือมุมทำงาน`,
       },
       {
-        heading: 'คำแนะนำ',
+        heading: 'คำแนะนำและข้อคิดชี้ทางจากจักรวาล',
         body: '- เปิดหน้าต่างรับแสงยามเช้า\n- จัดโต๊ะทำงานให้เป็นระเบียบ\n- ใช้สีมงคลในเครื่องแต่งกายหรือของตกแต่งเล็กน้อย',
       },
     ],

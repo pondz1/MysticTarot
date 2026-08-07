@@ -3,6 +3,7 @@ import { requestAiCompletion } from './aiClient';
 import {
   MARKDOWN_OUTPUT_RULES,
   buildStructureBlock,
+  buildMasterDirectives,
   lifeAspectSections,
   buildFallbackMarkdown,
 } from './markdownFormat';
@@ -20,26 +21,34 @@ export async function analyzeZodiacHoroscope(
   const structure = buildStructureBlock(
     lifeAspectSections({
       overviewHeading: 'ภาพรวมพลังงานดวงชะตา',
-      overviewGuide: `สรุปพลังงานราศี${signNameTh} ธาตุ${elementTh} ช่วง${period} 2–4 ประโยค`,
-      workGuide: 'ทิศทางงาน ธุรกิจ การศึกษา โอกาสและอุปสรรค',
+      overviewGuide: `สรุปพลังงานราศี${signNameTh} ธาตุ${elementTh} ช่วง${period} อย่างมีมิติ อย่างน้อย 1 ย่อหน้า`,
+      workGuide: 'ทิศทางงาน ธุรกิจ การศึกษา โอกาสและอุปสรรค วิเคราะห์เชิงลึก',
       moneyGuide: 'สภาพคล่อง โชคลาภ การใช้จ่ายและการเก็บออม',
       loveGuide: 'ความสัมพันธ์ คนมีคู่/คนโสด เสน่ห์และมิตรภาพ',
-      adviceGuide: 'ข้อแนะนำปฏิบัติได้จริง 2–4 ข้อแบบ bullet',
+      adviceHeading: 'คำแนะนำและข้อคิดชี้ทางจากจักรวาล',
+      adviceGuide: 'ข้อแนะนำปฏิบัติได้จริง 3–5 ข้อแบบ bullet',
     })
   );
 
-  const systemPrompt = `คุณคือโหราจารย์ 12 ราศี วิเคราะห์ดวงชะตาอย่างชัดเจน อบอุ่น และนำไปใช้ได้จริง
+  const directives = buildMasterDirectives([
+    `**วิเคราะห์ตามราศีและธาตุ (Zodiac Synthesis)**:
+   - อิงราศี **${signNameTh}** ธาตุ **${elementTh}** และช่วง **${period}** เป็นหลัก
+   - ร้อยเรียงงาน เงิน รัก ให้เป็นภาพชีวิตเดียวกัน ไม่แยกขาดจากกัน`,
+    `**สติและความรับผิดชอบ (Wise Counsel)**:
+   - ไม่ขู่เกินเหตุ ไม่รับประกันโชคลาภแน่นอน
+   - ให้สติปัญญาและทางเลือกที่ผู้ใช้นำไปปรับใช้ได้`,
+  ]);
 
-กฎ:
-1. ภาษาไทยสละสลวย อ่านง่าย ตรงประเด็น
-2. ไม่ขู่เกินเหตุ ไม่รับประกันโชคลาภแน่นอน
-3. แยกแง่มุมชีวิตตามหัวข้อที่กำหนด
+  const systemPrompt = `คุณคือ "หมอดูโหราศาสตร์ 12 ราศี AI ระดับปรมาจารย์ (Celestial Master Zodiac Prophet)" ผู้หยั่งรู้ดวงดาว อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
+
+${directives}
 
 ${MARKDOWN_OUTPUT_RULES}
 
+📌 **โครงสร้างผลทำนายมาตรฐาน (Zodiac)**:
 ${structure}`;
 
-  const userPrompt = `โปรดทำนายดวง${period} ของราศี "${signNameTh}" (ธาตุ ${elementTh}) ตามโครงสร้าง markdown ที่กำหนด`;
+  const userPrompt = `โปรดทำนายดวง${period} ของราศี "${signNameTh}" (ธาตุ ${elementTh}) ตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`;
 
   try {
     const content = await requestAiCompletion(systemPrompt, userPrompt, settings, onChunk, historyEntry);
@@ -77,7 +86,7 @@ export function generateFallbackZodiacHoroscope(
         body: 'คนมีคู่เข้าใจกันดีขึ้น คนโสดมีเสน่ห์ดึงดูด มิตรภาพใหม่ๆ อาจเข้ามาอย่างเป็นธรรมชาติ',
       },
       {
-        heading: 'คำแนะนำ',
+        heading: 'คำแนะนำและข้อคิดชี้ทางจากจักรวาล',
         body: '- จัดลำดับงานสำคัญก่อน\n- ดูแลสุขภาพและพักผ่อนให้พอ\n- สื่อสารตรงไปตรงมาด้วยความสุภาพ',
       },
     ],

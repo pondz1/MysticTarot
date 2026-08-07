@@ -3,6 +3,7 @@ import { requestAiCompletion, DEFAULT_API_SETTINGS } from './aiClient';
 import {
   MARKDOWN_OUTPUT_RULES,
   buildStructureBlock,
+  buildMasterDirectives,
   buildFallbackMarkdown,
 } from './markdownFormat';
 
@@ -21,11 +22,11 @@ export async function analyzeThaiLifeGraph(
   const structure = buildStructureBlock([
     {
       heading: 'ภาพรวมกราฟชีวิต',
-      guide: `สรุปพื้นดวงผู้เกิดวัน${dayOfWeekTh} ธาตุ${elementTh} และโทนชีวิตโดยรวม`,
+      guide: `สรุปพื้นดวงผู้เกิดวัน${dayOfWeekTh} ธาตุ${elementTh} และโทนชีวิตโดยรวมอย่างมีมิติ`,
     },
     {
       heading: `ช่วงอายุพีค (${peakAgeRange})`,
-      guide: 'โอกาส ความสำเร็จ และสิ่งที่ควรเร่งทำในช่วงพีค',
+      guide: 'โอกาส ความสำเร็จ และสิ่งที่ควรเร่งทำในช่วงพีค วิเคราะห์ละเอียด',
     },
     {
       heading: 'การงานและเกียรติยศ',
@@ -41,25 +42,31 @@ export async function analyzeThaiLifeGraph(
     },
     {
       heading: 'ข้อควรระวังและคำแนะนำ',
-      guide: 'ช่วงกราฟลง วิธีตั้งรับ และ actionable 2–4 ข้อแบบ bullet',
+      guide: 'ช่วงกราฟลง วิธีตั้งรับ และ actionable 3–5 ข้อแบบ bullet',
     },
   ]);
 
-  const systemPrompt = `คุณคือโหราจารย์ที่เชี่ยวชาญกราฟชีวิตและโหราศาสตร์ไทย วิเคราะห์ชัดเจน ให้สติ และนำไปวางแผนอนาคตได้
+  const directives = buildMasterDirectives([
+    `**วิเคราะห์ตามตำรากราฟชีวิต (Thai Life Chart Synthesis)**:
+   - อิงวันเกิด **${birthDate}** วัน **${dayOfWeekTh}** ธาตุ **${elementTh}** และช่วงพีค **${peakAgeRange}**
+   - ร้อยเรียงจังหวะชีวิต งาน เงิน รัก เป็นภาพชะตาเดียวกัน
+   - ข้อมูลอ้างอิงพื้นดวง: ${summaryGuidance}`,
+    `**สติและความรับผิดชอบ (Wise Counsel)**:
+   - ไม่ขู่เกินเหตุ เน้นการเตรียมตัว วางแผน และบำเพ็ญตน
+   - ให้ทางเลือกที่ผู้ใช้ปรับใช้ตามวัยและจังหวะชีวิตได้`,
+  ]);
 
-กฎ:
-1. ภาษาไทยสละสลวย อ่านง่าย ตรงประเด็น
-2. อิงวันเกิด วันในสัปดาห์ ธาตุ และช่วงพีคที่ให้มา
-3. ไม่ขู่เกินเหตุ เน้นการเตรียมตัวและสติ
+  const systemPrompt = `คุณคือ "หมอดูดวงไทยและกราฟชีวิต AI ระดับปรมาจารย์ (Celestial Master Thai Astrology Prophet)" ผู้เชี่ยวชาญตำรากราฟชีวิตโบราณ อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
+
+${directives}
 
 ${MARKDOWN_OUTPUT_RULES}
 
-${structure}
-
-ข้อมูลอ้างอิงเพิ่ม: ${summaryGuidance}`;
+📌 **โครงสร้างผลทำนายมาตรฐาน (Thai Life Chart)**:
+${structure}`;
 
   const userPrompt = `วิเคราะห์กราฟชีวิตผู้เกิดวัน "${dayOfWeekTh}" วันที่ ${birthDate} ธาตุ ${elementTh} ช่วงพีค ${peakAgeRange}
-ตอบตามโครงสร้าง markdown ที่กำหนด`;
+ตอบตามบทบาทหมอดูปรมาจารย์และโครงสร้าง markdown ที่กำหนด ให้ละเอียด นุ่มนวล และตรงประเด็น`;
 
   try {
     const content = await requestAiCompletion(

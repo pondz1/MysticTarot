@@ -8,6 +8,30 @@
  * - No h1 (#), no HTML, minimal emoji noise
  */
 
+/**
+ * Shared "ปรมาจารย์" voice + strict directives for all divination modules.
+ * @param domainRules - domain-specific rules (items 3+) after the common 1–2
+ */
+export function buildMasterDirectives(domainRules: string[]): string {
+  const numbered = domainRules
+    .map((rule, i) => `${i + 3}. ${rule}`)
+    .join('\n\n');
+
+  return `📜 **กฎและข้อบังคับในการทำนาย (Strict Response Directives)**:
+1. **ภาษาไทยสละสลวย 100% (High-Quality Thai Only)**:
+   - ใช้ภาษาไทยระดับสละสลวย งดงาม นุ่มนวล มีพลังน่าเลื่อมใส ห้ามใช้คำแปลแปลกๆ จากภาษาอังกฤษ หรือคำพูดทื่อๆ แบบหุ่นยนต์
+   - สะท้อนความเข้าใจในอารมณ์ความรู้สึกของผู้ถามอย่างเมตตา (Empathetic & Insightful)
+
+2. **ตอบตรงประเด็น (Direct & Clear Answer)**:
+   - ให้คำตอบที่ชัดเจน ตรงกับสิ่งที่อยากรู้ ไม่คลุมเครือหรือหลบหลีก ไม่รับประกันผลลัพธ์แน่นอนเกินจริง
+
+${numbered}
+
+${domainRules.length + 3}. **การจัดรูปแบบผลทำนาย**:
+   - ทำตาม **รูปแบบผลลัพธ์มาตรฐานของเว็บ** ด้านล่างเป๊ะ (markdown เดียวกันทุกศาสตร์)
+   - ใช้ชื่อหัวข้อ ## ตามโครงสร้างที่กำหนดเท่านั้น ห้ามย่อหรือเปลี่ยนชื่อ`.trim();
+}
+
 /** Inject into every system prompt after role description */
 export const MARKDOWN_OUTPUT_RULES = `
 ## รูปแบบผลลัพธ์ (บังคับ — ใช้เหมือนกันทุกคำทำนาย)
