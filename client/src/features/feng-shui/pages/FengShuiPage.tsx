@@ -6,13 +6,10 @@ import { DAILY_LUCKY_COLORS_TABLE, DAILY_AUSPICIOUS_DIRECTIONS_MAP, getDynamicFe
 import {
   Compass,
   Sparkles,
-  Copy,
-  Check,
   Briefcase,
   Coins,
   Heart,
   Stethoscope,
-  Feather,
   Layout,
 } from 'lucide-react';
 import type { ApiSettings, SavedReading } from '../../../types';
@@ -29,6 +26,12 @@ import { FengShuiTips } from '../components/FengShuiTips';
 import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
 import { ModulePageHeader } from '../../../components/common/ModulePageHeader';
 import { AiModeToggle } from '../../../components/common/AiModeToggle';
+import {
+  PredictionLoading,
+  PredictionPanel,
+  PrimaryAnalyzeButton,
+  analyzeButtonLabel,
+} from '../../../components/common/PredictionPanel';
 
 interface FengShuiPageProps {
   apiSettings: ApiSettings;
@@ -270,21 +273,15 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
             />
           </div>
 
-          <button
-            type="button"
-            disabled={isLoading}
+          <PrimaryAnalyzeButton
+            fullWidth
+            loading={isLoading}
             onClick={() => handleAnalyzeFengShui(useAi)}
-            className={`w-full h-[46px] px-6 rounded-xl sm:rounded-2xl ${theme.primaryBtn} font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            <Sparkles className="w-4 h-4 animate-pulse" />
-            <span>{useAi ? 'ขอคำแนะนำฮวงจุ้ยด้วย AI' : 'ดูคำทำนายออฟไลน์'}</span>
-          </button>
+            label={analyzeButtonLabel(useAi, 'ฮวงจุ้ย')}
+          />
         </div>
       </div>
 
-      {/* Daily Color Grid Card */}
       <FengShuiColorGrid
         currentDayInfo={currentDayInfo}
         cardBgStyle={theme.cardBg}
@@ -292,7 +289,6 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
         iconColorClass={theme.iconColor}
       />
 
-      {/* AI Error Fallback Banner */}
       {aiError && (
         <AiErrorFallbackCard
           errorMessage={aiError}
@@ -302,128 +298,71 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
         />
       )}
 
-      {/* Initial AI Loading State before stream text arrives */}
       {isLoading && !predictionText && (
-        <div className="flex flex-col items-center justify-center p-10 rounded-2xl bg-slate-950/90 border border-emerald-500/40 shadow-xl text-center space-y-4 animate-pulse">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-emerald-600 via-teal-500 to-amber-600 animate-spin blur-md" />
-            <div className="absolute inset-1.5 rounded-full bg-slate-950 flex items-center justify-center border border-emerald-300">
-              <Sparkles className="w-7 h-7 text-emerald-300 animate-bounce" />
-            </div>
-          </div>
-          <h4 className="text-base sm:text-lg font-bold text-emerald-300">
-            ซินแส AI กำลังวิเคราะห์ฮวงจุ้ยและทิศรับทรัพย์...
-          </h4>
-          <p className="text-xs text-emerald-200/70 max-w-sm">
-            กำลังคำนวณสมดุลเบญจธาตุและสีมงคลประจำวัน โปรดรอสักครู่
-          </p>
-        </div>
+        <PredictionLoading message="กำลังวิเคราะห์ฮวงจุ้ย…" />
       )}
 
-      {/* Prediction Markdown Output Display */}
       {predictionText && (
-        <div ref={resultCardRef} className="relative rounded-2xl p-5 sm:p-7 bg-slate-900/95 border border-emerald-500/40 shadow-2xl shadow-emerald-900/20 overflow-hidden space-y-4 animate-fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-500/30 pb-4">
-            <div className="flex items-center gap-2 min-w-0">
-              <Feather className={`w-5 h-5 ${theme.iconColor} shrink-0`} />
-              <h3 className="text-base sm:text-lg font-bold text-emerald-200 truncate">
-                คำแนะนำฮวงจุ้ย & สีมงคล (ประจำ{currentDayInfo.dayNameTh})
-              </h3>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleCopyPrediction}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${theme.secondaryBtn} transition-all cursor-pointer whitespace-nowrap shrink-0 self-end sm:self-auto`}
-              title="คัดลอกคำทำนาย"
-            >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className={`w-3.5 h-3.5 ${theme.iconColor} shrink-0`} />}
-              <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอกคำแนะนำ'}</span>
-            </button>
-          </div>
-
-          {/* Formatted Markdown Content via ReactMarkdown */}
-          <div className="prose prose-invert max-w-none font-prompt text-slate-100 text-sm sm:text-base leading-relaxed">
+        <div ref={resultCardRef}>
+          <PredictionPanel
+            title={`คำแนะนำฮวงจุ้ย · ${currentDayInfo.dayNameTh}`}
+            isStreaming={isLoading}
+            onCopy={handleCopyPrediction}
+            copied={copied}
+          >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 h1: ({ children }) => {
-                  const textStr = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : String(children || '');
+                  const textStr =
+                    typeof children === 'string'
+                      ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim()
+                      : String(children || '');
                   let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
-                  let colorClass = 'text-emerald-300 border-emerald-500/30';
                   if (textStr.includes('งาน') || textStr.includes('เรียน')) {
                     iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
-                    colorClass = 'text-blue-300 border-blue-500/30';
                   } else if (textStr.includes('เงิน') || textStr.includes('โชค')) {
                     iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
-                    colorClass = 'text-amber-300 border-amber-500/30';
                   } else if (textStr.includes('รัก')) {
                     iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
-                    colorClass = 'text-pink-300 border-pink-500/30';
                   } else if (textStr.includes('ระวัง') || textStr.includes('ต้องห้าม')) {
                     iconComp = <Stethoscope className="w-4 h-4 text-rose-400 shrink-0" />;
-                    colorClass = 'text-rose-300 border-rose-500/30';
                   }
                   return (
-                    <h2 className={`text-base sm:text-lg font-bold ${colorClass} mt-6 mb-3 pb-1.5 border-b flex items-center gap-2 tracking-wide`}>
+                    <h2 className="text-base font-bold text-slate-100 border-b border-slate-800 mt-5 mb-2 pb-1.5 flex items-center gap-2">
                       {iconComp}
                       <span>{textStr}</span>
                     </h2>
                   );
                 },
-                h2: ({ children }) => {
-                  const textStr = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : String(children || '');
-                  let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
-                  let colorClass = 'text-emerald-300 border-emerald-500/30';
-                  if (textStr.includes('งาน') || textStr.includes('เรียน')) {
-                    iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
-                    colorClass = 'text-blue-300 border-blue-500/30';
-                  } else if (textStr.includes('เงิน') || textStr.includes('โชค')) {
-                    iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
-                    colorClass = 'text-amber-300 border-amber-500/30';
-                  } else if (textStr.includes('รัก')) {
-                    iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
-                    colorClass = 'text-pink-300 border-pink-500/30';
-                  } else if (textStr.includes('ระวัง') || textStr.includes('ต้องห้าม')) {
-                    iconComp = <Stethoscope className="w-4 h-4 text-rose-400 shrink-0" />;
-                    colorClass = 'text-rose-300 border-rose-500/30';
-                  }
-                  return (
-                    <h2 className={`text-base sm:text-lg font-bold ${colorClass} mt-6 mb-3 pb-1.5 border-b flex items-center gap-2 tracking-wide`}>
-                      {iconComp}
-                      <span>{textStr}</span>
-                    </h2>
-                  );
-                },
-                h3: ({ children }) => (
-                  <h3 className="text-sm sm:text-base font-bold text-teal-300 mt-4 mb-2 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>{children}</span>
-                  </h3>
+                h2: ({ children }) => (
+                  <h2 className="text-base font-bold text-slate-100 border-b border-slate-800 mt-5 mb-2 pb-1.5">
+                    {children}
+                  </h2>
                 ),
-                p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-100 font-normal">{children}</p>,
-                strong: ({ children }) => <strong className="font-bold text-amber-300">{children}</strong>,
+                h3: ({ children }) => (
+                  <h3 className="text-sm font-semibold text-slate-200 mt-3 mb-1.5">{children}</h3>
+                ),
+                p: ({ children }) => (
+                  <p className="mb-3 leading-relaxed text-slate-300">{children}</p>
+                ),
+                strong: ({ children }) => (
+                  <strong className="font-semibold text-amber-200">{children}</strong>
+                ),
                 blockquote: ({ children }) => (
-                  <blockquote className="border-l-4 border-amber-400 pl-4 py-3 my-4 text-amber-200 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-amber-500/15 rounded-r-xl border border-emerald-500/30 shadow-md">
+                  <blockquote className="border-l-2 border-amber-500/50 pl-3 py-2 my-3 text-slate-300 bg-slate-900/50 rounded-r-lg">
                     {children}
                   </blockquote>
                 ),
-                ul: ({ children }) => <ul className="list-disc pl-5 my-3 space-y-1.5 text-slate-100">{children}</ul>,
+                ul: ({ children }) => (
+                  <ul className="list-disc pl-5 my-2 space-y-1 text-slate-300">{children}</ul>
+                ),
                 li: ({ children }) => <li className="pl-1">{children}</li>,
               }}
             >
               {predictionText}
             </ReactMarkdown>
-
-            {/* Active Streaming Badge */}
-            {isLoading && (
-              <div className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-medium animate-pulse">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <Sparkles className="w-3.5 h-3.5 text-emerald-300 animate-spin" />
-                <span>ซินแส AI กำลังคำนวณทิศและฮวงจุ้ยมงคลเพิ่มเติม...</span>
-              </div>
-            )}
-          </div>
+          </PredictionPanel>
         </div>
       )}
 

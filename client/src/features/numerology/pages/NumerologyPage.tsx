@@ -7,15 +7,11 @@ import type { PhoneAnalysisResult } from '../types/numerology';
 import {
   Sparkles,
   Hash,
-  ShieldCheck,
   BookOpen,
-  Copy,
-  Check,
   Phone,
   Car,
   Home as HomeIcon,
   CreditCard,
-  Zap,
   Coins,
   Heart,
   Briefcase,
@@ -34,6 +30,12 @@ import { NumerologyPairGrid } from '../components/NumerologyPairGrid';
 import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
 import { ModulePageHeader } from '../../../components/common/ModulePageHeader';
 import { AiModeToggle } from '../../../components/common/AiModeToggle';
+import {
+  PredictionLoading,
+  PredictionPanel,
+  PrimaryAnalyzeButton,
+  analyzeButtonLabel,
+} from '../../../components/common/PredictionPanel';
 
 interface NumerologyPageProps {
   apiSettings?: ApiSettings;
@@ -317,23 +319,13 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
                 className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-base sm:text-lg tracking-wider transition-colors"
               />
             </div>
-            <button
+            <PrimaryAnalyzeButton
               type="submit"
-              disabled={isAnalyzing || !phoneNumber.trim()}
-              className={`px-6 py-3 rounded-xl ${theme.primaryBtn} font-bold transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shrink-0`}
-            >
-              {isAnalyzing ? (
-                <>
-                  <Sparkles className="w-5 h-5 animate-spin" />
-                  <span>กำลังวิเคราะห์...</span>
-                </>
-              ) : (
-                <>
-                  <Zap className="w-5 h-5" />
-                  <span>วิเคราะห์ตัวเลขมงคล</span>
-                </>
-              )}
-            </button>
+              loading={isAnalyzing}
+              disabled={!phoneNumber.trim()}
+              label={analyzeButtonLabel(useAi, 'ตัวเลข')}
+              className="shrink-0"
+            />
           </div>
         </form>
       </div>
@@ -342,7 +334,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
       {result && (
         <div
           ref={resultCardRef}
-          className={`rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-8 animate-scale-up ${theme.cardBg}`}
+          className="rounded-2xl p-5 sm:p-6 border border-slate-800 bg-slate-900/40 space-y-6"
         >
           {/* Top Grade Banner */}
           <NumerologyHeaderBanner
@@ -375,123 +367,68 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
             />
           )}
 
-          {/* Initial AI Loading State before stream text arrives */}
           {isAnalyzing && !predictionText && (
-            <div className="flex flex-col items-center justify-center p-10 rounded-2xl bg-slate-950/90 border border-cyan-500/40 shadow-xl text-center space-y-4 animate-pulse">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-600 via-teal-500 to-indigo-600 animate-spin blur-md" />
-                <div className="absolute inset-1.5 rounded-full bg-slate-950 flex items-center justify-center border border-cyan-300">
-                  <Sparkles className="w-7 h-7 text-cyan-300 animate-bounce" />
-                </div>
-              </div>
-              <h4 className="text-base sm:text-lg font-bold text-cyan-300">
-                นักถอดรหัสตัวเลข AI กำลังวิเคราะห์อิทธิพลตัวเลข...
-              </h4>
-              <p className="text-xs text-cyan-200/70 max-w-sm">
-                กำลังเชื่อมโยงผลรวมและคู่เลขมงคลกับพลังงานชีวิต โปรดรอสักครู่
-              </p>
-            </div>
+            <PredictionLoading message="กำลังวิเคราะห์ตัวเลข…" />
           )}
 
-          {/* Markdown AI / Classic Prediction Section */}
           {predictionText && (
-            <div className="relative rounded-2xl p-6 sm:p-8 bg-slate-950/95 border border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.15)] overflow-hidden space-y-5 animate-fade-in backdrop-blur-xl ring-1 ring-cyan-500/20">
-              {/* Header Action Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-cyan-500/30 pb-4">
-                <div className="flex items-center gap-2 min-w-0">
-                  <ShieldCheck className={`w-5 h-5 ${theme.iconColor} shrink-0`} />
-                  <h3 className="text-base sm:text-lg font-bold font-serif text-white truncate">
-                    บทวิเคราะห์ศาสตร์แห่งตัวเลขประจำชุด <span className="text-cyan-300 font-mono font-extrabold">{result.cleanDigits}</span>
-                  </h3>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleCopyPrediction}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${theme.secondaryBtn} transition-all cursor-pointer whitespace-nowrap shrink-0 self-end sm:self-auto`}
-                  title="คัดลอกคำทำนาย"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className={`w-3.5 h-3.5 ${theme.iconColor} shrink-0`} />}
-                  <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอกคำทำนาย'}</span>
-                </button>
-              </div>
-
-              {/* Formatted Markdown Content via ReactMarkdown */}
-              <div className="prose prose-invert max-w-none font-prompt text-slate-100 text-sm sm:text-base leading-relaxed">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    h1: ({ children }) => {
-                      const textStr = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : String(children || '');
-                      let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
-                      let colorClass = 'text-cyan-300 border-cyan-500/30';
-                      if (textStr.includes('งาน')) {
-                        iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
-                        colorClass = 'text-blue-300 border-blue-500/30';
-                      } else if (textStr.includes('เงิน')) {
-                        iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
-                        colorClass = 'text-amber-300 border-amber-500/30';
-                      } else if (textStr.includes('รัก')) {
-                        iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
-                        colorClass = 'text-pink-300 border-pink-500/30';
-                      }
-                      return (
-                        <h2 className={`text-base sm:text-lg font-bold ${colorClass} mt-6 mb-3 pb-1.5 border-b flex items-center gap-2 tracking-wide`}>
-                          {iconComp}
-                          <span>{textStr}</span>
-                        </h2>
-                      );
-                    },
-                    h2: ({ children }) => {
-                      const textStr = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : String(children || '');
-                      let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
-                      let colorClass = 'text-cyan-300 border-cyan-500/30';
-                      if (textStr.includes('งาน')) {
-                        iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
-                        colorClass = 'text-blue-300 border-blue-500/30';
-                      } else if (textStr.includes('เงิน')) {
-                        iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
-                        colorClass = 'text-amber-300 border-amber-500/30';
-                      } else if (textStr.includes('รัก')) {
-                        iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
-                        colorClass = 'text-pink-300 border-pink-500/30';
-                      }
-                      return (
-                        <h2 className={`text-base sm:text-lg font-bold ${colorClass} mt-6 mb-3 pb-1.5 border-b flex items-center gap-2 tracking-wide`}>
-                          {iconComp}
-                          <span>{textStr}</span>
-                        </h2>
-                      );
-                    },
-                    h3: ({ children }) => (
-                      <h3 className="text-sm sm:text-base font-semibold text-cyan-200 mt-4 mb-2">
-                        {children}
-                      </h3>
-                    ),
-                    p: ({ children }) => <p className="mb-4 leading-relaxed text-slate-100 font-normal text-sm sm:text-base">{children}</p>,
-                    strong: ({ children }) => <strong className="font-bold text-amber-300">{children}</strong>,
-                    blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-amber-400 pl-4 py-3.5 italic my-5 text-amber-200 bg-gradient-to-r from-amber-500/15 via-purple-500/10 to-cyan-500/15 rounded-r-2xl border border-amber-400/30 shadow-md">
-                        {children}
-                      </blockquote>
-                    ),
-                    ul: ({ children }) => <ul className="list-disc pl-5 my-3 space-y-1.5 text-slate-100">{children}</ul>,
-                    li: ({ children }) => <li className="pl-1">{children}</li>,
-                  }}
-                >
-                  {predictionText}
-                </ReactMarkdown>
-
-                {/* Active Streaming Badge */}
-                {isAnalyzing && (
-                  <div className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-xs font-medium animate-pulse">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-300 animate-spin" />
-                    <span>AI กำลังถอดรหัสคู่พลังงานตัวเลขเพิ่มเติม...</span>
-                  </div>
-                )}
-              </div>
-            </div>
+            <PredictionPanel
+              title={`วิเคราะห์ตัวเลข · ${result.cleanDigits}`}
+              isStreaming={isAnalyzing}
+              onCopy={handleCopyPrediction}
+              copied={copied}
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({ children }) => {
+                    const textStr =
+                      typeof children === 'string'
+                        ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim()
+                        : String(children || '');
+                    let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
+                    if (textStr.includes('งาน')) {
+                      iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
+                    } else if (textStr.includes('เงิน')) {
+                      iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
+                    } else if (textStr.includes('รัก')) {
+                      iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
+                    }
+                    return (
+                      <h2 className="text-base font-bold text-slate-100 border-b border-slate-800 mt-5 mb-2 pb-1.5 flex items-center gap-2">
+                        {iconComp}
+                        <span>{textStr}</span>
+                      </h2>
+                    );
+                  },
+                  h2: ({ children }) => (
+                    <h2 className="text-base font-bold text-slate-100 border-b border-slate-800 mt-5 mb-2 pb-1.5">
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-sm font-semibold text-slate-200 mt-3 mb-1.5">{children}</h3>
+                  ),
+                  p: ({ children }) => (
+                    <p className="mb-3 leading-relaxed text-slate-300 text-sm">{children}</p>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-amber-200">{children}</strong>
+                  ),
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-2 border-amber-500/50 pl-3 py-2 my-3 text-slate-300 bg-slate-900/50 rounded-r-lg">
+                      {children}
+                    </blockquote>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc pl-5 my-2 space-y-1 text-slate-300">{children}</ul>
+                  ),
+                  li: ({ children }) => <li className="pl-1">{children}</li>,
+                }}
+              >
+                {predictionText}
+              </ReactMarkdown>
+            </PredictionPanel>
           )}
         </div>
       )}

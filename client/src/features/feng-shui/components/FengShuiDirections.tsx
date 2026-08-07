@@ -1,5 +1,5 @@
 import React from 'react';
-import { Compass, Briefcase, Coins, Heart, Stethoscope } from 'lucide-react';
+import { Compass, Briefcase, Coins, Heart, Ban } from 'lucide-react';
 import type { AuspiciousDirection } from '../types/fengshui';
 
 interface FengShuiDirectionsProps {
@@ -16,62 +16,55 @@ export const FengShuiDirections: React.FC<FengShuiDirectionsProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-        <h2 className="text-base sm:text-xl font-bold text-slate-200 flex items-start sm:items-center gap-2">
-          <Compass className={`w-5 h-5 ${iconColorClass} shrink-0 mt-0.5 sm:mt-0`} />
-          <span className="leading-snug">
-            ทิศมงคลประจำ{dayNameTh} <span className="text-xs sm:text-sm font-normal text-slate-400 block sm:inline">(Auspicious Directions)</span>
-          </span>
+        <h2 className="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
+          <Compass className={`w-5 h-5 ${iconColorClass} shrink-0`} aria-hidden="true" />
+          <span>ทิศมงคลประจำ{dayNameTh}</span>
         </h2>
-        <span className="text-xs text-slate-400 font-medium">
-          อัปเดตทิศมงคลและทิศกาลกิณีตามวันประจำสัปดาห์
-        </span>
+        <span className="text-xs text-slate-500">ทิศแนะนำ / ควรหลีก ตามวันในสัปดาห์</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {directions.map((dir, idx) => {
           const isAvoid = dir.category === 'avoid';
           const isWork = dir.category === 'work';
           const isWealth = dir.category === 'wealth';
           const isLove = dir.category === 'love';
 
-          const cardBorder = isAvoid
-            ? 'border-rose-900/60 bg-rose-950/10 hover:border-rose-500/50'
-            : isWork
-            ? 'border-blue-500/30 hover:border-blue-400/60 bg-slate-900/80'
-            : isWealth
-            ? 'border-amber-500/30 hover:border-amber-400/60 bg-slate-900/80'
-            : 'border-pink-500/30 hover:border-pink-400/60 bg-slate-900/80';
-
-          const titleColor = isAvoid
-            ? 'text-rose-300'
-            : isWork
-            ? 'text-blue-300'
-            : isWealth
-            ? 'text-amber-300'
-            : 'text-pink-300';
-
           return (
-            <div key={idx} className={`p-5 rounded-2xl border space-y-2.5 transition-all shadow-xs ${cardBorder}`}>
-              <div className="flex items-center justify-between">
-                <span className={`font-bold text-base flex items-center gap-2 ${titleColor}`}>
-                  {isWork && <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />}
-                  {isWealth && <Coins className="w-4 h-4 text-amber-400 shrink-0" />}
-                  {isLove && <Heart className="w-4 h-4 text-pink-400 shrink-0" />}
-                  {isAvoid && <Stethoscope className="w-4 h-4 text-rose-400 shrink-0" />}
-                  <span>{dir.directionTh}</span>
-                </span>
+            <div
+              key={idx}
+              className={`p-4 rounded-xl border space-y-2 ${
+                isAvoid
+                  ? 'border-rose-900/50 bg-rose-950/10'
+                  : 'border-slate-800 bg-slate-900/40'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`text-xs font-mono font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 ${
-                    isAvoid ? 'bg-rose-950 text-rose-300 border-rose-800' : 'bg-slate-950 text-emerald-300 border-slate-700'
+                  className={`font-semibold text-sm flex items-center gap-2 ${
+                    isAvoid
+                      ? 'text-rose-300'
+                      : isWork
+                        ? 'text-blue-300'
+                        : isWealth
+                          ? 'text-amber-300'
+                          : 'text-pink-300'
                   }`}
                 >
+                  {isWork && <Briefcase className="w-4 h-4 text-blue-400 shrink-0" aria-hidden="true" />}
+                  {isWealth && <Coins className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />}
+                  {isLove && <Heart className="w-4 h-4 text-pink-400 shrink-0" aria-hidden="true" />}
+                  {isAvoid && <Ban className="w-4 h-4 text-rose-400 shrink-0" aria-hidden="true" />}
+                  <span>{dir.directionTh}</span>
+                </span>
+                <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded border border-slate-700 text-slate-400 shrink-0">
                   {dir.angle}
                 </span>
               </div>
-              <span className={`text-xs font-semibold block ${isAvoid ? 'text-rose-400' : 'text-emerald-400'}`}>
+              <span className={`text-xs font-medium block ${isAvoid ? 'text-rose-400/90' : 'text-slate-400'}`}>
                 {dir.energyType}
               </span>
-              <p className="text-xs text-slate-300 leading-relaxed">{dir.benefit}</p>
+              <p className="text-xs text-slate-400 leading-relaxed">{dir.benefit}</p>
             </div>
           );
         })}

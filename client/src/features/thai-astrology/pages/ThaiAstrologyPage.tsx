@@ -7,13 +7,10 @@ import type { ThaiLifeChartResult } from '../types/thaiAstrology';
 import {
   Sparkles,
   Calendar,
-  Copy,
-  Check,
   Briefcase,
   Coins,
   Heart,
   Stethoscope,
-  Feather,
 } from 'lucide-react';
 import type { ApiSettings, SavedReading } from '../../../types';
 import { storageService } from '../../../services/storageService';
@@ -28,6 +25,10 @@ import { LifeStageBreakdown } from '../components/LifeStageBreakdown';
 import { AiErrorFallbackCard } from '../../../components/common/AiErrorFallbackCard';
 import { ModulePageHeader } from '../../../components/common/ModulePageHeader';
 import { AiModeToggle } from '../../../components/common/AiModeToggle';
+import {
+  PredictionLoading,
+  PredictionPanel,
+} from '../../../components/common/PredictionPanel';
 
 interface ThaiAstrologyPageProps {
   apiSettings: ApiSettings;
@@ -241,129 +242,70 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
             />
           )}
 
-          {/* Initial AI Loading State before stream text arrives */}
           {isLoading && !predictionText && (
-            <div className="flex flex-col items-center justify-center p-10 rounded-2xl bg-slate-950/90 border border-rose-500/40 shadow-xl text-center space-y-4 animate-pulse">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-rose-600 via-amber-500 to-purple-600 animate-spin blur-md" />
-                <div className="absolute inset-1.5 rounded-full bg-slate-950 flex items-center justify-center border border-rose-300">
-                  <Sparkles className="w-7 h-7 text-rose-300 animate-bounce" />
-                </div>
-              </div>
-              <h4 className="text-base sm:text-lg font-bold text-rose-300">
-                โหราจารย์ AI กำลังผูกดวงชะตากราฟชีวิตโบราณ...
-              </h4>
-              <p className="text-xs text-rose-200/70 max-w-sm">
-                กำลังคำนวณจังหวะชีวิต 9 ช่วงอายุและช่วงพีคสูงสุด โปรดรอสักครู่
-              </p>
-            </div>
+            <PredictionLoading message="กำลังวิเคราะห์กราฟชีวิต…" />
           )}
 
-          {/* AI / Classic Prediction Content View */}
           {predictionText && (
-            <div className="relative rounded-2xl p-5 sm:p-7 bg-slate-900/95 border border-rose-500/40 shadow-2xl shadow-rose-900/20 overflow-hidden space-y-4 animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-500/30 pb-4">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Feather className={`w-5 h-5 ${theme.iconColor} shrink-0`} />
-                  <h3 className="text-base sm:text-lg font-bold text-rose-200 truncate">
-                    บทวิเคราะห์ดวงชะตากราฟชีวิต (ผู้เกิด{result.dayOfWeekTh})
-                  </h3>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleCopyPrediction}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${theme.secondaryBtn} transition-all cursor-pointer whitespace-nowrap shrink-0 self-end sm:self-auto`}
-                  title="คัดลอกคำทำนาย"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className={`w-3.5 h-3.5 ${theme.iconColor} shrink-0`} />}
-                  <span>{copied ? 'คัดลอกแล้ว' : 'คัดลอกคำทำนาย'}</span>
-                </button>
-              </div>
-
-              {/* Formatted Markdown Content via ReactMarkdown */}
-              <div className="prose prose-invert max-w-none font-prompt text-slate-100 text-sm sm:text-base leading-relaxed">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    h1: ({ children }) => {
-                      const textStr = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : String(children || '');
-                      let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
-                      let colorClass = 'text-rose-300 border-rose-500/30';
-                      if (textStr.includes('งาน') || textStr.includes('เรียน')) {
-                        iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
-                        colorClass = 'text-blue-300 border-blue-500/30';
-                      } else if (textStr.includes('เงิน') || textStr.includes('โชค')) {
-                        iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
-                        colorClass = 'text-amber-300 border-amber-500/30';
-                      } else if (textStr.includes('รัก')) {
-                        iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
-                        colorClass = 'text-pink-300 border-pink-500/30';
-                      } else if (textStr.includes('สุขภาพ') || textStr.includes('กาย')) {
-                        iconComp = <Stethoscope className="w-4 h-4 text-emerald-400 shrink-0" />;
-                        colorClass = 'text-emerald-300 border-emerald-500/30';
-                      }
-                      return (
-                        <h2 className={`text-base sm:text-lg font-bold ${colorClass} mt-6 mb-3 pb-1.5 border-b flex items-center gap-2 tracking-wide`}>
-                          {iconComp}
-                          <span>{textStr}</span>
-                        </h2>
-                      );
-                    },
-                    h2: ({ children }) => {
-                      const textStr = typeof children === 'string' ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim() : String(children || '');
-                      let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
-                      let colorClass = 'text-rose-300 border-rose-500/30';
-                      if (textStr.includes('งาน') || textStr.includes('เรียน')) {
-                        iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
-                        colorClass = 'text-blue-300 border-blue-500/30';
-                      } else if (textStr.includes('เงิน') || textStr.includes('โชค')) {
-                        iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
-                        colorClass = 'text-amber-300 border-amber-500/30';
-                      } else if (textStr.includes('รัก')) {
-                        iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
-                        colorClass = 'text-pink-300 border-pink-500/30';
-                      } else if (textStr.includes('สุขภาพ') || textStr.includes('กาย')) {
-                        iconComp = <Stethoscope className="w-4 h-4 text-emerald-400 shrink-0" />;
-                        colorClass = 'text-emerald-300 border-emerald-500/30';
-                      }
-                      return (
-                        <h2 className={`text-base sm:text-lg font-bold ${colorClass} mt-6 mb-3 pb-1.5 border-b flex items-center gap-2 tracking-wide`}>
-                          {iconComp}
-                          <span>{textStr}</span>
-                        </h2>
-                      );
-                    },
-                    h3: ({ children }) => (
-                      <h3 className="text-sm sm:text-base font-bold text-amber-300 mt-4 mb-2 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-rose-400" />
-                        <span>{children}</span>
-                      </h3>
-                    ),
-                    p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-100 font-normal">{children}</p>,
-                    strong: ({ children }) => <strong className="font-bold text-amber-300">{children}</strong>,
-                    blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-rose-400 pl-4 py-3 my-4 text-rose-200 bg-gradient-to-r from-rose-500/15 via-purple-500/10 to-amber-500/15 rounded-r-xl border border-rose-500/30 shadow-md">
-                        {children}
-                      </blockquote>
-                    ),
-                    ul: ({ children }) => <ul className="list-disc pl-5 my-3 space-y-1.5 text-slate-100">{children}</ul>,
-                    li: ({ children }) => <li className="pl-1">{children}</li>,
-                  }}
-                >
-                  {predictionText}
-                </ReactMarkdown>
-
-                {/* Active Streaming Badge */}
-                {isLoading && (
-                  <div className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-medium animate-pulse">
-                    <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" />
-                    <Sparkles className="w-3.5 h-3.5 text-rose-300 animate-spin" />
-                    <span>AI กำลังวิเคราะห์จังหวะดวงชะตากราฟชีวิตเพิ่มเติม...</span>
-                  </div>
-                )}
-              </div>
-            </div>
+            <PredictionPanel
+              title={`กราฟชีวิต · เกิด${result.dayOfWeekTh}`}
+              isStreaming={isLoading}
+              onCopy={handleCopyPrediction}
+              copied={copied}
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({ children }) => {
+                    const textStr =
+                      typeof children === 'string'
+                        ? children.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/gu, '').trim()
+                        : String(children || '');
+                    let iconComp = <Sparkles className={`w-4 h-4 ${theme.iconColor} shrink-0`} />;
+                    if (textStr.includes('งาน') || textStr.includes('เรียน')) {
+                      iconComp = <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />;
+                    } else if (textStr.includes('เงิน') || textStr.includes('โชค')) {
+                      iconComp = <Coins className="w-4 h-4 text-amber-400 shrink-0" />;
+                    } else if (textStr.includes('รัก')) {
+                      iconComp = <Heart className="w-4 h-4 text-pink-400 shrink-0" />;
+                    } else if (textStr.includes('สุขภาพ') || textStr.includes('กาย')) {
+                      iconComp = <Stethoscope className="w-4 h-4 text-emerald-400 shrink-0" />;
+                    }
+                    return (
+                      <h2 className="text-base font-bold text-slate-100 border-b border-slate-800 mt-5 mb-2 pb-1.5 flex items-center gap-2">
+                        {iconComp}
+                        <span>{textStr}</span>
+                      </h2>
+                    );
+                  },
+                  h2: ({ children }) => (
+                    <h2 className="text-base font-bold text-slate-100 border-b border-slate-800 mt-5 mb-2 pb-1.5">
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-sm font-semibold text-slate-200 mt-3 mb-1.5">{children}</h3>
+                  ),
+                  p: ({ children }) => (
+                    <p className="mb-3 leading-relaxed text-slate-300">{children}</p>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-amber-200">{children}</strong>
+                  ),
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-2 border-amber-500/50 pl-3 py-2 my-3 text-slate-300 bg-slate-900/50 rounded-r-lg">
+                      {children}
+                    </blockquote>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc pl-5 my-2 space-y-1 text-slate-300">{children}</ul>
+                  ),
+                  li: ({ children }) => <li className="pl-1">{children}</li>,
+                }}
+              >
+                {predictionText}
+              </ReactMarkdown>
+            </PredictionPanel>
           )}
         </div>
       )}
