@@ -34,7 +34,7 @@ export async function analyzeNumerology(
     if (content && content.trim()) {
       return content;
     }
-    return generateFallbackNumerology(digitsStr, sumValue, sumTitle);
+    throw new Error('ไม่สามารถประมวลผลคำตอบจาก AI ได้ในขณะนี้');
   } catch (error: any) {
     console.error('Failed Numerology AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ถอดรหัสตัวเลขได้ในขณะนี้');

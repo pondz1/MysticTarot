@@ -33,7 +33,7 @@ export async function analyzeZodiacHoroscope(
     if (content && content.trim()) {
       return content;
     }
-    return generateFallbackZodiacHoroscope(signNameTh, timeframe);
+    throw new Error('ไม่สามารถประมวลผลคำตอบจาก AI ได้ในขณะนี้');
   } catch (error: any) {
     console.error('Failed Zodiac AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ดูดวงราศีได้ในขณะนี้');

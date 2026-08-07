@@ -38,7 +38,7 @@ export async function analyzeFengShui(
     if (content && content.trim()) {
       return content;
     }
-    return generateFallbackFengShui(dayNameTh, luckyWork, luckyWealth, luckyLove, unluckyForbidden, selectedSpace);
+    throw new Error('ไม่สามารถประมวลผลคำตอบจาก AI ได้ในขณะนี้');
   } catch (error: any) {
     console.error('Failed Feng Shui AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ฮวงจุ้ย & สีมงคลได้ในขณะนี้');

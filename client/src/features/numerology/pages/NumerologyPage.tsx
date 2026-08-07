@@ -410,17 +410,6 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
             <AiErrorFallbackCard
               errorMessage={aiError}
               onRetry={() => handleAnalyze(phoneNumber, true)}
-              onUseOfflineFallback={() => {
-                if (result) {
-                  const fallback = generateFallbackNumerology(
-                    result.cleanDigits || phoneNumber,
-                    result.sumValue,
-                    result.sumMeaning.title
-                  );
-                  setPredictionText(fallback);
-                }
-                setAiError(null);
-              }}
               onOpenCreditCenter={onOpenCreditCenter}
               onOpenSettings={onOpenSettings}
             />

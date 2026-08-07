@@ -272,18 +272,6 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
             <AiErrorFallbackCard
               errorMessage={aiError}
               onRetry={() => handleCalculate(undefined, true)}
-              onUseOfflineFallback={() => {
-                if (result) {
-                  const fallback = generateFallbackThaiLifeGraph(
-                    birthDate,
-                    result.dayOfWeekTh,
-                    result.peakAgeRange,
-                    result.summaryGuidance
-                  );
-                  setPredictionText(fallback);
-                }
-                setAiError(null);
-              }}
               onOpenCreditCenter={onOpenCreditCenter}
               onOpenSettings={onOpenSettings}
             />

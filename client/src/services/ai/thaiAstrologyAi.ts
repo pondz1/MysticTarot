@@ -34,7 +34,7 @@ export async function analyzeThaiLifeGraph(
     if (content && content.trim()) {
       return content;
     }
-    return generateFallbackThaiLifeGraph(birthDate, dayOfWeekTh, peakAgeRange, summaryGuidance);
+    throw new Error('ไม่สามารถประมวลผลคำตอบจาก AI ได้ในขณะนี้');
   } catch (error: any) {
     console.error('Failed Thai Astrology AI call:', error);
     throw new Error(error?.message || 'ไม่สามารถประมวลผลคำขอ AI ดวงไทยโบราณได้ในขณะนี้');

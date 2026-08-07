@@ -401,10 +401,6 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
           <AiErrorFallbackCard
             errorMessage={aiError}
             onRetry={() => handleFetchHoroscope(selectedSign, timeframe, true)}
-            onUseOfflineFallback={() => {
-              setPrediction(getZodiacClassicPrediction(selectedSign, timeframe));
-              setAiError(null);
-            }}
             onOpenCreditCenter={onOpenCreditCenter}
             onOpenSettings={onOpenSettings}
           />

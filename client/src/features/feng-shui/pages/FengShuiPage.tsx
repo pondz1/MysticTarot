@@ -331,22 +331,6 @@ export const FengShuiPage: React.FC<FengShuiPageProps> = ({
         <AiErrorFallbackCard
           errorMessage={aiError}
           onRetry={() => handleAnalyzeFengShui(true)}
-          onUseOfflineFallback={() => {
-            const luckyWorkStr = currentDayInfo.luckyWork.join(', ');
-            const luckyWealthStr = currentDayInfo.luckyWealth.join(', ');
-            const luckyLoveStr = currentDayInfo.luckyLove.join(', ');
-            const unluckyStr = currentDayInfo.unluckyForbidden.join(', ');
-            const fallback = generateFallbackFengShui(
-              currentDayInfo.dayNameTh,
-              luckyWorkStr,
-              luckyWealthStr,
-              luckyLoveStr,
-              unluckyStr,
-              selectedSpace
-            );
-            setPredictionText(fallback);
-            setAiError(null);
-          }}
           onOpenCreditCenter={onOpenCreditCenter}
           onOpenSettings={onOpenSettings}
         />
