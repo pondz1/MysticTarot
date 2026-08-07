@@ -217,7 +217,8 @@ export async function* streamAiCompletion(
   const decoder = new TextDecoder();
   let buffer = '';
 
-  while (true) {
+  let isFinished = false;
+  while (!isFinished) {
     const { done, value } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
@@ -228,7 +229,10 @@ export async function* streamAiCompletion(
       const trimmed = line.trim();
       if (!trimmed.startsWith('data: ')) continue;
       const dataStr = trimmed.replace(/^data:\s*/, '');
-      if (dataStr === '[DONE]') break;
+      if (dataStr === '[DONE]') {
+        isFinished = true;
+        break;
+      }
 
       try {
         const parsed = JSON.parse(dataStr);

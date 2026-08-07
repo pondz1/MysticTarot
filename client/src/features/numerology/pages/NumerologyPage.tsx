@@ -68,9 +68,12 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
   const [aiError, setAiError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
+  const currentReadingIdRef = useRef<string | null>(null);
+
   // Load saved reading if :id parameter exists in URL
   useEffect(() => {
-    if (id) {
+    if (id && id !== currentReadingIdRef.current) {
+      currentReadingIdRef.current = id;
       storageService.getReadingByIdAsync(id).then((match) => {
         if (match) {
           const num = match.meta?.number || match.question?.replace(/.*: /, '') || '';
@@ -126,6 +129,7 @@ export const NumerologyPage: React.FC<NumerologyPageProps> = ({
     setPredictionText('');
 
     const tempId = Date.now().toString();
+    currentReadingIdRef.current = tempId;
     const typeLabel = numberType === 'phone' ? 'เบอร์โทรศัพท์' : numberType === 'car' ? 'ทะเบียนรถ' : numberType === 'house' ? 'บ้านเลขที่' : 'เลขบัตร/บัญชี';
     const historyEntryDraft: SavedReading = {
       id: tempId,

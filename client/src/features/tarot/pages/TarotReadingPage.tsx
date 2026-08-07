@@ -135,7 +135,7 @@ export const TarotReadingPage: React.FC<ReadingPageProps> = ({
       const updated = storageService.saveReading(newEntry);
       setSavedReadings(updated);
       setIsSavedCurrent(true);
-      navigate(`/tarot/reading/${newId}`);
+      navigate(`/tarot/reading/${newId}`, { replace: true });
     } catch (err: any) {
       console.error('Failed AI completion in TarotReadingPage:', err);
       const msg = err?.message || 'ไม่สามารถประมวลผลคำขอ AI ได้ในขณะนี้';

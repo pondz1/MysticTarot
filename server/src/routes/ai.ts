@@ -74,6 +74,8 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
     const client = getClient(activeSettings);
     const model = activeSettings?.model || serverSettings.model;
 
+    console.log(`[AI Request] Mode: ${isCreditMode ? 'Credit' : 'Custom Key'}, Model: ${model}, Stream: ${!!stream}, User: ${userId}`);
+
     if (stream) {
       const streamResponse = await client.chat.completions.create({
         model,
@@ -134,6 +136,8 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         } catch {}
       }
 
+      console.log(`[AI Stream Finished] Length: ${fullText.length} chars, Deducted: ${creditsDeducted} credits, Remaining: ${remainingCredits}`);
+
       // Resilient Auto-save on Server DB (even if client disconnected mid-stream)
       if (historyEntry && historyEntry.id && fullText.trim()) {
         const isCustomKey = activeSettings?.mode === 'custom' && !!activeSettings?.apiKey;
@@ -178,10 +182,8 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
 
     sendSuccess(res, { result, model, remainingCredits, creditsDeducted, usage: completion.usage });
   } catch (error: any) {
-    console.error('AI completion error:', error);
-    const userMessage = process.env.NODE_ENV === 'production'
-      ? 'ไม่สามารถประมวลผลคำขอ AI ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง'
-      : error?.message || 'Failed to complete AI request';
+    console.error('[AI Completion Error]', error?.status || '', error?.message || error);
+    const userMessage = error?.message || 'Failed to complete AI request';
     sendError(res, userMessage, 500);
   }
 });

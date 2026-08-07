@@ -54,10 +54,12 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
 
   const [result, setResult] = useState<ThaiLifeChartResult | null>(() => calculateLifeGraph('1995-06-15', 3));
   const resultCardRef = useRef<HTMLDivElement>(null);
+  const currentReadingIdRef = useRef<string | null>(null);
 
   // Load saved reading if :id parameter exists in URL
   useEffect(() => {
-    if (id) {
+    if (id && id !== currentReadingIdRef.current) {
+      currentReadingIdRef.current = id;
       storageService.getReadingByIdAsync(id).then((match) => {
         if (match) {
           if (match.meta?.birthDate) {
@@ -104,6 +106,7 @@ export const ThaiAstrologyPage: React.FC<ThaiAstrologyPageProps> = ({
     setPredictionText('');
 
     const tempId = Date.now().toString();
+    currentReadingIdRef.current = tempId;
     const historyEntryDraft: SavedReading = {
       id: tempId,
       timestamp: Date.now(),

@@ -62,9 +62,12 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
+  const currentReadingIdRef = useRef<string | null>(null);
+
   // Load saved reading if :id parameter exists in URL
   useEffect(() => {
-    if (id) {
+    if (id && id !== currentReadingIdRef.current) {
+      currentReadingIdRef.current = id;
       storageService.getReadingByIdAsync(id).then((match) => {
         if (match) {
           if (match.meta?.signId) {
@@ -120,6 +123,7 @@ export const HoroscopePage: React.FC<HoroscopePageProps> = ({
     setPrediction('');
 
     const tempId = Date.now().toString();
+    currentReadingIdRef.current = tempId;
     const historyEntryDraft: SavedReading = {
       id: tempId,
       timestamp: Date.now(),
