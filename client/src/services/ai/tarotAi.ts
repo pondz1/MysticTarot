@@ -2,7 +2,11 @@ import type { DrawnCard, SpreadMode } from '../../features/tarot/types/tarot';
 import type { ApiSettings, ChatMessage, SavedReading } from '../../types';
 import { getSpreadConfig } from '../../features/tarot/data/tarotSpreads';
 import { requestAiCompletion } from './aiClient';
-import { buildFallbackMarkdown } from './markdownFormat';
+import {
+  MARKDOWN_OUTPUT_RULES,
+  buildStructureBlock,
+  buildFallbackMarkdown,
+} from './markdownFormat';
 
 export async function analyzeTarotReading(
   question: string,
@@ -19,7 +23,28 @@ export async function analyzeTarotReading(
     ? `\n\n🎯 **วัตถุประสงค์และแนวทางวิเคราะห์เฉพาะสำหรับสเปรดนี้ (${spreadConfig.titleTh})**:\n👉 ${spreadConfig.aiGuideline}`
     : '';
 
-  // ใช้ system prompt ต้นฉบับครบถ้วน (บทบาท + กฎ 1–5 + โครง 4 หัวข้อ)
+  // โครง 4 หัวข้อมาตรฐานของ tarot (ชื่อเต็มแบบเดิม + รูปแบบ markdown รวมของเว็บ)
+  const structure = buildStructureBlock([
+    {
+      heading: `ภาพรวมดวงชะตาและพลังงานไพ่ (${spreadConfig.titleTh})`,
+      guide:
+        'เกริ่นเปิดภาพรวมดวงชะตา วิเคราะห์สัดส่วน Major/Minor Arcana และสะท้อนพลังงานไพ่ด้วยภาษาสละสลวย อย่างน้อย 1 ย่อหน้า',
+    },
+    {
+      heading: 'วิเคราะห์เจาะลึกไพ่ตามตำแหน่งสเปรด',
+      guide:
+        'วิเคราะห์ไพ่แต่ละใบตามตำแหน่งอย่างมีมิติ เชื่อมโยงความหมาย ไพ่ตั้งหัว/กลับหัว ธาตุประจำไพ่ และบริบทเรื่องที่ถาม — ใช้ ### ทีละใบ ตามลำดับ ห้ามสรุปสั้นเกินไป',
+    },
+    {
+      heading: 'บทสรุปคำตอบตรงประเด็นคำถาม',
+      guide: 'ฟันธงตอบสิ่งที่ผู้ใช้ถามอย่างตรงจุด ชัดเจน และมีสติปัญญา สังเคราะห์จากไพ่ทุกใบ',
+    },
+    {
+      heading: 'คำแนะนำและข้อคิดชี้ทางจากจักรวาล',
+      guide: 'แจงคำแนะนำที่นำไปปฏิบัติได้จริงเป็นข้อๆ (Actionable Advice) 3–5 ข้อแบบ bullet',
+    },
+  ]);
+
   const systemPrompt = `คุณคือ "หมอดูไพ่ยิปซี AI ระดับปรมาจารย์ (Celestial Master Tarot Prophet)" ผู้หยั่งรู้ดวงชะตา อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
 
 📜 **กฎและข้อบังคับในการทำนาย (Strict Response Directives)**:
@@ -37,25 +62,17 @@ export async function analyzeTarotReading(
    - **สัดส่วน Major Arcana สูง:** หากไพ่ส่วนใหญ่เป็น Major Arcana ให้เน้นย้ำว่าผู้ใช้กำลังเผชิญหน้ากับจุดเปลี่ยนสำคัญ โชคชะตา หรือบทเรียนชีวิตครั้งใหญ่
    - **สัดส่วน Minor Arcana สูง:** หากไพ่ส่วนใหญ่เป็น Minor Arcana ให้เน้นย้ำว่าเป็นเรื่องราว/สถานการณ์ในชีวิตประจำวันทั่วไป ที่ผู้ใช้มีสติและพลังในการควบคุมจัดการได้ด้วยตัวเอง
 
-5. **การจัดรูปแบบผลทำนายด้วย Markdown ที่สวยงาม**:
-   - ใช้ Markdown Headings (##), ข้อความตัวหนา (**Bold**), และ Bullet points เพื่อให้อ่านง่ายและน่าเลื่อมใส
-   - ใช้ Blockquote (>) สำหรับคำคมหรือข้อคิดปิดท้าย
-   - หัวข้อย่อยของไพ่แต่ละใบในสเปรดใช้ ### ตามลำดับตำแหน่ง
+5. **การจัดรูปแบบผลทำนาย**:
+   - ทำตาม **รูปแบบผลลัพธ์มาตรฐานของเว็บ** ด้านล่างเป๊ะ (markdown เดียวกันทุกศาสตร์)
+   - ใช้ชื่อหัวข้อ ## ตามโครงสร้าง 4 ส่วนที่กำหนดเท่านั้น ห้ามย่อหรือเปลี่ยนชื่อ
+   - ส่วน "วิเคราะห์เจาะลึกไพ่ตามตำแหน่งสเปรด" วิเคราะห์ละเอียดต่อใบได้ยาวกว่าหัวข้ออื่น
 
-📌 **โครงสร้างผลทำนายที่ต้องใช้เป็นมาตรฐาน** (ห้ามย่อหรือเปลี่ยนชื่อหัวข้อ):
-## 🔮 ภาพรวมดวงชะตาและพลังงานไพ่ (${spreadConfig.titleTh})
-(เกริ่นเปิดภาพรวมดวงชะตา วิเคราะห์สัดส่วน Major/Minor Arcana และสะท้อนพลังงานไพ่ด้วยภาษาสละสลวย)
+${MARKDOWN_OUTPUT_RULES}
 
-## 🃏 วิเคราะห์เจาะลึกไพ่ตามตำแหน่งสเปรด
-(วิเคราะห์ไพ่แต่ละใบตามตำแหน่งอย่างมีมิติ เชื่อมโยงความหมาย ไพ่ตั้งหัว/กลับหัว ธาตุประจำไพ่ และบริบทเรื่องที่ถาม — ใช้ ### ทีละใบ)
+ข้อยกเว้นสำหรับไพ่ยิปซี: หัวข้อ "วิเคราะห์เจาะลึกไพ่ตามตำแหน่งสเปรด" อนุญาตให้ยาวและละเอียดต่อใบ (ไม่จำกัด 2–4 ประโยค)
 
-## 💡 บทสรุปคำตอบตรงประเด็นคำถาม
-(ฟันธงตอบสิ่งที่ผู้ใช้ถามอย่างตรงจุด ชัดเจน และมีสติปัญญา)
-
-## 🌟 คำแนะนำและข้อคิดชี้ทางจากจักรวาล
-(แจงคำแนะนำที่นำไปปฏิบัติได้จริงเป็นข้อๆ Actionable Advice)
-
-> 🌌 *คำคม/Affirmation ประจำการเปิดไพ่ครั้งนี้*`;
+📌 **โครงสร้างผลทำนายมาตรฐาน (Tarot)**:
+${structure}`;
 
   const userPrompt = buildInitialUserPrompt(question, drawnCards, spreadMode, deckFilter);
 
@@ -97,19 +114,19 @@ export function generateFallbackReading(
   const md = buildFallbackMarkdown(
     [
       {
-        heading: `🔮 ภาพรวมดวงชะตาและพลังงานไพ่ (${spreadConfig.titleTh})`,
+        heading: `ภาพรวมดวงชะตาและพลังงานไพ่ (${spreadConfig.titleTh})`,
         body: `สำหรับการเปิดไพ่ถามถึง ${qText} ด้วยสเปรด **${spreadConfig.titleTh}** พลังงานแห่งจักรวาลสะท้อนบทเรียนและโอกาสในชีวิตของคุณดังนี้`,
       },
       {
-        heading: '🃏 วิเคราะห์เจาะลึกไพ่ตามตำแหน่งสเปรด',
+        heading: 'วิเคราะห์เจาะลึกไพ่ตามตำแหน่งสเปรด',
         body: cardsSection.trim(),
       },
       {
-        heading: '💡 บทสรุปคำตอบตรงประเด็นคำถาม',
+        heading: 'บทสรุปคำตอบตรงประเด็นคำถาม',
         body: `พลังแห่งไพ่หลัก **${mainCard.nameTh}** บ่งบอกถึงจุดเริ่มต้นที่สำคัญ ขณะที่ไพ่ **${outcomeCard.nameTh}** ชี้แนะเส้นทางไปสู่ผลลัพธ์ของเรื่อง ${qText}`,
       },
       {
-        heading: '🌟 คำแนะนำและข้อคิดชี้ทางจากจักรวาล',
+        heading: 'คำแนะนำและข้อคิดชี้ทางจากจักรวาล',
         body: `- **คำแนะนำหลัก:** ${mainCard.advice}\n- **พลังบวกนำทาง:** ${outcomeCard.advice}`,
       },
     ],
@@ -207,6 +224,21 @@ export async function analyzeTarotFollowUp(params: {
     onChunk,
   } = params;
 
+  const followUpStructure = buildStructureBlock([
+    {
+      heading: 'สรุปคำตอบ',
+      guide: 'ตอบคำถามเจาะลึกใหม่ชัดเจน ตรงประเด็น',
+    },
+    {
+      heading: 'เชื่อมโยงกับไพ่',
+      guide: 'อ้างไพ่ที่เกี่ยวข้อง 1–3 ใบ จากสเปรดรอบนี้',
+    },
+    {
+      heading: 'คำแนะนำ',
+      guide: 'bullet 2–3 ข้อ ที่ทำได้ทันที',
+    },
+  ]);
+
   const systemPrompt = `คุณคือ "หมอดูไพ่ยิปซี AI ระดับปรมาจารย์ (Celestial Master Tarot Prophet)" ผู้หยั่งรู้ดวงชะตา อบอุ่น ทรงพลัง มีความเมตตา และเปี่ยมด้วยปัญญาแห่งจักรวาล
 
 📜 **กฎและข้อบังคับในการตอบคำถามถามตอบเจาะลึก (Follow-up Question Directives)**:
@@ -220,20 +252,11 @@ export async function analyzeTarotFollowUp(params: {
 3. **วิเคราะห์เชื่อมโยงไพ่ที่เปิดได้และบทวิเคราะห์เดิมเสมอ (Contextual & Card-Grounded)**:
    - ให้คำตอบโดยอ้างอิงไพ่ที่ผู้ใช้จับได้ในรอบนี้และบทวิเคราะห์เดิมที่เคยทำนายไว้ ห้ามตอบแบบเลื่อนลอยโดยไม่เกี่ยวกับไพ่
 
-4. **การจัดรูปแบบ**:
-   - ใช้ Markdown เช่น ข้อความตัวหนา (**Bold**), Bullet points (-), หรือ Blockquote (>) เพื่อให้อ่านง่ายและสวยงามน่าเลื่อมใส
+4. **การจัดรูปแบบ**: ทำตามรูปแบบผลลัพธ์มาตรฐานของเว็บด้านล่าง
 
-รูปแบบคำตอบ follow-up:
-## 💡 สรุปคำตอบ
-(ตอบคำถามใหม่ชัดเจน)
+${MARKDOWN_OUTPUT_RULES}
 
-## 🃏 เชื่อมโยงกับไพ่
-(อ้างไพ่ที่เกี่ยวข้อง 1–3 ใบ)
-
-## 🌟 คำแนะนำ
-(bullet 2–3 ข้อ)
-
-> 🌌 *คำคม/ข้อคิดปิดท้าย*`;
+${followUpStructure}`;
 
   const initialUserPrompt = buildInitialUserPrompt(question, drawnCards, spreadMode);
 
