@@ -34,6 +34,7 @@ export interface TopUpPackage {
   bonusCredits: number;
   priceThb: number;
   badge?: string;
+  tagline?: string;
   popular?: boolean;
 }
 
@@ -41,42 +42,63 @@ export interface TopUpPackage {
 const FALLBACK_PACKAGES: TopUpPackage[] = [
   {
     id: 'pkg_starter',
-    name: 'Starter Pack',
-    baseCredits: 60,
+    name: 'Starter',
+    baseCredits: 100,
     bonusCredits: 0,
     priceThb: 20,
-    badge: '🌱 เริ่มต้น',
+    badge: 'ทดลองใช้',
+    tagline: 'เริ่มต้นง่าย · PromptPay ได้',
   },
   {
     id: 'pkg_popular',
-    name: 'Popular Pack',
-    baseCredits: 100,
-    bonusCredits: 30,
+    name: 'Popular',
+    baseCredits: 180,
+    bonusCredits: 40,
     priceThb: 39,
-    badge: '🔥 ขายดีที่สุด',
+    badge: 'คนส่วนใหญ่เลือก',
+    tagline: 'คุ้มสุดสำหรับมือใหม่',
     popular: true,
   },
   {
     id: 'pkg_pro',
-    name: 'Pro Pack',
-    baseCredits: 200,
-    bonusCredits: 80,
+    name: 'Pro',
+    baseCredits: 360,
+    bonusCredits: 120,
     priceThb: 69,
-    badge: '✨ คุ้มค่า',
+    badge: 'ใช้ประจำ',
+    tagline: 'โบนัสมากขึ้นเมื่อเติมก้อนใหญ่',
   },
   {
     id: 'pkg_ultimate',
-    name: 'Ultimate Pack',
-    baseCredits: 400,
-    bonusCredits: 200,
+    name: 'Ultimate',
+    baseCredits: 650,
+    bonusCredits: 350,
     priceThb: 129,
-    badge: '🚀 โบนัส +50%',
+    badge: 'โบนัส +54%',
+    tagline: 'ได้เครดิตเยอะสุด · โบนัสสูงสุด',
   },
 ];
 
 /** Omise PromptPay minimum (THB) — matches server payments route */
 const PROMPTPAY_MIN_THB = 20;
 
+function packTotalCredits(pkg: TopUpPackage): number {
+  return pkg.baseCredits + pkg.bonusCredits;
+}
+
+/** List price if bought at Starter unit rate — for savings / anchor framing */
+function listPriceVsStarter(pkg: TopUpPackage, starter: TopUpPackage | undefined): number {
+  if (!starter) return pkg.priceThb;
+  const starterTotal = packTotalCredits(starter);
+  if (starterTotal <= 0) return pkg.priceThb;
+  const unit = starter.priceThb / starterTotal;
+  return Math.round(packTotalCredits(pkg) * unit);
+}
+
+function savePercent(pkg: TopUpPackage, listPrice: number): number {
+  if (listPrice <= pkg.priceThb) return 0;
+  return Math.round(((listPrice - pkg.priceThb) / listPrice) * 100);
+}
 interface TopUpModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -623,52 +645,100 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
         (omiseEnabled || simulatorEnabled) && (
           <>
             <div className="mb-5">
-              <label className="text-xs text-purple-200 font-semibold mb-2 block flex items-center justify-between">
+              <label className="text-xs text-purple-200 font-semibold mb-2 block flex items-center justify-between gap-2">
                 <span>1. เลือกแพ็กเกจ</span>
-                <span className="text-[10px] text-amber-300/80">1 Credit ≈ 1k–4k Tokens</span>
+                <span className="text-[10px] text-amber-300/80 shrink-0">หักตามการใช้งานจริง</span>
               </label>
               <div className="grid grid-cols-2 gap-2.5">
-                {packages.map((pkg) => {
-                  const isSelected = selectedPkg?.id === pkg.id;
-                  const total = pkg.baseCredits + pkg.bonusCredits;
-                  return (
-                    <button
-                      key={pkg.id}
-                      type="button"
-                      onClick={() => selectPackage(pkg)}
-                      className={`relative flex flex-col p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-amber-500/20 border-amber-400 shadow-md shadow-amber-500/20'
-                          : 'bg-purple-950/40 border-purple-500/20 hover:bg-purple-900/40'
-                      }`}
-                    >
-                      {pkg.badge && (
-                        <span className="absolute -top-2 right-2 text-[9px] px-2 py-0.5 rounded-full bg-amber-500 text-purple-950 font-bold">
-                          {pkg.badge}
-                        </span>
-                      )}
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-purple-100">{pkg.name}</span>
-                        {isSelected && <Check className="w-4 h-4 text-amber-400" />}
-                      </div>
-                      <div className="text-lg font-extrabold text-amber-300 font-serif-mystic">
-                        {total}{' '}
-                        <span className="text-xs font-normal text-purple-300">Credits</span>
-                      </div>
-                      {pkg.bonusCredits > 0 && (
-                        <div className="text-[10px] text-emerald-400 flex items-center gap-0.5">
-                          <Sparkles className="w-3 h-3" />
-                          โบนัส +{pkg.bonusCredits}
+                {(() => {
+                  const starterPkg =
+                    packages.find((p) => p.id === 'pkg_starter') || packages[0];
+                  return packages.map((pkg) => {
+                    const isSelected = selectedPkg?.id === pkg.id;
+                    const total = packTotalCredits(pkg);
+                    const listPrice = listPriceVsStarter(pkg, starterPkg);
+                    const savePct = savePercent(pkg, listPrice);
+                    const isPopular = Boolean(pkg.popular);
+
+                    return (
+                      <button
+                        key={pkg.id}
+                        type="button"
+                        onClick={() => selectPackage(pkg)}
+                        className={`relative flex flex-col p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? isPopular
+                              ? 'bg-gradient-to-br from-amber-500/25 to-orange-600/15 border-amber-400 shadow-lg shadow-amber-500/25 ring-1 ring-amber-300/40'
+                              : 'bg-amber-500/20 border-amber-400 shadow-md shadow-amber-500/20'
+                            : isPopular
+                              ? 'bg-gradient-to-br from-amber-500/10 to-purple-950/50 border-amber-400/50 hover:border-amber-400 hover:shadow-md hover:shadow-amber-500/15'
+                              : 'bg-purple-950/40 border-purple-500/20 hover:bg-purple-900/40'
+                        }`}
+                      >
+                        {pkg.badge && (
+                          <span
+                            className={`absolute -top-2 right-2 text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm ${
+                              isPopular
+                                ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-purple-950'
+                                : 'bg-amber-500 text-purple-950'
+                            }`}
+                          >
+                            {pkg.badge}
+                          </span>
+                        )}
+                        <div className="flex items-center justify-between mb-0.5 pr-1">
+                          <span className="text-xs font-bold text-purple-100">{pkg.name}</span>
+                          {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
                         </div>
-                      )}
-                      <div className="mt-2 text-xs font-semibold text-purple-200 border-t border-purple-800/40 pt-1.5 flex justify-between">
-                        <span>ราคา:</span>
-                        <span className="text-amber-300">฿{pkg.priceThb}</span>
-                      </div>
-                    </button>
-                  );
-                })}
+
+                        {/* Price first (left-digit / charm) — largest visual weight */}
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className="text-xl font-black text-amber-300 tabular-nums tracking-tight">
+                            ฿{pkg.priceThb}
+                          </span>
+                          {savePct >= 8 && (
+                            <span className="text-[10px] font-bold text-emerald-400">
+                              คุ้มกว่า {savePct}%
+                            </span>
+                          )}
+                        </div>
+                        {savePct >= 8 && listPrice > pkg.priceThb && (
+                          <div className="text-[10px] text-slate-500 line-through tabular-nums">
+                            มูลค่าเทียบ ฿{listPrice}
+                          </div>
+                        )}
+
+                        <div className="mt-1.5 text-sm font-extrabold text-purple-50 font-serif-mystic">
+                          {total.toLocaleString('th-TH')}{' '}
+                          <span className="text-[11px] font-normal text-purple-300">Credits</span>
+                        </div>
+                        {pkg.bonusCredits > 0 && (
+                          <div className="text-[10px] text-emerald-400 flex items-center gap-0.5 mt-0.5">
+                            <Sparkles className="w-3 h-3" />
+                            โบนัส +{pkg.bonusCredits} CR
+                            {pkg.baseCredits > 0 && (
+                              <span className="text-emerald-500/70">
+                                (+
+                                {Math.round((pkg.bonusCredits / pkg.baseCredits) * 100)}
+                                %)
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {pkg.tagline && (
+                          <div className="mt-1.5 text-[10px] text-purple-300/80 leading-snug border-t border-purple-800/40 pt-1.5">
+                            {pkg.tagline}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  });
+                })()}
               </div>
+              <p className="mt-2.5 text-[10px] text-slate-500 text-center leading-relaxed px-1">
+                เครดิตหักตามปริมาณงาน AI จริง ไม่ใช่เหมาจ่ายต่อครั้ง · งานสั้นใช้ไม่กี่หน่วย
+                งานยาวใช้มากขึ้น · เครดิตไม่หมดอายุ
+              </p>
             </div>
 
             <div className="mb-5">

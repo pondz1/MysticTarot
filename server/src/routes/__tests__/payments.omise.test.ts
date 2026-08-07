@@ -122,7 +122,7 @@ describe('Omise top-up payments', () => {
     // Direct Omise download_uri for <img src>
     expect(res.body.qrImageUrl).toContain('qr.png');
     expect(res.body.status).toBe('pending');
-    expect(res.body.credits).toBe(60);
+    expect(res.body.credits).toBe(100);
     expect(creditsDb.getCredits(userId)).toBe(5); // not fulfilled yet
   });
 
@@ -140,7 +140,7 @@ describe('Omise top-up payments', () => {
       userId,
       packageId: 'pkg_starter',
       packageName: 'Starter Pack',
-      credits: 60,
+      credits: 100,
       amountSatang: 2000,
       method: 'promptpay',
       omiseChargeId: chargeId,
@@ -171,8 +171,8 @@ describe('Omise top-up payments', () => {
     expect(res1.status).toBe(200);
     expect(res1.body.status).toBe('fulfilled');
     expect(res1.body.newlyFulfilled).toBe(true);
-    expect(res1.body.creditsBalance).toBe(70);
-    expect(creditsDb.getCredits(userId)).toBe(70);
+    expect(res1.body.creditsBalance).toBe(110);
+    expect(creditsDb.getCredits(userId)).toBe(110);
 
     // Second poll must not double-credit
     const res2 = await request(app)
@@ -181,7 +181,7 @@ describe('Omise top-up payments', () => {
 
     expect(res2.body.status).toBe('fulfilled');
     expect(res2.body.newlyFulfilled).toBe(false);
-    expect(creditsDb.getCredits(userId)).toBe(70);
+    expect(creditsDb.getCredits(userId)).toBe(110);
   });
 
   it('webhook charge.complete fulfills order (legacy ?secret=)', async () => {
@@ -198,7 +198,7 @@ describe('Omise top-up payments', () => {
       userId,
       packageId: 'pkg_popular',
       packageName: 'Popular Pack',
-      credits: 130,
+      credits: 220,
       amountSatang: 3900,
       method: 'promptpay',
       omiseChargeId: chargeId,
@@ -234,7 +234,7 @@ describe('Omise top-up payments', () => {
     expect(res.status).toBe(200);
     expect(res.body.newlyFulfilled).toBe(true);
     expect(paymentsDb.getById(order.id)?.status).toBe('fulfilled');
-    expect(creditsDb.getCredits(userId)).toBe(130);
+    expect(creditsDb.getCredits(userId)).toBe(220);
   });
 
   it('webhook accepts Omise-Signature HMAC headers', async () => {
@@ -251,7 +251,7 @@ describe('Omise top-up payments', () => {
       userId,
       packageId: 'pkg_starter',
       packageName: 'Starter Pack',
-      credits: 60,
+      credits: 100,
       amountSatang: 2000,
       method: 'promptpay',
       omiseChargeId: chargeId,
