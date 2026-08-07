@@ -17,6 +17,7 @@ import { buildModulePrompts } from '../ai/buildPrompts.js';
 import { isAiModuleId } from '../ai/types.js';
 import { saveAiHistoryEntry } from '../ai/saveReading.js';
 import { completeIdempotency, failIdempotency } from '../middleware/idempotency.js';
+import { parseUsageMeta, usageMetaToLogLine, type TokenUsageMeta } from '../ai/usageMeta.js';
 
 export const aiRouter = Router();
 
@@ -239,18 +240,38 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
     );
 
     if (stream) {
+      const baseStreamParams = {
+        model,
+        messages,
+        temperature: AI_COMPLETION.temperature,
+        max_tokens: completionMaxTokens,
+        stream: true as const,
+      };
+
       let streamResponse: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
       try {
-        streamResponse = await client.chat.completions.create(
-          {
-            model,
-            messages,
-            temperature: AI_COMPLETION.temperature,
-            max_tokens: completionMaxTokens,
-            stream: true,
-          },
-          { signal: providerAbort.signal }
-        );
+        // Prefer include_usage so reasoning_tokens can appear on the final chunk (OpenAI).
+        // Fall back without stream_options for proxies that reject unknown fields.
+        try {
+          streamResponse = await client.chat.completions.create(
+            {
+              ...baseStreamParams,
+              stream_options: { include_usage: true },
+            },
+            { signal: providerAbort.signal }
+          );
+        } catch (withUsageErr: unknown) {
+          const msg =
+            withUsageErr instanceof Error ? withUsageErr.message : String(withUsageErr);
+          if (/stream_options|unrecognized|unknown|invalid/i.test(msg)) {
+            console.warn('[AI] stream_options.include_usage not supported; retrying without it');
+            streamResponse = await client.chat.completions.create(baseStreamParams, {
+              signal: providerAbort.signal,
+            });
+          } else {
+            throw withUsageErr;
+          }
+        }
       } catch (createErr: unknown) {
         const aborted =
           clientDisconnected ||
@@ -274,9 +295,7 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders?.();
 
-      let finalUsage:
-        | { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
-        | undefined;
+      let finalUsage: OpenAI.Completions.CompletionUsage | undefined;
       let fullText = '';
       let abortedEarly = false;
       let finishReason: string | null = null;
@@ -319,15 +338,23 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         writeSse(res, { content: notice });
       }
 
+      const fallbackUsage = estimateStreamUsage(systemPrompt, userPrompt, fullText);
+      const hasApiUsage = Boolean(
+        finalUsage && (finalUsage.prompt_tokens || finalUsage.completion_tokens)
+      );
+      const usageMeta: TokenUsageMeta = parseUsageMeta(
+        finalUsage,
+        hasApiUsage ? undefined : fallbackUsage
+      );
+
       let creditsDeducted = 0;
       let remainingCredits: number | undefined;
 
       if (isCreditMode && creditUserId) {
         if (fullText.trim()) {
-          const usageToUse =
-            finalUsage && (finalUsage.prompt_tokens || finalUsage.completion_tokens)
-              ? finalUsage
-              : estimateStreamUsage(systemPrompt, userPrompt, fullText);
+          const usageToUse = hasApiUsage
+            ? finalUsage
+            : fallbackUsage;
           const actualCost = calculateCreditsFromTokens(usageToUse);
           const settledResult = settleCredits(creditUserId, reservedCredits, actualCost);
           creditsDeducted = settledResult.netCharged;
@@ -344,12 +371,14 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
           partial: abortedEarly || clientDisconnected || truncatedByMaxTokens,
           truncated: truncatedByMaxTokens,
           finishReason: finishReason || undefined,
+          usage: usageMeta,
         });
-      } else if (truncatedByMaxTokens || abortedEarly) {
+      } else {
         writeSse(res, {
-          partial: true,
+          partial: abortedEarly || clientDisconnected || truncatedByMaxTokens,
           truncated: truncatedByMaxTokens,
           finishReason: finishReason || undefined,
+          usage: usageMeta,
         });
       }
 
@@ -363,7 +392,7 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       }
 
       console.log(
-        `[AI Stream Finished] Length: ${fullText.length} chars, Charged: ${creditsDeducted}, Remaining: ${remainingCredits}, finish_reason: ${finishReason || 'n/a'}, Partial: ${abortedEarly || clientDisconnected || truncatedByMaxTokens}`
+        `[AI Stream Finished] chars=${fullText.length} charged=${creditsDeducted} rem=${remainingCredits} finish=${finishReason || 'n/a'} partial=${abortedEarly || clientDisconnected || truncatedByMaxTokens} tokens{${usageMetaToLogLine(usageMeta)}}`
       );
 
       // Cache full stream result for idempotent retry (SSE or JSON replay)
@@ -374,6 +403,7 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
           creditsDeducted,
           truncated: truncatedByMaxTokens,
           finishReason: finishReason || undefined,
+          usage: usageMeta,
         });
       } else if (!fullText.trim()) {
         failIdempotency(req);
@@ -444,6 +474,8 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         '\n\n> **หมายเหตุ:** คำทำนายถูกตัดเพราะยาวเกินงบ output ของรอบนี้ — ลองเปิดใหม่หรือถาม follow-up ในส่วนที่ขาด';
     }
 
+    const usageMeta = parseUsageMeta(completion.usage);
+
     let creditsDeducted: number | undefined;
     let remainingCredits: number | undefined;
 
@@ -479,6 +511,10 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       }
     }
 
+    console.log(
+      `[AI Completion Finished] charged=${creditsDeducted} rem=${remainingCredits} finish=${finishReason || 'n/a'} tokens{${usageMetaToLogLine(usageMeta)}}`
+    );
+
     sendSuccess(res, {
       result,
       model,
@@ -486,6 +522,7 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         typeof remainingCredits === 'number' ? Math.max(0, remainingCredits) : remainingCredits,
       creditsDeducted,
       usage: completion.usage,
+      usageMeta,
       truncated: truncatedByMaxTokens,
       finishReason: finishReason || undefined,
     });

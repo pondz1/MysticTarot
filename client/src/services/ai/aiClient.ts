@@ -23,6 +23,16 @@ export type AiCompletionOptions = {
 
 let lastCreditsDeducted: number = 1;
 
+export type TokenUsageMeta = {
+  promptTokens?: number;
+  completionTokens?: number;
+  totalTokens?: number;
+  reasoningTokens?: number;
+  visibleTokens?: number;
+  cachedPromptTokens?: number;
+  estimated?: boolean;
+};
+
 export type AiCompletionMeta = {
   creditsDeducted?: number;
   remainingCredits?: number;
@@ -30,6 +40,7 @@ export type AiCompletionMeta = {
   partial?: boolean;
   cached?: boolean;
   finishReason?: string;
+  usage?: TokenUsageMeta;
 };
 
 let lastAiMeta: AiCompletionMeta = {};
@@ -105,6 +116,30 @@ export async function getOpenAIClient(settings?: ApiSettings) {
   });
 }
 
+function usageFromOpenAI(usage: unknown): TokenUsageMeta | undefined {
+  if (!usage || typeof usage !== 'object') return undefined;
+  const u = usage as {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    completion_tokens_details?: { reasoning_tokens?: number };
+    prompt_tokens_details?: { cached_tokens?: number };
+  };
+  const promptTokens = u.prompt_tokens ?? 0;
+  const completionTokens = u.completion_tokens ?? 0;
+  if (!promptTokens && !completionTokens) return undefined;
+  const reasoningTokens = u.completion_tokens_details?.reasoning_tokens ?? 0;
+  return {
+    promptTokens,
+    completionTokens,
+    totalTokens: u.total_tokens ?? promptTokens + completionTokens,
+    reasoningTokens,
+    visibleTokens: Math.max(0, completionTokens - reasoningTokens),
+    cachedPromptTokens: u.prompt_tokens_details?.cached_tokens ?? 0,
+    estimated: false,
+  };
+}
+
 /** Custom key: browser non-stream */
 async function customNonStream(
   systemPrompt: string,
@@ -113,6 +148,7 @@ async function customNonStream(
   signal?: AbortSignal
 ): Promise<string> {
   lastCreditsDeducted = 0;
+  lastAiMeta = { creditsDeducted: 0 };
   const client = await getOpenAIClient(settings);
   if (!client) {
     throw new Error('API Key ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการตั้งค่า');
@@ -129,10 +165,17 @@ async function customNonStream(
   );
   throwIfAborted(signal);
   let text = completion.choices[0]?.message?.content || '';
-  if (completion.choices[0]?.finish_reason === 'length' && text.trim()) {
+  const finishReason = completion.choices[0]?.finish_reason || undefined;
+  if (finishReason === 'length' && text.trim()) {
     text +=
       '\n\n> **หมายเหตุ:** คำทำนายถูกตัดเพราะยาวเกินงบ output ของรอบนี้ — ลองเปิดใหม่หรือถาม follow-up ในส่วนที่ขาด';
   }
+  applyCreditMeta({
+    creditsDeducted: 0,
+    usage: usageFromOpenAI(completion.usage),
+    truncated: finishReason === 'length',
+    finishReason,
+  });
   return cleanAiResponse(text);
 }
 
@@ -148,19 +191,38 @@ async function* customStream(
   if (!client) {
     throw new Error('API Key ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการตั้งค่า');
   }
-  const stream = await client.chat.completions.create(
-    {
-      model: settings.model || AI_COMPLETION.defaultModel,
-      messages: buildChatMessages(systemPrompt, userPrompt),
-      temperature: AI_COMPLETION.temperature,
-      max_tokens: AI_COMPLETION.maxTokensLong,
-      stream: true,
-    },
-    signal ? { signal } : undefined
-  );
+  let stream;
+  try {
+    stream = await client.chat.completions.create(
+      {
+        model: settings.model || AI_COMPLETION.defaultModel,
+        messages: buildChatMessages(systemPrompt, userPrompt),
+        temperature: AI_COMPLETION.temperature,
+        max_tokens: AI_COMPLETION.maxTokensLong,
+        stream: true,
+        stream_options: { include_usage: true },
+      },
+      signal ? { signal } : undefined
+    );
+  } catch {
+    stream = await client.chat.completions.create(
+      {
+        model: settings.model || AI_COMPLETION.defaultModel,
+        messages: buildChatMessages(systemPrompt, userPrompt),
+        temperature: AI_COMPLETION.temperature,
+        max_tokens: AI_COMPLETION.maxTokensLong,
+        stream: true,
+      },
+      signal ? { signal } : undefined
+    );
+  }
   let finishReason: string | null = null;
+  let lastUsage: unknown;
   for await (const chunk of stream) {
     throwIfAborted(signal);
+    if ((chunk as { usage?: unknown }).usage) {
+      lastUsage = (chunk as { usage?: unknown }).usage;
+    }
     const choice = chunk.choices[0];
     if (choice?.finish_reason) finishReason = choice.finish_reason;
     const content = choice?.delta?.content || '';
@@ -169,6 +231,12 @@ async function* customStream(
   if (finishReason === 'length') {
     yield '\n\n> **หมายเหตุ:** คำทำนายถูกตัดเพราะยาวเกินงบ output ของรอบนี้ — ลองเปิดใหม่หรือถาม follow-up ในส่วนที่ขาด';
   }
+  applyCreditMeta({
+    creditsDeducted: 0,
+    usage: usageFromOpenAI(lastUsage),
+    truncated: finishReason === 'length',
+    finishReason: finishReason || undefined,
+  });
 }
 
 type CreditBody = {
@@ -192,6 +260,10 @@ async function creditNonStream(body: CreditBody, signal?: AbortSignal): Promise<
       result?: string;
       remainingCredits?: number;
       creditsDeducted?: number;
+      usageMeta?: TokenUsageMeta;
+      truncated?: boolean;
+      finishReason?: string;
+      cached?: boolean;
     }>(
       '/api/ai/completion',
       {
@@ -211,6 +283,10 @@ async function creditNonStream(body: CreditBody, signal?: AbortSignal): Promise<
       applyCreditMeta({
         creditsDeducted: data.creditsDeducted,
         remainingCredits: data.remainingCredits,
+        usage: data.usageMeta,
+        truncated: data.truncated,
+        finishReason: data.finishReason,
+        cached: data.cached,
       });
       return cleanAiResponse(data.result);
     }
@@ -330,6 +406,7 @@ async function* creditStream(body: CreditBody, signal?: AbortSignal): AsyncItera
             partial?: boolean;
             cached?: boolean;
             finishReason?: string;
+            usage?: TokenUsageMeta;
           };
           if (parsed.error) throw new Error(parsed.error);
           if (parsed.content) yield parsed.content;
@@ -340,6 +417,7 @@ async function* creditStream(body: CreditBody, signal?: AbortSignal): AsyncItera
             partial: parsed.partial,
             cached: parsed.cached,
             finishReason: parsed.finishReason,
+            usage: parsed.usage,
           });
         } catch (parseErr) {
           if (parseErr instanceof Error && parseErr.message && !/JSON/i.test(parseErr.message)) {
