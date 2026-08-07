@@ -15,19 +15,51 @@ function getFocusable(container: HTMLElement): HTMLElement[] {
   );
 }
 
+/** Nested modals: only unlock body when the last modal closes. */
+let bodyLockCount = 0;
+
+function lockBodyScroll(): void {
+  if (typeof document === 'undefined') return;
+  if (bodyLockCount === 0) {
+    document.body.style.overflow = 'hidden';
+  }
+  bodyLockCount += 1;
+}
+
+function unlockBodyScroll(): void {
+  if (typeof document === 'undefined') return;
+  bodyLockCount = Math.max(0, bodyLockCount - 1);
+  if (bodyLockCount === 0) {
+    document.body.style.overflow = '';
+  }
+}
+
+export type UseModalA11yOptions = {
+  /**
+   * When false, keep body scroll-lock / open state but disable Esc + focus trap
+   * (nested modal on top). Does NOT restore focus — that only runs when isOpen becomes false.
+   */
+  trapFocus?: boolean;
+};
+
 /**
  * Modal accessibility: Escape to close, focus trap, restore focus, body scroll lock.
+ *
+ * Important: focus restore runs only when `isOpen` goes false — not when `trapFocus`
+ * toggles. Nested modals previously restored focus and jumped the page scroll upward.
  */
 export function useModalA11y(
   isOpen: boolean,
   onClose: () => void,
-  dialogRef: RefObject<HTMLElement | null>
+  dialogRef: RefObject<HTMLElement | null>,
+  options: UseModalA11yOptions = {}
 ) {
+  const trapFocus = options.trapFocus !== false;
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (!isOpen) return;
+      if (!isOpen || !trapFocus) return;
 
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -59,23 +91,48 @@ export function useModalA11y(
         first.focus();
       }
     },
-    [isOpen, onClose, dialogRef]
+    [isOpen, trapFocus, onClose, dialogRef]
   );
 
+  // Body scroll lock for full open lifetime (refcounted for nested modals)
   useEffect(() => {
     if (!isOpen) return;
 
     previousFocusRef.current = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
+
+    return () => {
+      unlockBodyScroll();
+      const prev = previousFocusRef.current;
+      previousFocusRef.current = null;
+      if (prev && typeof prev.focus === 'function') {
+        try {
+          // preventScroll avoids the page jumping upward when focus returns
+          prev.focus({ preventScroll: true });
+        } catch {
+          // element may be gone
+        }
+      }
+    };
+  }, [isOpen]);
+
+  // Focus trap + Esc only while this layer is the active topmost dialog
+  useEffect(() => {
+    if (!isOpen || !trapFocus) return;
 
     const focusTimer = window.setTimeout(() => {
       const root = dialogRef.current;
       if (!root) return;
+      // Don't steal focus if something inside is already focused
+      if (root.contains(document.activeElement)) return;
       const focusable = getFocusable(root);
       const preferred =
         root.querySelector<HTMLElement>('[data-modal-initial-focus]') || focusable[0] || root;
-      preferred.focus();
+      try {
+        preferred.focus({ preventScroll: true });
+      } catch {
+        preferred.focus();
+      }
     }, 0);
 
     document.addEventListener('keydown', handleKeyDown, true);
@@ -83,17 +140,9 @@ export function useModalA11y(
     return () => {
       window.clearTimeout(focusTimer);
       document.removeEventListener('keydown', handleKeyDown, true);
-      document.body.style.overflow = prevOverflow;
-      const prev = previousFocusRef.current;
-      if (prev && typeof prev.focus === 'function') {
-        try {
-          prev.focus();
-        } catch {
-          // element may be gone
-        }
-      }
+      // Do NOT restore focus here — nested modal would jump scroll
     };
-  }, [isOpen, handleKeyDown, dialogRef]);
+  }, [isOpen, trapFocus, handleKeyDown, dialogRef]);
 }
 
 /** True when user prefers reduced motion (safe for confetti / decorative animation). */

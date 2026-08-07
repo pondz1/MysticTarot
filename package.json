@@ -6,7 +6,7 @@
     "postinstall": "npm run install:deps",
     "install:deps": "npm install --prefix client --include=dev && npm install --prefix server --include=dev",
     "install:all": "npm install --no-audit && npm run install:deps",
-    "dev": "concurrently -n \"CLIENT,SERVER\" -c \"cyan,magenta\" \"npm run dev --prefix client\" \"npm run dev --prefix server\"",
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server",
     "build": "npm run build --prefix client && npm run build --prefix server",

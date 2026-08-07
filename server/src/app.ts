@@ -6,6 +6,7 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { aiRouter } from './routes/ai.js';
 import { readingsRouter } from './routes/readings.js';
 import { userRouter } from './routes/user.js';
+import { paymentsRouter, omiseWebhookHandler } from './routes/payments.js';
 import { authRouter } from './routes/auth.js';
 import { authMiddleware, type AuthRequest } from './middleware/auth.js';
 import { aiIdempotencyMiddleware } from './middleware/idempotency.js';
@@ -48,7 +49,15 @@ export function createApp() {
   );
 
   app.use(express.json({ limit: '100kb' }));
+  // Omise webhooks have no user JWT — register before/after auth; auth is optional
+  app.post('/api/webhooks/omise', omiseWebhookHandler);
   app.use(authMiddleware);
+
+  const rateLimitKey = (req: Request) => {
+    const authReq = req as AuthRequest;
+    if (authReq.user?.userId) return `user:${authReq.user.userId}`;
+    return `ip:${ipKeyGenerator(req.ip || req.socket.remoteAddress || 'unknown')}`;
+  };
 
   // Rate limit AI by authenticated user when possible, else IP
   const aiRateLimiter = rateLimit({
@@ -56,12 +65,7 @@ export function createApp() {
     max: 30,
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => {
-      const authReq = req as AuthRequest;
-      if (authReq.user?.userId) return `user:${authReq.user.userId}`;
-      // IPv6-safe IP key (required by express-rate-limit v8+)
-      return `ip:${ipKeyGenerator(req.ip || req.socket.remoteAddress || 'unknown')}`;
-    },
+    keyGenerator: rateLimitKey,
     message: {
       success: false,
       error: 'ขออภัย คุณใช้งาน AI ครบโควต้าชั่วคราวแล้ว กรุณาลองใหม่อีกครั้งใน 15 นาที',
@@ -69,9 +73,46 @@ export function createApp() {
     },
   });
 
+  // Rate limit credit mutations (claim / promo / simulate / refill) to slow farming
+  const creditMutationLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: rateLimitKey,
+    message: {
+      success: false,
+      error: 'คำขอเติมเครดิตบ่อยเกินไป กรุณาลองใหม่ในอีกสักครู่',
+      code: 'RATE_LIMITED',
+    },
+  });
+
+  // Stricter limiter for promo + daily claim (identity-farming vectors)
+  const creditBonusLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: rateLimitKey,
+    message: {
+      success: false,
+      error: 'ใช้สิทธิ์โบนัส/โค้ดบ่อยเกินไป กรุณาลองใหม่ภายหลัง',
+      code: 'RATE_LIMITED',
+    },
+  });
+
   app.use('/api/auth', authRouter);
   app.use('/api/ai', aiRateLimiter, aiIdempotencyMiddleware, aiRouter);
   app.use('/api/readings', readingsRouter);
+
+  // Apply mutation limiters before user router handlers
+  app.use('/api/user/claim-daily', creditBonusLimiter);
+  app.use('/api/user/redeem-code', creditBonusLimiter);
+  app.use('/api/user/topup-simulate', creditMutationLimiter);
+  app.use('/api/user/topup/create', creditMutationLimiter);
+  app.use('/api/user/refill', creditMutationLimiter);
+  app.use('/api/user/reset-credits', creditMutationLimiter);
+  app.use('/api/user', paymentsRouter);
   app.use('/api/user', userRouter);
 
   app.get('/api/health', (_req: Request, res: Response) => {

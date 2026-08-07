@@ -81,10 +81,10 @@ function settleCredits(
   const plan = planCreditSettlement(reserved, actualCost);
   let extraTaken = 0;
   if (plan.extraDeduct > 0) {
-    const result = creditsDb.deductCredit(userId, plan.extraDeduct);
+    const result = creditsDb.deductCredit(userId, plan.extraDeduct, 'settle_extra');
     extraTaken = result.deducted;
   } else if (plan.refund > 0) {
-    creditsDb.refillCredits(userId, plan.refund);
+    creditsDb.refillCredits(userId, plan.refund, 'settle_refund');
   }
   // netCharged = reserve kept + extra actually taken (never more than balance allowed)
   const netCharged =
@@ -97,7 +97,7 @@ function settleCredits(
 
 function refundReserve(userId: string, reserved: number): number {
   if (reserved > 0) {
-    creditsDb.refillCredits(userId, reserved);
+    creditsDb.refillCredits(userId, reserved, 'refund', { reserved });
   }
   return creditsDb.getCredits(userId);
 }

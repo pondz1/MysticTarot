@@ -17,10 +17,17 @@ interface ModalShellProps {
   /** Close when clicking backdrop (default true) */
   closeOnBackdrop?: boolean;
   /**
-   * When false, keep dialog mounted but disable Esc / focus trap / body lock
+   * When false, keep dialog mounted but disable Esc / focus trap
    * (use while a nested modal is open on top).
+   * Body scroll lock stays until isOpen becomes false.
    */
   enableA11y?: boolean;
+  /**
+   * Vertical alignment of the panel inside the viewport.
+   * - center: short dialogs
+   * - start: tall dialogs (avoids re-center jump when content height changes)
+   */
+  align?: 'center' | 'start';
 }
 
 /**
@@ -37,29 +44,40 @@ export const ModalShell: React.FC<ModalShellProps> = ({
   zClass = 'z-50',
   closeOnBackdrop = true,
   enableA11y = true,
+  align = 'start',
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
-  useModalA11y(isOpen && enableA11y, onClose, dialogRef);
+  useModalA11y(isOpen, onClose, dialogRef, { trapFocus: enableA11y });
 
   if (!isOpen) return null;
 
+  const alignClass = align === 'center' ? 'items-center' : 'items-start';
+
   return (
     <div
-      className={`fixed inset-0 ${zClass} flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto overscroll-contain`}
+      className={`fixed inset-0 ${zClass} overflow-y-auto overscroll-contain bg-black/80 backdrop-blur-sm`}
       onClick={closeOnBackdrop ? onClose : undefined}
       role="presentation"
     >
+      {/*
+        items-start + top padding: tall content (QR 2:3) won't re-center on re-render.
+        animate-fade-in removed from shell — re-mount animation on parent re-render felt like jump.
+      */}
       <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-label={!titleId ? ariaLabel : undefined}
-        tabIndex={-1}
-        className={`relative w-full ${maxWidthClass} my-auto outline-none ${panelClassName}`}
-        onClick={(e) => e.stopPropagation()}
+        className={`flex min-h-full ${alignClass} justify-center p-3 sm:p-4 pt-6 sm:pt-10 pb-10`}
       >
-        {children}
+        <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          aria-label={!titleId ? ariaLabel : undefined}
+          tabIndex={-1}
+          className={`relative w-full ${maxWidthClass} outline-none ${panelClassName}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

@@ -26,6 +26,41 @@ export const userCredits = sqliteTable('user_credits', {
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const creditLedger = sqliteTable('credit_ledger', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  delta: integer('delta').notNull(),
+  balanceAfter: integer('balance_after').notNull(),
+  reason: text('reason').notNull(),
+  meta: text('meta'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const promoRedemptions = sqliteTable('promo_redemptions', {
+  code: text('code').notNull(),
+  userId: text('user_id').notNull(),
+  redeemedAt: text('redeemed_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const paymentOrders = sqliteTable('payment_orders', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  packageId: text('package_id').notNull(),
+  packageName: text('package_name').notNull(),
+  credits: integer('credits').notNull(),
+  amountSatang: integer('amount_satang').notNull(),
+  currency: text('currency').notNull().default('thb'),
+  method: text('method').notNull(),
+  status: text('status').notNull().default('pending'),
+  omiseChargeId: text('omise_charge_id'),
+  omiseSourceId: text('omise_source_id'),
+  qrImageUrl: text('qr_image_url'),
+  failureMessage: text('failure_message'),
+  fulfilledAt: text('fulfilled_at'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
 export type UserSelect = typeof users.$inferSelect;
 export type UserInsert = typeof users.$inferInsert;
 export type ReadingSelect = typeof readings.$inferSelect;

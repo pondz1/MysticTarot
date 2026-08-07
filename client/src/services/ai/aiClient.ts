@@ -3,6 +3,7 @@ import { apiClient, ApiError, getClientSessionId } from '../apiClient';
 import { authService } from '../authService';
 import { DEFAULT_API_SETTINGS, PROVIDER_PRESETS } from '../../constants/aiSettings';
 import { AI_COMPLETION } from '../../constants/aiCompletion';
+import { publishCredits } from '../creditEvents';
 
 export { DEFAULT_API_SETTINGS, PROVIDER_PRESETS };
 
@@ -88,11 +89,9 @@ function applyCreditMeta(
     lastCreditsDeducted = meta.creditsDeducted;
     lastAiMeta.creditsDeducted = meta.creditsDeducted;
   }
-  if (typeof meta.remainingCredits === 'number' && typeof window !== 'undefined') {
+  if (typeof meta.remainingCredits === 'number') {
     // Never surface negative credit to UI (legacy/server race safety)
-    window.dispatchEvent(
-      new CustomEvent('user_credits_updated', { detail: Math.max(0, meta.remainingCredits) })
-    );
+    publishCredits(Math.max(0, meta.remainingCredits));
   }
 }
 

@@ -1,5 +1,6 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import { loadEnv, logPaymentEnvStatus } from './loadEnv.js';
+
+const envFiles = loadEnv();
 
 import { createApp } from './app.js';
 
@@ -10,6 +11,10 @@ const PORT = process.env.PORT || 3001;
 if (process.env.VITEST !== 'true') {
   app.listen(PORT, () => {
     console.log(`🔮 MysticVerse Backend server running on http://localhost:${PORT}`);
+    if (envFiles.length > 0) {
+      console.log(`[Env] loaded: ${envFiles.join(', ')}`);
+    }
+    logPaymentEnvStatus();
   });
 }
 

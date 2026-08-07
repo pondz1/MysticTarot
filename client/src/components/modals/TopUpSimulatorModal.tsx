@@ -1,8 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Coins, X, Check, QrCode, CreditCard, Sparkles, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
-import { apiClient } from '../../services/apiClient';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  Coins,
+  X,
+  Check,
+  QrCode,
+  CreditCard,
+  Sparkles,
+  CheckCircle2,
+  Zap,
+  FlaskConical,
+  AlertTriangle,
+  Loader2,
+  ShieldCheck,
+} from 'lucide-react';
+import { apiClient, ApiError } from '../../services/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import { ModalShell } from '../common/ModalShell';
+import { createOmiseCardToken } from '../../services/omiseClient';
 
 export interface TopUpPackage {
   id: string;
@@ -14,11 +28,33 @@ export interface TopUpPackage {
   popular?: boolean;
 }
 
-export const TOPUP_PACKAGES: TopUpPackage[] = [
+const FALLBACK_PACKAGES: TopUpPackage[] = [
   { id: 'pkg_starter', name: 'Starter Pack', baseCredits: 20, bonusCredits: 0, priceThb: 29 },
-  { id: 'pkg_popular', name: 'Popular Pack', baseCredits: 50, bonusCredits: 5, priceThb: 59, badge: '🔥 ขายดีที่สุด', popular: true },
-  { id: 'pkg_pro', name: 'Pro Pack', baseCredits: 100, bonusCredits: 20, priceThb: 99, badge: '✨ คุ้มค่า' },
-  { id: 'pkg_ultimate', name: 'Ultimate Pack', baseCredits: 250, bonusCredits: 60, priceThb: 199, badge: '🚀 โบนัส +24%' },
+  {
+    id: 'pkg_popular',
+    name: 'Popular Pack',
+    baseCredits: 50,
+    bonusCredits: 5,
+    priceThb: 59,
+    badge: '🔥 ขายดีที่สุด',
+    popular: true,
+  },
+  {
+    id: 'pkg_pro',
+    name: 'Pro Pack',
+    baseCredits: 100,
+    bonusCredits: 20,
+    priceThb: 99,
+    badge: '✨ คุ้มค่า',
+  },
+  {
+    id: 'pkg_ultimate',
+    name: 'Ultimate Pack',
+    baseCredits: 250,
+    bonusCredits: 60,
+    priceThb: 199,
+    badge: '🚀 โบนัส +24%',
+  },
 ];
 
 interface TopUpSimulatorModalProps {
@@ -27,63 +63,287 @@ interface TopUpSimulatorModalProps {
   onSuccess?: (newCredits: number) => void;
 }
 
+type PayMethod = 'promptpay' | 'card';
+
+interface PendingPayment {
+  orderId: string;
+  chargeId?: string | null;
+  qrImageUrl?: string | null;
+  credits: number;
+  packageName: string;
+  priceThb: number;
+  method: PayMethod;
+  testMode?: boolean;
+  dashboardChargeUrl?: string | null;
+}
+
 export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
 }) => {
-  const { refreshCredits } = useAuth();
-  const [packages, setPackages] = useState<TopUpPackage[]>(TOPUP_PACKAGES);
-  const [selectedPkg, setSelectedPkg] = useState<TopUpPackage>(TOPUP_PACKAGES[1]);
-  const [paymentMethod, setPaymentMethod] = useState<'promptpay' | 'card'>('promptpay');
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const { updateCredits, features, refreshFeatures } = useAuth();
+  const [packages, setPackages] = useState<TopUpPackage[]>(FALLBACK_PACKAGES);
+  const [selectedPkg, setSelectedPkg] = useState<TopUpPackage | null>(
+    FALLBACK_PACKAGES.find((p) => p.popular) || FALLBACK_PACKAGES[0]
+  );
+  const [paymentMethod, setPaymentMethod] = useState<PayMethod>('promptpay');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successInfo, setSuccessInfo] = useState<{ added: number; total: number } | null>(null);
+  const [loadingPackages, setLoadingPackages] = useState(false);
+  const [pending, setPending] = useState<PendingPayment | null>(null);
+  const [pollHint, setPollHint] = useState('รอการชำระเงิน…');
+  /** Live flags from /packages (authoritative) so we don't stick on AuthContext demo defaults */
+  const [liveFlags, setLiveFlags] = useState<{
+    omisePayments?: boolean;
+    topupSimulator?: boolean;
+    omisePublicKey?: string | null;
+  } | null>(null);
+
+  // Card fields (tokenized client-side — never sent raw to our server)
+  const [cardName, setCardName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExp, setCardExp] = useState(''); // MM/YY
+  const [cardCvc, setCardCvc] = useState('');
+
+  const omiseEnabled = Boolean(
+    liveFlags?.omisePayments ?? features?.omisePayments
+  );
+  const simulatorEnabled = Boolean(
+    liveFlags?.topupSimulator ?? features?.topupSimulator
+  );
+  const publicKey =
+    liveFlags?.omisePublicKey ?? features?.omisePublicKey ?? null;
+  const pollRef = useRef<number | null>(null);
+
+  const stopPolling = useCallback(() => {
+    if (pollRef.current != null) {
+      window.clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
-    if (isOpen) {
-      apiClient
-        .get<{ packages: TopUpPackage[] }>('/api/user/packages')
-        .then((res) => {
-          if (Array.isArray(res.packages) && res.packages.length > 0) {
-            setPackages(res.packages);
-            setSelectedPkg(res.packages.find((p) => p.popular) || res.packages[0]);
-          }
-        })
-        .catch((err) => console.warn('Failed to fetch packages from server, using fallback:', err));
+    if (!isOpen) {
+      stopPolling();
+      return;
     }
-  }, [isOpen]);
-
-  const totalCredits = (selectedPkg?.baseCredits || 20) + (selectedPkg?.bonusCredits || 0);
-
-  const handleSimulatePayment = async () => {
-    if (!selectedPkg) return;
-    setIsProcessing(true);
-    try {
-      const res = await apiClient.post<{ credits: number; added: number }>('/api/user/topup-simulate', {
-        packageId: selectedPkg.id,
-        amount: totalCredits,
-        packageName: selectedPkg.name,
+    setErrorMsg(null);
+    setSuccessInfo(null);
+    setPending(null);
+    setLoadingPackages(true);
+    // Only fetch packages once per open — avoid refreshFeatures every dep change (re-render jump)
+    let cancelled = false;
+    apiClient
+      .get<{
+        packages: TopUpPackage[];
+        features?: {
+          topupSimulator?: boolean;
+          omisePayments?: boolean;
+          omisePublicKey?: string | null;
+        };
+      }>('/api/user/packages')
+      .then((res) => {
+        if (cancelled) return;
+        if (res.features) {
+          setLiveFlags(res.features);
+        }
+        if (Array.isArray(res.packages) && res.packages.length > 0) {
+          setPackages(res.packages);
+          setSelectedPkg(res.packages.find((p) => p.popular) || res.packages[0]);
+        }
+      })
+      .catch((err) => console.warn('Failed to fetch packages:', err))
+      .finally(() => {
+        if (!cancelled) setLoadingPackages(false);
       });
 
-      if (typeof res.credits === 'number') {
-        const updatedCredits = res.credits;
-        const actualAdded = typeof res.added === 'number' ? res.added : totalCredits;
-        setSuccessInfo({ added: actualAdded, total: updatedCredits });
-        window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: updatedCredits }));
-        refreshCredits();
-        if (onSuccess) onSuccess(updatedCredits);
+    return () => {
+      cancelled = true;
+      stopPolling();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when open toggles
+  }, [isOpen, stopPolling]);
+
+  const finishSuccess = useCallback(
+    (added: number, total: number) => {
+      stopPolling();
+      setPending(null);
+      setSuccessInfo({ added, total });
+      updateCredits(total);
+      onSuccess?.(total);
+    },
+    [onSuccess, stopPolling, updateCredits]
+  );
+
+  const startPolling = useCallback(
+    (orderId: string, expectedCredits: number) => {
+      stopPolling();
+      // Static hint — do NOT toggle text every tick (causes modal scroll jump)
+      setPollHint('รอการยืนยันการชำระเงิน…');
+      pollRef.current = window.setInterval(async () => {
+        try {
+          const res = await apiClient.get<{
+            status: string;
+            newlyFulfilled?: boolean;
+            creditsBalance?: number;
+            credits?: number;
+            failureMessage?: string | null;
+          }>(`/api/user/topup/${orderId}/status`);
+
+          if (res.status === 'fulfilled' || res.status === 'successful') {
+            const total =
+              typeof res.creditsBalance === 'number'
+                ? res.creditsBalance
+                : expectedCredits;
+            const added = typeof res.credits === 'number' ? res.credits : expectedCredits;
+            finishSuccess(added, total);
+            return;
+          }
+          if (res.status === 'failed' || res.status === 'expired') {
+            stopPolling();
+            setPending(null);
+            setErrorMsg(res.failureMessage || 'การชำระเงินล้มเหลวหรือหมดเวลา');
+            setIsProcessing(false);
+          }
+          // pending: no setState — avoid re-render/scroll thrash every 3s
+        } catch {
+          // keep polling silently
+        }
+      }, 3000);
+    },
+    [finishSuccess, stopPolling]
+  );
+
+  const totalCredits =
+    (selectedPkg?.baseCredits || 0) + (selectedPkg?.bonusCredits || 0);
+
+  const handleOmisePay = async () => {
+    if (!selectedPkg || isProcessing || !omiseEnabled) return;
+    setIsProcessing(true);
+    setErrorMsg(null);
+
+    try {
+      let omiseToken: string | undefined;
+
+      if (paymentMethod === 'card') {
+        if (!publicKey) {
+          throw new Error('ยังไม่มี Omise public key');
+        }
+        const exp = cardExp.replace(/\s/g, '');
+        const [mm, yy] = exp.split('/');
+        const month = Number(mm);
+        const year = Number(yy?.length === 2 ? `20${yy}` : yy);
+        if (!cardName.trim() || !cardNumber.trim() || !month || !year || !cardCvc.trim()) {
+          throw new Error('กรุณากรอกข้อมูลบัตรให้ครบ');
+        }
+        omiseToken = await createOmiseCardToken(publicKey, {
+          name: cardName.trim(),
+          number: cardNumber.replace(/\s/g, ''),
+          expiration_month: month,
+          expiration_year: year,
+          security_code: cardCvc.trim(),
+        });
       }
-    } catch (err) {
-      console.error('Failed to process topup payment:', err);
+
+      const res = await apiClient.post<{
+        orderId: string;
+        chargeId?: string;
+        status: string;
+        qrImageUrl?: string | null;
+        authorizeUri?: string | null;
+        credits: number;
+        packageName: string;
+        priceThb: number;
+        creditsBalance?: number;
+        newlyFulfilled?: boolean;
+        testMode?: boolean;
+        dashboardChargeUrl?: string | null;
+      }>('/api/user/topup/create', {
+        packageId: selectedPkg.id,
+        method: paymentMethod,
+        omiseToken,
+        returnUri: `${window.location.origin}/?topup=return`,
+      });
+
+      if (res.status === 'fulfilled' || res.newlyFulfilled) {
+        finishSuccess(
+          res.credits,
+          typeof res.creditsBalance === 'number' ? res.creditsBalance : res.credits
+        );
+        setIsProcessing(false);
+        return;
+      }
+
+      if (res.authorizeUri) {
+        // 3-D Secure redirect
+        window.location.href = res.authorizeUri;
+        return;
+      }
+
+      setPending({
+        orderId: res.orderId,
+        chargeId: res.chargeId,
+        // Must be full Omise download_uri — relative /api/... paths break in <img> (no JWT)
+        qrImageUrl: res.qrImageUrl,
+        credits: res.credits,
+        packageName: res.packageName,
+        priceThb: res.priceThb,
+        method: paymentMethod,
+        testMode: res.testMode,
+        dashboardChargeUrl: res.dashboardChargeUrl,
+      });
+      startPolling(res.orderId, res.credits);
+    } catch (err: unknown) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : 'ชำระเงินไม่สำเร็จ';
+      setErrorMsg(message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSimulatePayment = async () => {
+    if (!selectedPkg || isProcessing || !simulatorEnabled) return;
+    setIsProcessing(true);
+    setErrorMsg(null);
+    try {
+      const res = await apiClient.post<{
+        credits: number;
+        added: number;
+      }>('/api/user/topup-simulate', { packageId: selectedPkg.id });
+
+      if (typeof res.credits === 'number') {
+        const actualAdded = typeof res.added === 'number' ? res.added : totalCredits;
+        finishSuccess(actualAdded, res.credits);
+      }
+    } catch (err: unknown) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : 'ไม่สามารถจำลองการเติมเครดิตได้';
+      setErrorMsg(message);
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleClose = () => {
+    stopPolling();
     setSuccessInfo(null);
+    setErrorMsg(null);
+    setPending(null);
     onClose();
   };
+
+  const modeLabel = omiseEnabled ? 'Omise' : simulatorEnabled ? 'DEMO' : 'ปิด';
 
   return (
     <ModalShell
@@ -92,198 +352,383 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
       titleId="topup-modal-title"
       maxWidthClass="max-w-lg"
       zClass="z-[60]"
-      panelClassName="glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto overscroll-contain"
+      align="start"
+      panelClassName="glass-panel-gold rounded-2xl p-6 border border-amber-400/50 shadow-2xl max-h-[min(90vh,900px)] overflow-y-auto overscroll-contain"
     >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-4">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 shrink-0">
-              <Coins className="w-5 h-5" aria-hidden="true" />
-            </div>
-            <div>
-              <h3 id="topup-modal-title" className="text-base font-bold text-amber-100">
-                แพ็กเกจเติมเครดิต AI
-              </h3>
-              <p className="text-[11px] text-slate-400">เลือกแพ็กเกจและช่องทางชำระเงิน</p>
+      <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 shrink-0">
+            <Coins className="w-5 h-5" aria-hidden="true" />
+          </div>
+          <div>
+            <h3
+              id="topup-modal-title"
+              className="text-base font-bold text-amber-100 flex items-center gap-2 flex-wrap"
+            >
+              แพ็กเกจเติมเครดิต AI
+              <span
+                className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${
+                  omiseEnabled
+                    ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-200'
+                    : 'bg-fuchsia-500/25 border-fuchsia-400/40 text-fuchsia-200'
+                }`}
+              >
+                {omiseEnabled ? <ShieldCheck className="w-3 h-3" /> : <FlaskConical className="w-3 h-3" />}
+                {modeLabel}
+              </span>
+            </h3>
+            <p className="text-[11px] text-slate-400">
+              {omiseEnabled
+                ? 'ชำระเงินผ่าน Omise (PromptPay / บัตร)'
+                : 'โหมดจำลอง — ไม่มีการชำระเงินจริง'}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleClose}
+          aria-label="ปิดหน้าต่างเติมเครดิต"
+          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+        >
+          <X className="w-5 h-5" aria-hidden="true" />
+        </button>
+      </div>
+
+      {!omiseEnabled && simulatorEnabled && (
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-fuchsia-400/40 bg-fuchsia-950/40 px-3 py-2.5 text-[11px] text-fuchsia-100 leading-relaxed">
+          <AlertTriangle className="w-4 h-4 text-fuchsia-300 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-fuchsia-200">โหมดจำลอง</strong>
+            <br />
+            ยังไม่ได้ตั้งค่า OMISE_SECRET_KEY — กดยืนยันแล้วเครดิตจะเพิ่มทันทีโดยไม่ตัดเงิน
+          </div>
+        </div>
+      )}
+
+      {omiseEnabled && (
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-emerald-400/30 bg-emerald-950/30 px-3 py-2.5 text-[11px] text-emerald-100/90 leading-relaxed">
+          <ShieldCheck className="w-4 h-4 text-emerald-300 shrink-0 mt-0.5" />
+          <div>
+            ชำระเงินปลอดภัยผ่าน <strong>Omise</strong> — ข้อมูลบัตรถูก tokenize ที่เบราว์เซอร์
+            ไม่ถูกส่งมายังเซิร์ฟเวอร์ของเรา
+          </div>
+        </div>
+      )}
+
+      {!omiseEnabled && !simulatorEnabled && (
+        <div className="py-8 text-center text-sm text-slate-400">
+          ระบบเติมเครดิตยังไม่พร้อม กรุณาตั้งค่า Omise หรือเปิด simulator
+        </div>
+      )}
+
+      {successInfo ? (
+        <div className="flex flex-col items-center justify-center py-6 text-center">
+          <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mb-3">
+            <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+          </div>
+          <h4 className="text-xl font-bold text-emerald-300 font-serif-mystic mb-1">
+            {omiseEnabled ? 'ชำระเงินสำเร็จ!' : 'จำลองการเติมสำเร็จ!'}
+          </h4>
+          <p className="text-xs text-purple-200 mb-4">
+            เพิ่มเข้าสู่บัญชีแล้ว{' '}
+            <span className="text-amber-300 font-bold">+{successInfo.added} Credits</span>
+          </p>
+          <div className="w-full bg-purple-950/80 border border-amber-400/40 rounded-xl p-4 mb-6">
+            <div className="text-xs text-purple-300 mb-1">ยอด Credit คงเหลือทั้งหมด</div>
+            <div className="text-3xl font-extrabold text-amber-300 font-serif-mystic">
+              {successInfo.total} CR
             </div>
           </div>
           <button
             type="button"
             onClick={handleClose}
-            aria-label="ปิดหน้าต่างเติมเครดิต"
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-purple-950 font-bold text-sm cursor-pointer"
           >
-            <X className="w-5 h-5" aria-hidden="true" />
+            ตกลง และ เริ่มทำนายดวงชะตา
           </button>
         </div>
+      ) : pending ? (
+        <div className="flex flex-col items-center py-4 text-center">
+          <h4 className="text-sm font-bold text-amber-100 mb-1">
+            {pending.method === 'promptpay' ? 'สแกน PromptPay QR' : 'รอการยืนยันการชำระเงิน'}
+          </h4>
+          <p className="text-[11px] text-slate-400 mb-3">
+            {pending.packageName} · ฿{pending.priceThb} · +{pending.credits} CR
+          </p>
 
-        {/* Success View */}
-        {successInfo ? (
-          <div className="flex flex-col items-center justify-center py-6 text-center animate-scale-up">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mb-3 shadow-lg shadow-emerald-500/20">
-              <CheckCircle2 className="w-10 h-10 text-emerald-400 animate-pulse" />
-            </div>
-            <h4 className="text-xl font-bold text-emerald-300 font-serif-mystic mb-1">
-              ชำระเงินสำเร็จเรียบร้อย!
-            </h4>
-            <p className="text-xs text-purple-200 mb-4">
-              เพิ่มเข้าสู่บัญชีของคุณแล้ว <span className="text-amber-300 font-bold">+{successInfo.added} Credits</span>
-            </p>
-
-            <div className="w-full bg-purple-950/80 border border-amber-400/40 rounded-xl p-4 mb-6">
-              <div className="text-xs text-purple-300 mb-1">ยอด Credit คงเหลือทั้งหมด</div>
-              <div className="text-3xl font-extrabold text-amber-300 font-serif-mystic">
-                {successInfo.total} CR
+          {pending.testMode && pending.method === 'promptpay' && (
+            <div className="w-full mb-3 text-left flex items-start gap-2 rounded-xl border border-amber-400/50 bg-amber-950/40 px-3 py-2.5 text-[11px] text-amber-100 leading-relaxed">
+              <AlertTriangle className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-amber-200">โหมด Test ของ Omise</strong>
+                <br />
+                สแกนด้วยแอปธนาคารจริง<strong> จะไม่ตัดเงินและไม่สำเร็จ</strong> — เป็น QR ทดสอบเท่านั้น
+                <ol className="list-decimal ml-4 mt-1.5 space-y-0.5 text-amber-100/90">
+                  <li>เปิด Omise Dashboard → Charges</li>
+                  <li>หา charge นี้ แล้วกด Actions → Mark as successful</li>
+                  <li>กลับมาหน้านี้ กด «ตรวจสอบสถานะ»</li>
+                </ol>
+                {pending.dashboardChargeUrl && (
+                  <a
+                    href={pending.dashboardChargeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 text-amber-300 underline font-semibold"
+                  >
+                    เปิด charge บน Dashboard →
+                  </a>
+                )}
+                {pending.chargeId && (
+                  <div className="mt-1 font-mono text-[10px] text-slate-400 break-all">
+                    {pending.chargeId}
+                  </div>
+                )}
               </div>
             </div>
+          )}
 
-            <button
-              onClick={handleClose}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-purple-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+          {pending.qrImageUrl ? (
+            <div
+              className="w-full max-w-[300px] aspect-[2/3] bg-white rounded-2xl shadow-lg mb-3 p-4 flex items-center justify-center"
+              aria-label="PromptPay QR ขนาด 2:3"
             >
-              ตกลง และ เริ่มทำนายดวงชะตา
-            </button>
-          </div>
-        ) : (
+              {/* Do NOT set crossOrigin — Omise has no CORS; QR stays square (object-contain) inside 2:3 frame */}
+              <img
+                src={pending.qrImageUrl}
+                alt="PromptPay QR Code"
+                className="w-full h-full max-w-full max-h-full object-contain object-center bg-white select-none"
+                referrerPolicy="no-referrer"
+                draggable={false}
+                onError={(e) => {
+                  console.error('[TopUp] QR image failed to load:', pending.qrImageUrl);
+                  (e.target as HTMLImageElement).style.outline = '2px solid #f43f5e';
+                }}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2 mb-3 w-full max-w-[300px] aspect-[2/3] justify-center rounded-2xl border border-dashed border-amber-500/30">
+              <Loader2 className="w-10 h-10 text-amber-300 animate-spin" />
+              <p className="text-[11px] text-rose-300">ไม่ได้รับ URL ของ QR จาก Omise</p>
+            </div>
+          )}
+          <p className="text-xs text-emerald-300 flex items-center justify-center gap-1.5 mb-2 min-h-[1.25rem]">
+            <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" aria-hidden="true" />
+            <span className="tabular-nums">
+              {pending.testMode ? 'รอ mark successful บน Dashboard…' : pollHint}
+            </span>
+          </p>
+          {!pending.testMode && (
+            <p className="text-[10px] text-slate-500 mb-3 max-w-xs">
+              มือถือ: ถ่าย screenshot QR แล้วเปิดในแอปธนาคาร · เดสก์ท็อป: สแกนด้วยแอปบนโทรศัพท์
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const res = await apiClient.get<{
+                  status: string;
+                  creditsBalance?: number;
+                  credits?: number;
+                  failureMessage?: string | null;
+                }>(`/api/user/topup/${pending.orderId}/status`);
+                if (res.status === 'fulfilled' || res.status === 'successful') {
+                  finishSuccess(
+                    res.credits ?? pending.credits,
+                    res.creditsBalance ?? pending.credits
+                  );
+                } else if (res.status === 'failed' || res.status === 'expired') {
+                  setErrorMsg(res.failureMessage || 'การชำระเงินล้มเหลว');
+                  setPending(null);
+                  stopPolling();
+                } else {
+                  setPollHint('ยังรอชำระ… ลองใหม่หลัง mark successful');
+                }
+              } catch {
+                /* ignore */
+              }
+            }}
+            className="px-4 py-2 rounded-lg text-xs font-semibold border border-amber-400/40 text-amber-200 hover:bg-slate-800 cursor-pointer"
+          >
+            ตรวจสอบสถานะทันที
+          </button>
+          {errorMsg && (
+            <p className="mt-3 text-[11px] text-rose-300">{errorMsg}</p>
+          )}
+        </div>
+      ) : (
+        (omiseEnabled || simulatorEnabled) && (
           <>
-            {/* Package Selector */}
             <div className="mb-5">
               <label className="text-xs text-purple-200 font-semibold mb-2 block flex items-center justify-between">
-                <span>1. เลือกแพ็กเกจ Credit ที่ต้องการ:</span>
-                <span className="text-[10px] text-amber-300/80">1 Credit ≈ 1k-4k Tokens</span>
+                <span>1. เลือกแพ็กเกจ</span>
+                <span className="text-[10px] text-amber-300/80">1 Credit ≈ 1k–4k Tokens</span>
               </label>
-
-              <div className="grid grid-cols-2 gap-2.5">
-                {packages.map((pkg) => {
-                  const isSelected = selectedPkg?.id === pkg.id;
-                  const total = pkg.baseCredits + pkg.bonusCredits;
-                  return (
-                    <button
-                      key={pkg.id}
-                      type="button"
-                      onClick={() => setSelectedPkg(pkg)}
-                      className={`relative flex flex-col p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-amber-500/20 border-amber-400 shadow-md shadow-amber-500/20'
-                          : 'bg-purple-950/40 border-purple-500/20 hover:bg-purple-900/40'
-                      }`}
-                    >
-                      {pkg.badge && (
-                        <span className="absolute -top-2 right-2 text-[9px] px-2 py-0.5 rounded-full bg-amber-500 text-purple-950 font-bold shadow-sm">
-                          {pkg.badge}
-                        </span>
-                      )}
-                      
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-purple-100">{pkg.name}</span>
-                        {isSelected && <Check className="w-4 h-4 text-amber-400" />}
-                      </div>
-
-                      <div className="text-lg font-extrabold text-amber-300 font-serif-mystic">
-                        {total} <span className="text-xs font-normal text-purple-300">Credits</span>
-                      </div>
-
-                      {pkg.bonusCredits > 0 && (
-                        <div className="text-[10px] text-emerald-400 flex items-center gap-0.5 font-medium">
-                          <Sparkles className="w-3 h-3" />
-                          <span>(ฟรีโบนัส +{pkg.bonusCredits} CR)</span>
-                        </div>
-                      )}
-
-                      <div className="mt-2 text-xs font-semibold text-purple-200 border-t border-purple-800/40 pt-1.5 flex justify-between">
-                        <span>ราคา:</span>
-                        <span className="text-amber-300">฿{pkg.priceThb}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Payment Method Selector */}
-            <div className="mb-5">
-              <label className="text-xs text-purple-200 font-semibold mb-2 block">
-                2. เลือกช่องทางชำระเงิน:
-              </label>
-
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('promptpay')}
-                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                    paymentMethod === 'promptpay'
-                      ? 'bg-amber-500/20 border-amber-400 text-amber-300'
-                      : 'bg-purple-950/40 border-purple-500/20 text-purple-300 hover:bg-purple-900/40'
-                  }`}
-                >
-                  <QrCode className="w-4 h-4 text-amber-400" />
-                  <span>PromptPay QR Code</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('card')}
-                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                    paymentMethod === 'card'
-                      ? 'bg-amber-500/20 border-amber-400 text-amber-300'
-                      : 'bg-purple-950/40 border-purple-500/20 text-purple-300 hover:bg-purple-900/40'
-                  }`}
-                >
-                  <CreditCard className="w-4 h-4 text-amber-400" />
-                  <span>บัตรเครดิต / เดบิต</span>
-                </button>
-              </div>
-
-              {/* QR Code / Card UI */}
-              {paymentMethod === 'promptpay' ? (
-                <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-purple-950/80 border border-amber-500/30 text-center">
-                  <div className="p-3 bg-white rounded-xl shadow-lg mb-2">
-                    <QrCode className="w-24 h-24 text-slate-900" />
-                  </div>
-                  <div className="text-xs font-bold text-amber-300">สแกนชำระเงิน ฿{selectedPkg.priceThb}</div>
-                  <div className="text-[10px] text-purple-300">รองรับ Mobile Banking ทุกธนาคาร</div>
+              {loadingPackages ? (
+                <div className="flex items-center justify-center py-8 text-slate-400 text-xs gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" /> กำลังโหลด…
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-purple-950/80 border border-amber-500/30 flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-xs text-purple-200 mb-1">
-                    <span>บัตรชำระเงิน:</span>
-                    <span className="text-amber-300 font-mono">•••• •••• •••• 4242</span>
-                  </div>
-                  <div className="text-[11px] text-purple-300">
-                    ยอดชำระ: <strong className="text-amber-300">฿{selectedPkg.priceThb}</strong> (ทำรายการอัตโนมัติ)
-                  </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {packages.map((pkg) => {
+                    const isSelected = selectedPkg?.id === pkg.id;
+                    const total = pkg.baseCredits + pkg.bonusCredits;
+                    return (
+                      <button
+                        key={pkg.id}
+                        type="button"
+                        onClick={() => setSelectedPkg(pkg)}
+                        className={`relative flex flex-col p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-amber-500/20 border-amber-400 shadow-md shadow-amber-500/20'
+                            : 'bg-purple-950/40 border-purple-500/20 hover:bg-purple-900/40'
+                        }`}
+                      >
+                        {pkg.badge && (
+                          <span className="absolute -top-2 right-2 text-[9px] px-2 py-0.5 rounded-full bg-amber-500 text-purple-950 font-bold">
+                            {pkg.badge}
+                          </span>
+                        )}
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-purple-100">{pkg.name}</span>
+                          {isSelected && <Check className="w-4 h-4 text-amber-400" />}
+                        </div>
+                        <div className="text-lg font-extrabold text-amber-300 font-serif-mystic">
+                          {total}{' '}
+                          <span className="text-xs font-normal text-purple-300">Credits</span>
+                        </div>
+                        {pkg.bonusCredits > 0 && (
+                          <div className="text-[10px] text-emerald-400 flex items-center gap-0.5">
+                            <Sparkles className="w-3 h-3" />
+                            โบนัส +{pkg.bonusCredits}
+                          </div>
+                        )}
+                        <div className="mt-2 text-xs font-semibold text-purple-200 border-t border-purple-800/40 pt-1.5 flex justify-between">
+                          <span>ราคา:</span>
+                          <span className="text-amber-300">฿{pkg.priceThb}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Action Button */}
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={handleSimulatePayment}
-                disabled={isProcessing}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-purple-950 font-bold text-sm shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {isProcessing ? (
-                  <>
-                    <Zap className="w-4 h-4 animate-spin" />
-                    <span>กำลังประมวลผลการชำระเงิน...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>ยืนยันการชำระเงิน (+{totalCredits} Credits)</span>
-                  </>
-                )}
-              </button>
-
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-purple-400 mt-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>ปลอดภัย 100% เครดิตเข้าสู่บัญชีทันทีหลังชำระเงิน</span>
+            <div className="mb-5">
+              <label className="text-xs text-purple-200 font-semibold mb-2 block">
+                2. ช่องทางชำระเงิน
+              </label>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('promptpay')}
+                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold cursor-pointer ${
+                    paymentMethod === 'promptpay'
+                      ? 'bg-amber-500/20 border-amber-400 text-amber-300'
+                      : 'bg-purple-950/40 border-purple-500/20 text-purple-300'
+                  }`}
+                >
+                  <QrCode className="w-4 h-4 text-amber-400" />
+                  PromptPay
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('card')}
+                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold cursor-pointer ${
+                    paymentMethod === 'card'
+                      ? 'bg-amber-500/20 border-amber-400 text-amber-300'
+                      : 'bg-purple-950/40 border-purple-500/20 text-purple-300'
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4 text-amber-400" />
+                  บัตรเครดิต/เดบิต
+                </button>
               </div>
+
+              {omiseEnabled && paymentMethod === 'card' && (
+                <div className="p-3 rounded-xl bg-purple-950/80 border border-amber-500/30 flex flex-col gap-2">
+                  <input
+                    type="text"
+                    autoComplete="cc-name"
+                    placeholder="ชื่อบนบัตร"
+                    value={cardName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-purple-500/40 text-xs text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                  />
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="cc-number"
+                    placeholder="หมายเลขบัตร"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-purple-500/40 text-xs text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="cc-exp"
+                      placeholder="MM/YY"
+                      value={cardExp}
+                      onChange={(e) => setCardExp(e.target.value)}
+                      className="px-3 py-2 rounded-lg bg-black/40 border border-purple-500/40 text-xs text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
+                    />
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      autoComplete="cc-csc"
+                      placeholder="CVC"
+                      value={cardCvc}
+                      onChange={(e) => setCardCvc(e.target.value)}
+                      className="px-3 py-2 rounded-lg bg-black/40 border border-purple-500/40 text-xs text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500">
+                    ใช้บัตรทดสอบ Omise: 4242 4242 4242 4242 · หมดอายุอนาคต · CVC ใดก็ได้
+                  </p>
+                </div>
+              )}
+
+              {omiseEnabled && paymentMethod === 'promptpay' && (
+                <div className="p-3 rounded-xl bg-purple-950/60 border border-amber-500/20 text-[11px] text-purple-200">
+                  กดยืนยันแล้วจะแสดง QR PromptPay จาก Omise ให้สแกนด้วยแอปธนาคาร
+                </div>
+              )}
             </div>
+
+            {errorMsg && (
+              <div className="mb-3 text-[11px] px-2.5 py-2 rounded-md bg-rose-500/20 text-rose-300 border border-rose-400/30">
+                {errorMsg}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={omiseEnabled ? handleOmisePay : handleSimulatePayment}
+              disabled={isProcessing || !selectedPkg || loadingPackages}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-purple-950 font-bold text-sm shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {isProcessing ? (
+                <>
+                  <Zap className="w-4 h-4 animate-spin" />
+                  กำลังดำเนินการ…
+                </>
+              ) : omiseEnabled ? (
+                <>
+                  <ShieldCheck className="w-4 h-4" />
+                  ชำระ ฿{selectedPkg?.priceThb ?? '—'} (+{totalCredits} CR)
+                </>
+              ) : (
+                <>
+                  <FlaskConical className="w-4 h-4" />
+                  จำลองเติม +{totalCredits} Credits
+                </>
+              )}
+            </button>
           </>
-        )}
+        )
+      )}
     </ModalShell>
   );
 };
