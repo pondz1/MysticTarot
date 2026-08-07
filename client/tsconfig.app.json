@@ -25,7 +25,8 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
+    // TS 6+: baseUrl is deprecated; keep path alias relative to this config file
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@shared/*": [
         "../shared/*"

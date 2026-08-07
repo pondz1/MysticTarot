@@ -91,7 +91,7 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { updateCredits, features, refreshFeatures } = useAuth();
+  const { updateCredits, features } = useAuth();
   const [packages, setPackages] = useState<TopUpPackage[]>(FALLBACK_PACKAGES);
   const [selectedPkg, setSelectedPkg] = useState<TopUpPackage | null>(
     FALLBACK_PACKAGES.find((p) => p.popular) || FALLBACK_PACKAGES[0]
@@ -165,11 +165,12 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
           setLiveFlags(res.features);
         }
         if (Array.isArray(res.packages) && res.packages.length > 0) {
-          setPackages(res.packages);
+          const pkgs = res.packages as TopUpPackage[];
+          setPackages(pkgs);
           setSelectedPkg((prev) => {
-            const popular = res.packages.find((p) => p.popular);
-            if (prev && res.packages.some((p) => p.id === prev.id)) return prev;
-            return popular || res.packages[0];
+            const popular = pkgs.find((p: TopUpPackage) => p.popular);
+            if (prev && pkgs.some((p: TopUpPackage) => p.id === prev.id)) return prev;
+            return popular || pkgs[0];
           });
         }
       })
