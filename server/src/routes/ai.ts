@@ -7,7 +7,11 @@ import {
   CREDIT_RATES,
   planCreditSettlement,
 } from '../constants/creditRates.js';
-import { AI_COMPLETION, sanitizeAiErrorMessage } from '../constants/aiCompletion.js';
+import {
+  AI_COMPLETION,
+  maxTokensForModule,
+  sanitizeAiErrorMessage,
+} from '../constants/aiCompletion.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { buildModulePrompts } from '../ai/buildPrompts.js';
 import { isAiModuleId } from '../ai/types.js';
@@ -72,14 +76,19 @@ function settleCredits(
   actualCost: number
 ): { netCharged: number; remainingCredits: number } {
   const plan = planCreditSettlement(reserved, actualCost);
+  let extraTaken = 0;
   if (plan.extraDeduct > 0) {
-    creditsDb.deductCredit(userId, plan.extraDeduct);
+    const result = creditsDb.deductCredit(userId, plan.extraDeduct);
+    extraTaken = result.deducted;
   } else if (plan.refund > 0) {
     creditsDb.refillCredits(userId, plan.refund);
   }
+  // netCharged = reserve kept + extra actually taken (never more than balance allowed)
+  const netCharged =
+    plan.refund > 0 ? plan.netCharged : reserved + extraTaken;
   return {
-    netCharged: plan.netCharged,
-    remainingCredits: creditsDb.getCredits(userId),
+    netCharged: Math.max(0, netCharged),
+    remainingCredits: Math.max(0, creditsDb.getCredits(userId)),
   };
 }
 
@@ -214,8 +223,12 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       { role: 'user' as const, content: userPrompt },
     ];
 
+    const completionMaxTokens = maxTokensForModule(
+      typeof moduleId === 'string' ? moduleId : undefined
+    );
+
     console.log(
-      `[AI Request] Mode: ${isCreditMode ? 'Credit' : 'Custom Key'}, Module: ${moduleId || 'freeform'}, Model: ${model}, Stream: ${!!stream}, User: ${creditUserId || 'n/a'}`
+      `[AI Request] Mode: ${isCreditMode ? 'Credit' : 'Custom Key'}, Module: ${moduleId || 'freeform'}, Model: ${model}, Stream: ${!!stream}, MaxTokens: ${completionMaxTokens}, User: ${creditUserId || 'n/a'}`
     );
 
     if (stream) {
@@ -223,7 +236,7 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         model,
         messages,
         temperature: AI_COMPLETION.temperature,
-        max_tokens: AI_COMPLETION.maxTokens,
+        max_tokens: completionMaxTokens,
         stream: true,
       });
 
@@ -237,6 +250,7 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         | undefined;
       let fullText = '';
       let abortedEarly = false;
+      let finishReason: string | null = null;
 
       for await (const chunk of streamResponse) {
         if (clientDisconnected) {
@@ -246,11 +260,24 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
         if (chunk.usage) {
           finalUsage = chunk.usage;
         }
-        const content = chunk.choices[0]?.delta?.content || '';
+        const choice = chunk.choices[0];
+        if (choice?.finish_reason) {
+          finishReason = choice.finish_reason;
+        }
+        const content = choice?.delta?.content || '';
         if (content) {
           fullText += content;
           writeSse(res, { content });
         }
+      }
+
+      const truncatedByMaxTokens = finishReason === 'length';
+      // Append a short notice so users understand the cutoff is not a random crash
+      if (truncatedByMaxTokens && fullText.trim() && !clientDisconnected) {
+        const notice =
+          '\n\n> **หมายเหตุ:** คำทำนายถูกตัดเพราะยาวเกินงบ output ของรอบนี้ — ลองเปิดใหม่หรือถาม follow-up ในส่วนที่ขาด';
+        fullText += notice;
+        writeSse(res, { content: notice });
       }
 
       let creditsDeducted = 0;
@@ -273,9 +300,17 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
           settled = true;
         }
         writeSse(res, {
-          remainingCredits,
+          remainingCredits: Math.max(0, remainingCredits ?? 0),
           creditsDeducted,
-          partial: abortedEarly || clientDisconnected,
+          partial: abortedEarly || clientDisconnected || truncatedByMaxTokens,
+          truncated: truncatedByMaxTokens,
+          finishReason: finishReason || undefined,
+        });
+      } else if (truncatedByMaxTokens || abortedEarly) {
+        writeSse(res, {
+          partial: true,
+          truncated: truncatedByMaxTokens,
+          finishReason: finishReason || undefined,
         });
       }
 
@@ -289,7 +324,7 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       }
 
       console.log(
-        `[AI Stream Finished] Length: ${fullText.length} chars, Charged: ${creditsDeducted}, Remaining: ${remainingCredits}, Partial: ${abortedEarly || clientDisconnected}`
+        `[AI Stream Finished] Length: ${fullText.length} chars, Charged: ${creditsDeducted}, Remaining: ${remainingCredits}, finish_reason: ${finishReason || 'n/a'}, Partial: ${abortedEarly || clientDisconnected || truncatedByMaxTokens}`
       );
 
       if (historyEntry && historyEntry.id && fullText.trim()) {
@@ -327,10 +362,16 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
       model,
       messages,
       temperature: AI_COMPLETION.temperature,
-      max_tokens: AI_COMPLETION.maxTokens,
+      max_tokens: completionMaxTokens,
     });
 
-    const result = completion.choices[0]?.message?.content || '';
+    let result = completion.choices[0]?.message?.content || '';
+    const finishReason = completion.choices[0]?.finish_reason || null;
+    const truncatedByMaxTokens = finishReason === 'length';
+    if (truncatedByMaxTokens && result.trim()) {
+      result +=
+        '\n\n> **หมายเหตุ:** คำทำนายถูกตัดเพราะยาวเกินงบ output ของรอบนี้ — ลองเปิดใหม่หรือถาม follow-up ในส่วนที่ขาด';
+    }
 
     let creditsDeducted: number | undefined;
     let remainingCredits: number | undefined;
@@ -355,9 +396,12 @@ aiRouter.post('/completion', async (req: AuthRequest, res: Response): Promise<vo
     sendSuccess(res, {
       result,
       model,
-      remainingCredits,
+      remainingCredits:
+        typeof remainingCredits === 'number' ? Math.max(0, remainingCredits) : remainingCredits,
       creditsDeducted,
       usage: completion.usage,
+      truncated: truncatedByMaxTokens,
+      finishReason: finishReason || undefined,
     });
   } catch (error: unknown) {
     // Refund reserve on provider/route failure

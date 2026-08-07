@@ -56,7 +56,10 @@ function applyCreditMeta(meta: { creditsDeducted?: number; remainingCredits?: nu
     lastCreditsDeducted = meta.creditsDeducted;
   }
   if (typeof meta.remainingCredits === 'number' && typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('user_credits_updated', { detail: meta.remainingCredits }));
+    // Never surface negative credit to UI (legacy/server race safety)
+    window.dispatchEvent(
+      new CustomEvent('user_credits_updated', { detail: Math.max(0, meta.remainingCredits) })
+    );
   }
 }
 
@@ -97,13 +100,18 @@ async function customNonStream(
       model: settings.model || AI_COMPLETION.defaultModel,
       messages: buildChatMessages(systemPrompt, userPrompt),
       temperature: AI_COMPLETION.temperature,
-      max_tokens: AI_COMPLETION.maxTokens,
+      max_tokens: AI_COMPLETION.maxTokensLong,
       stream: false,
     },
     signal ? { signal } : undefined
   );
   throwIfAborted(signal);
-  return cleanAiResponse(completion.choices[0]?.message?.content || '');
+  let text = completion.choices[0]?.message?.content || '';
+  if (completion.choices[0]?.finish_reason === 'length' && text.trim()) {
+    text +=
+      '\n\n> **หมายเหตุ:** คำทำนายถูกตัดเพราะยาวเกินงบ output ของรอบนี้ — ลองเปิดใหม่หรือถาม follow-up ในส่วนที่ขาด';
+  }
+  return cleanAiResponse(text);
 }
 
 /** Custom key: browser stream */
@@ -123,15 +131,21 @@ async function* customStream(
       model: settings.model || AI_COMPLETION.defaultModel,
       messages: buildChatMessages(systemPrompt, userPrompt),
       temperature: AI_COMPLETION.temperature,
-      max_tokens: AI_COMPLETION.maxTokens,
+      max_tokens: AI_COMPLETION.maxTokensLong,
       stream: true,
     },
     signal ? { signal } : undefined
   );
+  let finishReason: string | null = null;
   for await (const chunk of stream) {
     throwIfAborted(signal);
-    const content = chunk.choices[0]?.delta?.content || '';
+    const choice = chunk.choices[0];
+    if (choice?.finish_reason) finishReason = choice.finish_reason;
+    const content = choice?.delta?.content || '';
     if (content) yield content;
+  }
+  if (finishReason === 'length') {
+    yield '\n\n> **หมายเหตุ:** คำทำนายถูกตัดเพราะยาวเกินงบ output ของรอบนี้ — ลองเปิดใหม่หรือถาม follow-up ในส่วนที่ขาด';
   }
 }
 
