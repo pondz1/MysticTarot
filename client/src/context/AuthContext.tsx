@@ -7,6 +7,7 @@ export interface CreditFeatures {
   topupSimulator: boolean;
   omisePayments?: boolean;
   omisePublicKey?: string | null;
+  omiseTestMode?: boolean;
   paidTopup?: boolean;
   fastRefill: boolean;
   isProduction: boolean;

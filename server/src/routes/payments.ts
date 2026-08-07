@@ -35,6 +35,37 @@ function newOrderId(): string {
 }
 
 /**
+ * Build 3DS return URL with order id always present.
+ * Client may pass a base URL; we merge ?topup=return&order=...
+ */
+function buildCardReturnUri(
+  req: AuthRequest,
+  orderId: string,
+  clientReturn?: unknown
+): string | undefined {
+  const publicBase =
+    process.env.PUBLIC_APP_URL?.replace(/\/+$/, '') ||
+    (typeof req.headers.origin === 'string' ? req.headers.origin.trim() : '') ||
+    '';
+
+  const fallbackOrigin = publicBase || 'http://localhost:5173';
+
+  try {
+    const raw =
+      typeof clientReturn === 'string' && clientReturn.trim()
+        ? clientReturn.trim()
+        : `${fallbackOrigin}/`;
+    const url = new URL(raw, fallbackOrigin);
+    url.searchParams.set('topup', 'return');
+    url.searchParams.set('order', orderId);
+    return url.toString();
+  } catch {
+    if (!publicBase) return undefined;
+    return `${publicBase}/?topup=return&order=${encodeURIComponent(orderId)}`;
+  }
+}
+
+/**
  * POST /api/user/topup/create
  * Body: { packageId, method: 'promptpay' | 'card', omiseToken?: string (card), returnUri?: string }
  */
@@ -82,16 +113,9 @@ paymentsRouter.post('/topup/create', async (req: AuthRequest, res: Response) => 
     const orderId = newOrderId();
     let qrImageUrl: string | null = null;
 
-    const publicBase =
-      process.env.PUBLIC_APP_URL?.replace(/\/+$/, '') ||
-      (typeof req.headers.origin === 'string' ? req.headers.origin : '');
-
-    const defaultReturn =
-      returnUri && typeof returnUri === 'string'
-        ? returnUri
-        : publicBase
-          ? `${publicBase}/?topup=return&order=${orderId}`
-          : undefined;
+    // Always attach order id so 3DS return can resume the correct payment
+    const cardReturnUri =
+      payMethod === 'card' ? buildCardReturnUri(req, orderId, returnUri) : undefined;
 
     // PromptPay: single-shot source+charge (Omise recommended for server-side)
     const charge = await createCharge({
@@ -105,7 +129,7 @@ paymentsRouter.post('/topup/create', async (req: AuthRequest, res: Response) => 
         package_id: pkg.id,
         credits: String(credits),
       },
-      returnUri: payMethod === 'card' ? defaultReturn : undefined,
+      returnUri: cardReturnUri,
     });
 
     qrImageUrl = extractQrImageUrl(charge);

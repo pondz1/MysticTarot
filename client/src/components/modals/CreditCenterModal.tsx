@@ -8,15 +8,21 @@ import {
   Zap,
   Loader2,
   FlaskConical,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient, ApiError } from '../../services/apiClient';
 import { TopUpSimulatorModal } from './TopUpSimulatorModal';
 import { ModalShell } from '../common/ModalShell';
+import type { TopupReturnResult } from '../../services/topupReturn';
 
 interface CreditCenterModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** After 3DS/OTP bank redirect — show status banner */
+  returnResult?: TopupReturnResult | null;
+  onDismissReturnResult?: () => void;
 }
 
 function formatCountdown(ms: number): string {
@@ -28,7 +34,12 @@ function formatCountdown(ms: number): string {
   return `อีก ${hours} ชม. ${mins} นาที`;
 }
 
-export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({ isOpen, onClose }) => {
+export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({
+  isOpen,
+  onClose,
+  returnResult = null,
+  onDismissReturnResult,
+}) => {
   const { credits: authCredits, updateCredits, features, refreshFeatures } = useAuth();
   const [credits, setCredits] = useState<number | null>(authCredits);
   const [loadingCredits, setLoadingCredits] = useState(false);
@@ -106,6 +117,17 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({ isOpen, on
   useEffect(() => {
     setCredits(authCredits);
   }, [authCredits]);
+
+  // Apply balance from 3DS return resolve
+  useEffect(() => {
+    if (!isOpen || !returnResult) return;
+    if (
+      returnResult.status === 'fulfilled' &&
+      typeof returnResult.creditsBalance === 'number'
+    ) {
+      applyCredits(returnResult.creditsBalance);
+    }
+  }, [isOpen, returnResult, applyCredits]);
 
   useEffect(() => {
     if (!isOpen || canClaimDaily) return;
@@ -244,6 +266,52 @@ export const CreditCenterModal: React.FC<CreditCenterModalProps> = ({ isOpen, on
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
+
+        {/* 3DS / OTP return banner */}
+        {returnResult && (
+          <div
+            className={`mb-4 flex items-start gap-2 rounded-xl border px-3 py-2.5 text-[11px] leading-relaxed ${
+              returnResult.status === 'fulfilled'
+                ? 'border-emerald-400/40 bg-emerald-950/40 text-emerald-100'
+                : returnResult.status === 'checking'
+                  ? 'border-amber-400/40 bg-amber-950/40 text-amber-100'
+                  : returnResult.status === 'pending'
+                    ? 'border-amber-400/40 bg-amber-950/30 text-amber-100'
+                    : 'border-rose-400/40 bg-rose-950/40 text-rose-100'
+            }`}
+            role="status"
+          >
+            {returnResult.status === 'fulfilled' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
+            ) : returnResult.status === 'checking' ? (
+              <Loader2 className="w-4 h-4 text-amber-300 shrink-0 mt-0.5 animate-spin" aria-hidden="true" />
+            ) : (
+              <AlertTriangle className="w-4 h-4 text-rose-300 shrink-0 mt-0.5" aria-hidden="true" />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">
+                {returnResult.status === 'fulfilled'
+                  ? 'กลับจากการยืนยันธนาคาร'
+                  : returnResult.status === 'checking'
+                    ? 'กำลังตรวจสอบการชำระเงิน…'
+                    : 'ผลการชำระเงิน'}
+              </p>
+              <p className="mt-0.5 opacity-90">{returnResult.message}</p>
+              {returnResult.packageName && (
+                <p className="mt-0.5 text-[10px] opacity-70">{returnResult.packageName}</p>
+              )}
+            </div>
+            {returnResult.status !== 'checking' && onDismissReturnResult && (
+              <button
+                type="button"
+                onClick={onDismissReturnResult}
+                className="text-[10px] font-semibold underline opacity-80 hover:opacity-100 shrink-0 cursor-pointer"
+              >
+                ปิด
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Balance */}
         <div className="p-4 rounded-xl bg-slate-950/80 border border-amber-500/35 flex items-center justify-between gap-3 shadow-inner mb-5">

@@ -16,7 +16,16 @@ import {
 import { apiClient, ApiError } from '../../services/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import { ModalShell } from '../common/ModalShell';
-import { createOmiseCardToken } from '../../services/omiseClient';
+import {
+  createOmiseCardToken,
+  detectCardBrand,
+  formatCardExpiry,
+  formatCardNumber,
+  formatCvc,
+  parseCardExpiry,
+  validateCardFields,
+} from '../../services/omiseClient';
+import { savePendingTopup } from '../../services/topupReturn';
 
 export interface TopUpPackage {
   id: string;
@@ -98,13 +107,15 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
     omisePayments?: boolean;
     topupSimulator?: boolean;
     omisePublicKey?: string | null;
+    omiseTestMode?: boolean;
   } | null>(null);
 
-  // Card fields (tokenized client-side — never sent raw to our server)
+  // Card fields (tokenized client-side via Omise.js — never sent raw to our server)
   const [cardName, setCardName] = useState('');
   const [cardNumber, setCardNumber] = useState('');
   const [cardExp, setCardExp] = useState(''); // MM/YY
   const [cardCvc, setCardCvc] = useState('');
+  const [cardFieldError, setCardFieldError] = useState<string | null>(null);
 
   const omiseEnabled = Boolean(
     liveFlags?.omisePayments ?? features?.omisePayments
@@ -114,6 +125,9 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
   );
   const publicKey =
     liveFlags?.omisePublicKey ?? features?.omisePublicKey ?? null;
+  const isOmiseTest =
+    liveFlags?.omiseTestMode ?? features?.omiseTestMode ?? publicKey?.includes('_test_') ?? false;
+  const cardBrand = detectCardBrand(cardNumber);
   const pollRef = useRef<number | null>(null);
 
   const stopPolling = useCallback(() => {
@@ -131,6 +145,7 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
     setErrorMsg(null);
     setSuccessInfo(null);
     setPending(null);
+    setCardFieldError(null);
     // Keep showing cached/fallback packages — soft refresh, no loading spinner flicker
     let cancelled = false;
 
@@ -141,6 +156,7 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
           topupSimulator?: boolean;
           omisePayments?: boolean;
           omisePublicKey?: string | null;
+          omiseTestMode?: boolean;
         };
       }>('/api/user/packages')
       .then((res) => {
@@ -228,21 +244,32 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
 
       if (paymentMethod === 'card') {
         if (!publicKey) {
-          throw new Error('ยังไม่มี Omise public key');
+          throw new Error('ยังไม่ได้ตั้งค่าคีย์ชำระเงิน (public key)');
         }
-        const exp = cardExp.replace(/\s/g, '');
-        const [mm, yy] = exp.split('/');
-        const month = Number(mm);
-        const year = Number(yy?.length === 2 ? `20${yy}` : yy);
-        if (!cardName.trim() || !cardNumber.trim() || !month || !year || !cardCvc.trim()) {
-          throw new Error('กรุณากรอกข้อมูลบัตรให้ครบ');
+        const fieldErr = validateCardFields({
+          name: cardName,
+          number: cardNumber,
+          exp: cardExp,
+          cvc: cardCvc,
+        });
+        if (fieldErr) {
+          setCardFieldError(fieldErr);
+          setIsProcessing(false);
+          return;
         }
+        const exp = parseCardExpiry(cardExp);
+        if (!exp) {
+          setCardFieldError('วันหมดอายุไม่ถูกต้อง (ใช้รูปแบบ MM/YY)');
+          setIsProcessing(false);
+          return;
+        }
+        setCardFieldError(null);
         omiseToken = await createOmiseCardToken(publicKey, {
           name: cardName.trim(),
-          number: cardNumber.replace(/\s/g, ''),
-          expiration_month: month,
-          expiration_year: year,
-          security_code: cardCvc.trim(),
+          number: cardNumber.replace(/\D/g, ''),
+          expiration_month: exp.month,
+          expiration_year: exp.year,
+          security_code: cardCvc.replace(/\D/g, ''),
         });
       }
 
@@ -263,7 +290,8 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
         packageId: selectedPkg.id,
         method: paymentMethod,
         omiseToken,
-        returnUri: `${window.location.origin}/?topup=return`,
+        // Server merges order id into return URL for 3DS resume
+        returnUri: `${window.location.origin}/`,
       });
 
       if (res.status === 'fulfilled' || res.newlyFulfilled) {
@@ -276,7 +304,14 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
       }
 
       if (res.authorizeUri) {
-        // 3-D Secure redirect
+        // Stash order before leaving — backup if return URL drops query params
+        savePendingTopup({
+          orderId: res.orderId,
+          packageName: res.packageName,
+          credits: res.credits,
+          chargeId: res.chargeId,
+        });
+        // 3-D Secure / bank OTP page (Omise)
         window.location.href = res.authorizeUri;
         return;
       }
@@ -639,53 +674,159 @@ export const TopUpSimulatorModal: React.FC<TopUpSimulatorModalProps> = ({
               </div>
 
               {omiseEnabled && paymentMethod === 'card' && (
-                <div className="p-3 rounded-xl bg-purple-950/80 border border-amber-500/30 flex flex-col gap-2">
-                  <input
-                    type="text"
-                    autoComplete="cc-name"
-                    placeholder="ชื่อบนบัตร"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-purple-500/40 text-xs text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400"
-                  />
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="cc-number"
-                    placeholder="หมายเลขบัตร"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-purple-500/40 text-xs text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
-                  />
-                  <div className="grid grid-cols-2 gap-2">
+                <div className="p-3.5 rounded-xl bg-purple-950/80 border border-amber-500/30 flex flex-col gap-3">
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    ข้อมูลบัตรถูกเข้ารหัสที่เบราว์เซอร์ผ่าน Omise — ไม่ถูกส่งไปเซิร์ฟเวอร์ของเรา
+                  </p>
+
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="card-name" className="text-[11px] font-medium text-purple-200">
+                      ชื่อบนบัตร
+                    </label>
                     <input
+                      id="card-name"
+                      name="cc-name"
                       type="text"
-                      inputMode="numeric"
-                      autoComplete="cc-exp"
-                      placeholder="MM/YY"
-                      value={cardExp}
-                      onChange={(e) => setCardExp(e.target.value)}
-                      className="px-3 py-2 rounded-lg bg-black/40 border border-purple-500/40 text-xs text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
-                    />
-                    <input
-                      type="password"
-                      inputMode="numeric"
-                      autoComplete="cc-csc"
-                      placeholder="CVC"
-                      value={cardCvc}
-                      onChange={(e) => setCardCvc(e.target.value)}
-                      className="px-3 py-2 rounded-lg bg-black/40 border border-purple-500/40 text-xs text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
+                      autoComplete="cc-name"
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      placeholder="NAME SURNAME"
+                      value={cardName}
+                      onChange={(e) => {
+                        setCardName(e.target.value);
+                        setCardFieldError(null);
+                      }}
+                      disabled={isProcessing}
+                      className="w-full px-3 py-2.5 rounded-lg bg-black/40 border border-purple-500/40 text-sm text-amber-100 placeholder-slate-500 focus:outline-none focus-visible:border-amber-400 focus-visible:ring-1 focus-visible:ring-amber-400/40 disabled:opacity-50"
                     />
                   </div>
-                  <p className="text-[10px] text-slate-500">
-                    ใช้บัตรทดสอบ Omise: 4242 4242 4242 4242 · หมดอายุอนาคต · CVC ใดก็ได้
-                  </p>
+
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <label htmlFor="card-number" className="text-[11px] font-medium text-purple-200">
+                        หมายเลขบัตร
+                      </label>
+                      {cardNumber.replace(/\D/g, '').length >= 1 && (
+                        <span
+                          className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                            cardBrand.id === 'unknown'
+                              ? 'border-slate-600 text-slate-400 bg-slate-900/60'
+                              : 'border-amber-400/40 text-amber-100 bg-amber-500/15'
+                          }`}
+                          aria-live="polite"
+                        >
+                          <CreditCard className="w-3 h-3 shrink-0" aria-hidden="true" />
+                          {cardBrand.label}
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        id="card-number"
+                        name="cc-number"
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="cc-number"
+                        spellCheck={false}
+                        placeholder="ACCT-000003"
+                        value={cardNumber}
+                        onChange={(e) => {
+                          setCardNumber(formatCardNumber(e.target.value));
+                          setCardFieldError(null);
+                        }}
+                        disabled={isProcessing}
+                        maxLength={cardBrand.id === 'amex' ? 17 : 23}
+                        className="w-full px-3 py-2.5 pr-16 rounded-lg bg-black/40 border border-purple-500/40 text-sm text-amber-100 placeholder-slate-500 focus:outline-none focus-visible:border-amber-400 focus-visible:ring-1 focus-visible:ring-amber-400/40 font-mono tracking-wider disabled:opacity-50"
+                      />
+                      {cardBrand.id !== 'unknown' && cardNumber.replace(/\D/g, '').length >= 2 && (
+                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-extrabold tracking-tight text-amber-300/90 uppercase">
+                          {cardBrand.id === 'mastercard'
+                            ? 'MC'
+                            : cardBrand.id === 'amex'
+                              ? 'AMEX'
+                              : cardBrand.id === 'unionpay'
+                                ? 'UP'
+                                : cardBrand.id}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="card-exp" className="text-[11px] font-medium text-purple-200">
+                        หมดอายุ
+                      </label>
+                      <input
+                        id="card-exp"
+                        name="cc-exp"
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="cc-exp"
+                        placeholder="MM/YY"
+                        value={cardExp}
+                        onChange={(e) => {
+                          setCardExp(formatCardExpiry(e.target.value));
+                          setCardFieldError(null);
+                        }}
+                        disabled={isProcessing}
+                        maxLength={5}
+                        className="w-full px-3 py-2.5 rounded-lg bg-black/40 border border-purple-500/40 text-sm text-amber-100 placeholder-slate-500 focus:outline-none focus-visible:border-amber-400 focus-visible:ring-1 focus-visible:ring-amber-400/40 font-mono disabled:opacity-50"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="card-cvc" className="text-[11px] font-medium text-purple-200">
+                        {cardBrand.id === 'amex' ? 'CID' : 'CVC'}
+                      </label>
+                      <input
+                        id="card-cvc"
+                        name="cc-csc"
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="cc-csc"
+                        placeholder={cardBrand.id === 'amex' ? '1234' : '123'}
+                        value={cardCvc}
+                        onChange={(e) => {
+                          setCardCvc(formatCvc(e.target.value).slice(0, cardBrand.cvcLength));
+                          setCardFieldError(null);
+                        }}
+                        disabled={isProcessing}
+                        maxLength={cardBrand.cvcLength}
+                        className="w-full px-3 py-2.5 rounded-lg bg-black/40 border border-purple-500/40 text-sm text-amber-100 placeholder-slate-500 focus:outline-none focus-visible:border-amber-400 focus-visible:ring-1 focus-visible:ring-amber-400/40 font-mono disabled:opacity-50"
+                      />
+                    </div>
+                  </div>
+
+                  {cardFieldError && (
+                    <p className="text-[11px] text-rose-300" role="alert">
+                      {cardFieldError}
+                    </p>
+                  )}
+
+                  {isOmiseTest && (
+                    <p className="text-[10px] text-amber-200/80 bg-amber-950/40 border border-amber-500/25 rounded-lg px-2.5 py-2 leading-relaxed">
+                      <strong className="text-amber-200">โหมดทดสอบ</strong>
+                      <br />
+                      บัตร: 4242 4242 4242 4242 · หมดอายุอนาคต เช่น 12/30 · CVC 123
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {!omiseEnabled && paymentMethod === 'card' && (
+                <div className="p-3 rounded-xl bg-purple-950/60 border border-fuchsia-500/25 text-[11px] text-fuchsia-200/90">
+                  โหมดจำลองยังไม่รองรับกรอกบัตรจริง — เลือก PromptPay แล้วกดจำลองเติม หรือตั้งค่า Omise
                 </div>
               )}
 
               {omiseEnabled && paymentMethod === 'promptpay' && (
-                <div className="p-3 rounded-xl bg-purple-950/60 border border-amber-500/20 text-[11px] text-purple-200">
-                  กดยืนยันแล้วจะแสดง QR PromptPay จาก Omise ให้สแกนด้วยแอปธนาคาร
+                <div className="p-3 rounded-xl bg-purple-950/60 border border-amber-500/20 text-[11px] text-purple-200 leading-relaxed">
+                  กดชำระแล้วจะแสดง QR PromptPay ให้สแกนด้วยแอปธนาคาร
+                  {isOmiseTest && (
+                    <span className="block mt-1 text-amber-200/80">
+                      Test mode: สแกนแอปจริงไม่ติด — mark successful บน Dashboard
+                    </span>
+                  )}
                 </div>
               )}
             </div>

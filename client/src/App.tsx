@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { ApiSettingsModal } from './components/modals/ApiSettingsModal';
@@ -12,6 +12,12 @@ import { HomePage } from './pages/HomePage';
 import type { ApiSettings, SavedReading } from './types';
 import { storageService } from './services/storageService';
 import type { TarotCard } from './features/tarot/data/tarotCards';
+import {
+  isTopupReturnSearch,
+  resolveReturnOrderId,
+  resolveTopupReturnStatus,
+  type TopupReturnResult,
+} from './services/topupReturn';
 
 // Code Splitting with React.lazy
 const TarotReadingPage = lazy(() =>
@@ -42,12 +48,15 @@ const PageLoadingFallback = () => (
 
 export function App() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Modals Visibility
   const [isApiSettingsOpen, setIsApiSettingsOpen] = useState<boolean>(false);
   const [isCreditCenterOpen, setIsCreditCenterOpen] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [selectedInspectCard, setSelectedInspectCard] = useState<{ card: TarotCard; isReversed?: boolean } | null>(null);
+  /** After bank OTP / 3DS redirect back to the app */
+  const [topupReturnResult, setTopupReturnResult] = useState<TopupReturnResult | null>(null);
 
   const handleOpenSettings = (defaultTab?: 'credit' | 'custom') => {
     if (defaultTab === 'credit') {
@@ -71,6 +80,38 @@ export function App() {
       }
     });
   }, []);
+
+  // Resume top-up after 3-D Secure / bank OTP redirect (?topup=return&order=...)
+  useEffect(() => {
+    if (!isTopupReturnSearch(location.search)) return;
+
+    const orderId = resolveReturnOrderId(location.search);
+    const path = location.pathname || '/';
+    // Clean query so refresh does not re-run forever (do not cancel the status fetch)
+    navigate(path, { replace: true });
+
+    if (!orderId) {
+      setTopupReturnResult({
+        orderId: '',
+        status: 'error',
+        message: 'ไม่พบหมายเลขออเดอร์หลังยืนยันธนาคาร — เปิดศูนย์เครดิตเพื่อตรวจสอบยอด',
+      });
+      setIsCreditCenterOpen(true);
+      return;
+    }
+
+    setTopupReturnResult({
+      orderId,
+      status: 'checking',
+      message: 'กำลังตรวจสอบผลการชำระเงินจากธนาคาร…',
+    });
+    setIsCreditCenterOpen(true);
+
+    void resolveTopupReturnStatus(orderId).then((result) => {
+      setTopupReturnResult(result);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when return query appears
+  }, [location.search]);
 
   // Save API Settings handler
   const handleSaveApiSettings = (newSettings: ApiSettings) => {
@@ -280,7 +321,12 @@ export function App() {
 
       <CreditCenterModal
         isOpen={isCreditCenterOpen}
-        onClose={() => setIsCreditCenterOpen(false)}
+        onClose={() => {
+          setIsCreditCenterOpen(false);
+          setTopupReturnResult(null);
+        }}
+        returnResult={topupReturnResult}
+        onDismissReturnResult={() => setTopupReturnResult(null)}
       />
 
       <CardDetailModal
