@@ -246,8 +246,17 @@ type CreditBody = {
   historyEntry?: Partial<SavedReading>;
 };
 
-function idempotencyHeaders(historyEntry?: Partial<SavedReading>): Record<string, string> {
+function idempotencyHeaders(
+  module: AiModuleId,
+  historyEntry?: Partial<SavedReading>
+): Record<string, string> {
   if (historyEntry?.id) {
+    if (module === 'tarot_followup') {
+      const turn = Array.isArray(historyEntry.chatHistory)
+        ? historyEntry.chatHistory.length
+        : 1;
+      return { 'X-Idempotency-Key': `${historyEntry.id}_followup_${turn}` };
+    }
     return { 'X-Idempotency-Key': String(historyEntry.id) };
   }
   return {};
@@ -274,7 +283,7 @@ async function creditNonStream(body: CreditBody, signal?: AbortSignal): Promise<
       },
       {
         ...(signal ? { signal } : {}),
-        headers: idempotencyHeaders(body.historyEntry),
+        headers: idempotencyHeaders(body.module, body.historyEntry),
       }
     );
 
@@ -327,7 +336,7 @@ async function* creditStream(body: CreditBody, signal?: AbortSignal): AsyncItera
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
       'X-Session-ID': getClientSessionId(),
-      ...idempotencyHeaders(body.historyEntry),
+      ...idempotencyHeaders(body.module, body.historyEntry),
     },
     body: JSON.stringify({
       module: body.module,

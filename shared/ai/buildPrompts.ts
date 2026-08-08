@@ -79,7 +79,7 @@ function normalizeCards(raw: unknown): TarotCardPayload[] {
   return out;
 }
 
-function buildTarotUserPrompt(payload: TarotPayload): string {
+function buildTarotCardsContext(payload: TarotPayload): string {
   const spreadMode = asString(payload.spreadMode, 'three');
   const spreadConfig = getSpreadConfig(spreadMode);
   const drawnCards = normalizeCards(payload.drawnCards);
@@ -124,7 +124,13 @@ function buildTarotUserPrompt(payload: TarotPayload): string {
 แนวทางสเปรด: ${spreadConfig.aiGuideline || 'วิเคราะห์เชื่อมโยงไพ่กับตำแหน่ง'}
 
 ไพ่ที่ได้:
-${cardsDescription}
+${cardsDescription}`;
+}
+
+function buildTarotUserPrompt(payload: TarotPayload): string {
+  const cardsContext = buildTarotCardsContext(payload);
+
+  return `${cardsContext}
 
 โปรดทำนายอย่างละเอียด ลึกซึ้ง ตามหัวข้อมาตรฐาน:
 1) ภาพรวมดวงชะตาและพลังงานไพ่
@@ -232,42 +238,61 @@ function buildTarotFollowUpPrompts(payload: unknown): BuiltPrompts {
 
 2. **ตอบตรงประเด็นคำถามเจาะลึกของผู้ใช้ (Direct & Clear Answer)**:
    - ไขข้อข้องใจในคำถามเพิ่มเติมของผู้ใช้อย่างชัดเจน กระชับ ไม่ยืดเยื้อเกินจำเป็น
+   - **ห้าม** เขียนทำนายดวงใหม่ 4 หัวข้อแบบรอบหลักเด็ดขาด ต้องตอบเฉพาะคำถามเพิ่มเติมตาม 3 หัวข้อด้านล่างเท่านั้น
 
 3. **วิเคราะห์เชื่อมโยงไพ่ที่เปิดได้และบทวิเคราะห์เดิมเสมอ (Contextual & Card-Grounded)**:
    - ให้คำตอบโดยอ้างอิงไพ่ที่ผู้ใช้จับได้ในรอบนี้และบทวิเคราะห์เดิมที่เคยทำนายไว้ ห้ามตอบแบบเลื่อนลอยโดยไม่เกี่ยวกับไพ่
 
-4. **การจัดรูปแบบ**: ทำตามรูปแบบผลลัพธ์มาตรฐานของเว็บด้านล่าง
+4. **การจัดรูปแบบ**: ทำตามรูปแบบ 3 หัวข้อด้านล่างเท่านั้น:
+   - ## สรุปคำตอบ
+   - ## เชื่อมโยงกับไพ่
+   - ## คำแนะนำ
 
 ${MARKDOWN_OUTPUT_RULES}
 
 ${followUpStructure}`;
 
-  const history = Array.isArray(p.chatHistory) ? p.chatHistory.slice(-20) : [];
-  const historyText = history
-    .map((m) => {
-      const role = m && typeof m === 'object' ? asString((m as { role?: string }).role) : '';
-      const content = m && typeof m === 'object' ? asString((m as { content?: string }).content).slice(0, 4000) : '';
-      return `${role === 'user' ? 'ผู้ถาม' : 'หมอดู'}: ${content}`;
+  const rawHistory = Array.isArray(p.chatHistory) ? p.chatHistory : [];
+  const priorHistory = rawHistory
+    .filter((m) => {
+      if (!m || typeof m !== 'object') return false;
+      const role = asString((m as { role?: string }).role);
+      const content = asString((m as { content?: string }).content).trim();
+      return !(role === 'user' && content === newQuestion);
     })
-    .join('\n');
+    .slice(-10);
 
-  const initialUserPrompt = buildTarotUserPrompt({
+  const historyText =
+    priorHistory.length > 0
+      ? priorHistory
+          .map((m) => {
+            const role = asString((m as { role?: string }).role);
+            const content = asString((m as { content?: string }).content).slice(0, 2000);
+            return `${role === 'user' ? 'ผู้ถาม' : 'หมอดู'}: ${content}`;
+          })
+          .join('\n')
+      : '(ไม่มีประวัติก่อนหน้า)';
+
+  const cardsContext = buildTarotCardsContext({
     question: p.question,
     drawnCards: cards,
     spreadMode,
     deckFilter: p.deckFilter,
   });
 
-  const userPrompt = `คำถามตั้งต้น:
-${initialUserPrompt}
+  const userPrompt = `[ข้อมูลการเปิดไพ่เดิม]
+${cardsContext}
 
-ผลทำนายเริ่มต้น:
+[ผลทำนายหลักก่อนหน้า]
 ${initialResult}
 
-ประวัติก่อนหน้า:
+[ประวัติการสนทนาเพิ่มเติมก่อนหน้า]
 ${historyText}
 
-คำถามเพิ่มเติม: ${newQuestion.slice(0, 2000)}`;
+[คำถามเพิ่มเติมรอบนี้ที่ต้องตอบ]
+${newQuestion.slice(0, 2000)}
+
+*** คำสั่งสำคัญ: นี่คือคำถามเพิ่มเติม (Follow-up) กรุณาตอบเฉพาะคำถามเพิ่มเติมในรอบนี้ โดยอ้างอิงจากไพ่และผลทำนายหลักก่อนหน้า ให้ตอบตามโครงสร้าง 3 หัวข้อ (## สรุปคำตอบ, ## เชื่อมโยงกับไพ่, ## คำแนะนำ) ห้ามเขียนบทวิเคราะห์ทำนายดวงใหม่ 4 หัวข้อแบบรอบหลักซ้ำเด็ดขาด ***`;
 
   return { systemPrompt, userPrompt };
 }

@@ -34,6 +34,39 @@ describe('buildModulePrompts', () => {
     expect(() => buildModulePrompts('tarot', { drawnCards: [] })).toThrow(/drawnCards/);
   });
 
+  it('builds tarot_followup prompts without main reading directives', () => {
+    const { systemPrompt, userPrompt } = buildModulePrompts('tarot_followup', {
+      question: 'งานจะดีไหม',
+      spreadMode: 'three',
+      initialResult: '## ภาพรวมดวงชะตา\nงานราบรื่นดี',
+      newQuestion: 'แล้วมีโอกาสย้ายงานไหม?',
+      chatHistory: [
+        { role: 'user', content: 'แล้วมีโอกาสย้ายงานไหม?' }
+      ],
+      drawnCards: [
+        {
+          position: 'อดีต',
+          isReversed: false,
+          card: {
+            nameTh: 'เดอะฟูล',
+            nameEn: 'The Fool',
+            keywords: ['เริ่มต้น'],
+            uprightMeaning: 'เริ่มต้นใหม่',
+            reversedMeaning: 'ลังเล',
+            element: 'ลม',
+            arcana: 'major',
+          },
+        },
+      ],
+    });
+
+    expect(systemPrompt).toContain('Follow-up Question Directives');
+    expect(systemPrompt).toContain('## สรุปคำตอบ');
+    expect(userPrompt).not.toContain('โปรดทำนายอย่างละเอียด ลึกซึ้ง ตามหัวข้อมาตรฐาน');
+    expect(userPrompt).toContain('[คำถามเพิ่มเติมรอบนี้ที่ต้องตอบ]');
+    expect(userPrompt).toContain('แล้วมีโอกาสย้ายงานไหม?');
+  });
+
   it('builds horoscope prompts', () => {
     const { systemPrompt, userPrompt } = buildModulePrompts('horoscope', {
       signNameTh: 'เมษ',
