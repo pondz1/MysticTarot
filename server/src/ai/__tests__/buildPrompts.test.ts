@@ -60,8 +60,8 @@ describe('buildModulePrompts', () => {
       ],
     });
 
-    expect(systemPrompt).toContain('Follow-up Question Directives');
-    expect(systemPrompt).toContain('## สรุปคำตอบ');
+    expect(systemPrompt).toContain('Follow-up Chat Directives');
+    expect(systemPrompt).toContain('ตอบอย่างเป็นธรรมชาติและตรงประเด็น');
     expect(userPrompt).not.toContain('โปรดทำนายอย่างละเอียด ลึกซึ้ง ตามหัวข้อมาตรฐาน');
     expect(userPrompt).toContain('[คำถามเพิ่มเติมรอบนี้ที่ต้องตอบ]');
     expect(userPrompt).toContain('แล้วมีโอกาสย้ายงานไหม?');
