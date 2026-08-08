@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
@@ -19,23 +19,26 @@ import {
   type TopupReturnResult,
 } from './services/topupReturn';
 
-// Code Splitting with React.lazy
-const TarotReadingPage = lazy(() =>
+import { lazyWithRetry } from './utils/lazyWithRetry';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+
+// Code Splitting with lazyWithRetry (auto-reloads on stale chunk error)
+const TarotReadingPage = lazyWithRetry(() =>
   import('./features/tarot/pages/TarotReadingPage').then((m) => ({ default: m.TarotReadingPage }))
 );
-const TarotEncyclopediaPage = lazy(() =>
+const TarotEncyclopediaPage = lazyWithRetry(() =>
   import('./features/tarot/pages/TarotEncyclopediaPage').then((m) => ({ default: m.TarotEncyclopediaPage }))
 );
-const HoroscopePage = lazy(() =>
+const HoroscopePage = lazyWithRetry(() =>
   import('./features/horoscope/pages/HoroscopePage').then((m) => ({ default: m.HoroscopePage }))
 );
-const NumerologyPage = lazy(() =>
+const NumerologyPage = lazyWithRetry(() =>
   import('./features/numerology/pages/NumerologyPage').then((m) => ({ default: m.NumerologyPage }))
 );
-const ThaiAstrologyPage = lazy(() =>
+const ThaiAstrologyPage = lazyWithRetry(() =>
   import('./features/thai-astrology/pages/ThaiAstrologyPage').then((m) => ({ default: m.ThaiAstrologyPage }))
 );
-const FengShuiPage = lazy(() =>
+const FengShuiPage = lazyWithRetry(() =>
   import('./features/feng-shui/pages/FengShuiPage').then((m) => ({ default: m.FengShuiPage }))
 );
 
@@ -168,7 +171,8 @@ export function App() {
         tabIndex={-1}
         className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-24 md:pb-8 flex flex-col items-center outline-none"
       >
-        <Suspense fallback={<PageLoadingFallback />}>
+        <ErrorBoundary>
+          <Suspense fallback={<PageLoadingFallback />}>
           <Routes>
             {/* Platform Portal Home Route */}
             <Route path="/" element={<HomePage />} />
@@ -305,6 +309,7 @@ export function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
+      </ErrorBoundary>
       </main>
 
       {/* Footer */}

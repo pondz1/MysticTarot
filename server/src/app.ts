@@ -146,9 +146,35 @@ export function createApp() {
 
   const publicDir = path.resolve(process.cwd(), 'public');
   if (fs.existsSync(publicDir)) {
-    app.use(express.static(publicDir));
+    // Serve static files with proper caching headers
+    app.use(
+      express.static(publicDir, {
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('index.html')) {
+            // Never cache index.html so browsers always fetch updated JS chunk URLs
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+          } else if (filePath.includes('/assets/')) {
+            // Cache immutable hashed assets for 1 year
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          }
+        },
+      })
+    );
+
     app.get('*', (req: Request, res: Response, next: NextFunction) => {
       if (req.path.startsWith('/api/')) return next();
+
+      // Return 404 for missing static assets instead of falling back to index.html
+      const isAssetRequest =
+        req.path.startsWith('/assets/') ||
+        /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|map|json)$/i.test(req.path);
+
+      if (isAssetRequest) {
+        res.status(404).type('text/plain').send('Asset not found');
+        return;
+      }
+
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(path.join(publicDir, 'index.html'));
     });
   }
